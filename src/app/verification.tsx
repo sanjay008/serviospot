@@ -1,0 +1,40 @@
+import { useState } from 'react';
+import { StyleSheet, Text } from 'react-native';
+
+import { Badge } from '@/components/Badge';
+import { Button } from '@/components/Button';
+import { Header } from '@/components/Header';
+import { Input } from '@/components/Input';
+import { Notice } from '@/components/Notice';
+import { Screen } from '@/components/Screen';
+import { palette } from '@/constants/theme';
+import { useApp } from '@/state/store';
+
+export default function VerificationScreen() {
+  const { me, updateProvider, session } = useApp();
+  const [kvk, setKvk] = useState(me.kvkNumber);
+  const [vat, setVat] = useState(me.vatNumber);
+  const [saved, setSaved] = useState(false);
+  return (
+    <Screen header={<Header title="Verification" back />}>
+      <Badge label={me.kvkState === 'verified' ? 'KvK verified' : me.kvkState === 'pending' ? 'KvK pending' : 'KvK not submitted'} tone={me.kvkState === 'verified' ? 'good' : 'warn'} />
+      <Badge label={session.emailVerified ? 'Email verified' : 'Email not verified'} tone={session.emailVerified ? 'good' : 'warn'} />
+      <Badge label={session.phoneVerified ? 'Phone verified' : 'Phone not verified'} tone={session.phoneVerified ? 'good' : 'warn'} />
+      <Text style={styles.body}>You can keep selling a listing while KvK review is pending. Customers see the status on your profile.</Text>
+      {saved ? <Notice tone="success" body="Details saved. Status is pending until a reviewer accepts them." /> : null}
+      <Input label="KvK number" value={kvk} onChangeText={setKvk} keyboardType="number-pad" />
+      <Input label="VAT number" value={vat} onChangeText={setVat} />
+      <Button
+        label="Submit for review"
+        onPress={() => {
+          updateProvider({ kvkNumber: kvk, vatNumber: vat, kvkState: kvk ? 'pending' : 'unverified' });
+          setSaved(true);
+        }}
+      />
+    </Screen>
+  );
+}
+
+const styles = StyleSheet.create({
+  body: { fontSize: 15, lineHeight: 22, color: palette.ink },
+});
