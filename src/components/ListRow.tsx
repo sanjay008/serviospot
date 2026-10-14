@@ -36,7 +36,7 @@ export function ToggleRow({ title, subtitle, value, onChange }: { title: string;
 const styles = StyleSheet.create({
   row: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
   well: { width: 36, height: 36, borderRadius: 10, backgroundColor: palette.accentSoft, alignItems: 'center', justifyContent: 'center' },
-  text: { flex: 1, gap: 2 },
+  text: { flex: 1, gap: 2, minWidth: 0 },
   title: { fontSize: 16, color: palette.ink, fontWeight: '600' },
   subtitle: { fontSize: 13, color: palette.muted, lineHeight: 18 },
   trailing: { fontSize: 14, color: palette.muted },

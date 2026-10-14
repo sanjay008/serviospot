@@ -1,0 +1,28 @@
+ServioSpot — new request flow (short)
+
+Vendor menu and the customer request are two different things.
+The menu is what the vendor shows. The request is what the customer asks for.
+
+1. Vendor makes a menu
+   Vendor adds a dish: name, category, price, cuisine, diet, photo.
+   It shows on the vendor page. Customer can look, not book from it.
+
+2. Customer asks for a price
+   Five steps. No description box at the start.
+   1 Event          guests, date (calendar), city, postcode, home/venue, indoor/outdoor, occasion
+   2 Cuisine        cuisine, style, vegetarian, dish counts, serving. Typed in. No fixed cuisine list.
+   3 Staff          staff yes/no, warming trays, tableware, plates, cutlery, glasses, times or delivery/pickup
+   4 Extra          drinks, halal, allergies, forbidden items, vegan, budget, comments
+   5 Review         then send
+
+   Each Next, if logged in, saves a draft (saveRequestDraft).
+   Send needs a logged-in account. Then: save the draft, then submitRequest.
+   Phone verified is not required. The app sets it only when the server sends phone_verified.
+
+3. What happens after send
+   Matching vendors on Gold or Platinum get the request as a lead. Free gets none.
+   Vendor says yes, only part, need to check, or cannot.
+   If yes: one all-in price. Same questions, answered yes/no. Dishes are written in, not picked from a list.
+   One total, deposit separate, valid-until date.
+   Customer sees the price, can compare, then continue to share contact.
+   That is an estimate, not a booking.

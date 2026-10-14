@@ -6,11 +6,13 @@ import { Header } from '@/components/Header';
 import { Notice } from '@/components/Notice';
 import { Screen } from '@/components/Screen';
 import { palette } from '@/constants/theme';
+import { useContactsSync } from '@/state/apiSync';
 import { useApp } from '@/state/store';
 
 export default function ContactScreen() {
   const { requestId } = useLocalSearchParams<{ requestId: string }>();
   const { requests, providers } = useApp();
+  useContactsSync(requestId);
   const request = requests.find((item) => item.id === requestId);
   const released = providers.filter((provider) => request?.contactProviderIds.includes(provider.id));
   return (

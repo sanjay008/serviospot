@@ -9,7 +9,7 @@ import { Input } from '@/components/Input';
 import { Notice } from '@/components/Notice';
 import { Screen } from '@/components/Screen';
 import { palette } from '@/constants/theme';
-import { uid } from '@/data/format';
+import { useRequestSync } from '@/state/apiSync';
 import { useApp } from '@/state/store';
 
 const SCORES = ['1', '2', '3', '4', '5'];
@@ -17,6 +17,7 @@ const SCORES = ['1', '2', '3', '4', '5'];
 export default function ReviewScreen() {
   const { requestId } = useLocalSearchParams<{ requestId: string }>();
   const { requests, providers, outcomes, submitReview, session } = useApp();
+  useRequestSync(requestId);
   const request = requests.find((item) => item.id === requestId);
   const outcome = outcomes.find((item) => item.requestId === requestId);
   const names = (request?.contactProviderIds ?? []).map((id) => providers.find((item) => item.id === id)?.name).filter(Boolean) as string[];
@@ -44,7 +45,7 @@ export default function ReviewScreen() {
       <Input label="Review" value={text} onChangeText={setText} multiline />
       <Button
         label="Submit review"
-        onPress={() => {
+        onPress={async () => {
           const provider = providers.find((item) => item.name === providerName);
           if (!provider || !text.trim()) {
             setOk(false);
@@ -56,8 +57,8 @@ export default function ReviewScreen() {
             setMessage('Confirm on the outcome screen that you used this provider.');
             return;
           }
-          const result = submitReview({
-            id: uid('rev'),
+          const result = await submitReview({
+            id: '',
             providerId: provider.id,
             requestId,
             author: session.name || 'Customer',

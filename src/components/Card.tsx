@@ -1,6 +1,6 @@
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { palette, shadow } from '@/constants/theme';
+import { palette } from '@/constants/theme';
 
 export function Card({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
   return <View style={[styles.card, style]}>{children}</View>;
@@ -14,6 +14,5 @@ const styles = StyleSheet.create({
     borderColor: palette.line,
     padding: 14,
     gap: 8,
-    ...shadow,
   },
 });

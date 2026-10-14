@@ -1,18 +1,35 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Badge } from '@/components/Badge';
+import { Grid } from '@/components/Grid';
 import { EmptyState } from '@/components/EmptyState';
 import { PageTitle } from '@/components/Header';
+import { LeadCard } from '@/components/LeadCard';
 import { LoadingState } from '@/components/LoadingState';
 import { Screen } from '@/components/Screen';
-import { palette } from '@/constants/theme';
-import { formatDate, leadLabel } from '@/data/format';
+import { useResponsive } from '@/hooks/use-responsive';
+import { useLeadsSync } from '@/state/apiSync';
 import { useApp } from '@/state/store';
 
+const COPY = {
+  new: { title: 'Waiting for you', subtitle: 'These customers asked for a price. Open one and say if you can do the event.' },
+  sent: { title: 'Quotes you sent', subtitle: 'You already sent a price. The customer can compare and then choose.' },
+  picked: { title: 'They picked you', subtitle: 'These customers chose you, so their phone and email are open.' },
+  all: { title: 'Requests', subtitle: 'Every customer who asked you for a price.' },
+} as const;
+
 export default function LeadsScreen() {
+  const { filter } = useLocalSearchParams<{ filter?: string }>();
+  const key = filter === 'new' || filter === 'sent' || filter === 'picked' ? filter : 'all';
   const { leads, entitlements } = useApp();
+  useLeadsSync();
+  const { isTablet } = useResponsive();
+  const visible = leads.filter((lead) => {
+    if (key === 'new') return lead.status === 'invited' || lead.status === 'viewed';
+    if (key === 'sent') return lead.status === 'proposal_submitted' || lead.status === 'continued';
+    if (key === 'picked') return lead.contactReleased;
+    return true;
+  });
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 400);
@@ -21,42 +38,25 @@ export default function LeadsScreen() {
 
   if (!entitlements.quoteLeads) {
     return (
-      <Screen tab>
-        <PageTitle title="Leads" subtitle="Quote requests from customers" />
-        <EmptyState icon="lock" title="Leads need a paid plan" body="Your listing stays public. Upgrade to receive quote requests." action="View plans" onAction={() => router.push('/subscription')} />
+      <Screen tab refresh>
+        <PageTitle title="Requests" subtitle="Customers who want a price from you" />
+        <EmptyState icon="lock" title="Requests need a paid plan" body="Your listing stays public. Upgrade to receive quote requests." action="View plans" onAction={() => router.push('/subscription')} />
       </Screen>
     );
   }
 
   return (
-    <Screen tab>
-      <PageTitle title="Leads" subtitle="Say if you are free, then send a quote." />
-      {loading ? <LoadingState label="Loading leads" /> : null}
-      {!loading && leads.length === 0 ? <EmptyState icon="inbox" title="No leads" body="When a request matches your area, capacity and services, it will appear here." /> : null}
-      {!loading
-        ? leads.map((lead) => (
-            <Pressable key={lead.id} accessibilityRole="button" onPress={() => router.push(`/lead/${lead.id}`)} style={styles.card}>
-              <View style={styles.row}>
-                <Text style={styles.name}>{lead.request.eventType}</Text>
-                <Badge label={leadLabel[lead.status]} tone={lead.status === 'continued' ? 'good' : 'neutral'} />
-              </View>
-              <Text style={styles.meta}>
-                {lead.request.city} · {formatDate(lead.request.date)} · {lead.request.guests} guests
-              </Text>
-              <Text style={styles.meta}>
-                {lead.quality.phoneVerified ? 'Phone verified' : 'Phone not verified'} · Completeness {lead.quality.completeness}
-                {lead.quality.budgetProvided ? ' · Budget provided' : ''}
-              </Text>
-            </Pressable>
-          ))
-        : null}
+    <Screen tab refresh>
+      <PageTitle title={COPY[key].title} subtitle={COPY[key].subtitle} />
+      {loading ? <LoadingState label="Loading requests" /> : null}
+      {!loading && visible.length === 0 ? <EmptyState icon="inbox" title="Nothing in this list" body="When a request matches your area and services, it shows up under Waiting for you." /> : null}
+      {!loading && visible.length > 0 ? (
+        <Grid minItem={300} maxColumns={isTablet ? 2 : 1} gap={12}>
+          {visible.map((lead) => (
+            <LeadCard key={lead.id} lead={lead} onPress={() => router.push(`/lead/${lead.id}`)} />
+          ))}
+        </Grid>
+      ) : null}
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  card: { backgroundColor: palette.surface, borderRadius: 16, borderWidth: 1, borderColor: palette.line, padding: 14, gap: 6 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
-  name: { fontSize: 17, fontWeight: '700', color: palette.ink, flex: 1 },
-  meta: { color: palette.muted, fontSize: 14 },
-});

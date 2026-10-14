@@ -7,14 +7,16 @@ import { Header } from '@/components/Header';
 import { Screen } from '@/components/Screen';
 import { palette } from '@/constants/theme';
 import { formatDate } from '@/data/format';
+import { useNotificationsSync } from '@/state/apiSync';
 import { useApp } from '@/state/store';
 
 export default function NotificationsScreen() {
   const { notifications, session, markRead, markAllRead } = useApp();
   const audience = session.mode === 'provider' ? 'provider' : 'customer';
+  useNotificationsSync(audience);
   const rows = notifications.filter((item) => item.audience === audience);
   return (
-    <Screen header={<Header title="Notifications" back />}>
+    <Screen refresh header={<Header title="Notifications" back />}>
       {rows.length ? <Button label="Mark all read" variant="ghost" onPress={() => markAllRead(audience)} /> : null}
       {rows.length === 0 ? <EmptyState icon="bell" title="No notifications" body="Proposals, messages and outcome reminders will land here." /> : null}
       {rows.map((item) => (

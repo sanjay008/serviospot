@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -11,11 +12,15 @@ import { Screen } from '@/components/Screen';
 import { ALLERGEN_NOTE } from '@/constants/copy';
 import { palette } from '@/constants/theme';
 import { euro } from '@/data/format';
+import { useLoginGate } from '@/hooks/use-login-gate';
+import { useOfferingSync } from '@/state/apiSync';
 import { useApp } from '@/state/store';
 
 export default function OfferingDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { offerings, providers, catalog, favorites, toggleFavorite } = useApp();
+  const { requireLogin, gate } = useLoginGate();
+  useOfferingSync(id);
   const offering = offerings.find((item) => item.id === id);
   if (!offering) return <Screen header={<Header title="Offering" back />}><ErrorState body="This offering is not available." onRetry={() => router.back()} /></Screen>;
   const provider = providers.find((item) => item.id === offering.providerId);
@@ -35,7 +40,9 @@ export default function OfferingDetail() {
           }
         />
       }
-      footer={<Button label="Request proposals" onPress={() => router.push('/quote')} />}>
+      footer={<Button label="Request proposals" onPress={() => requireLogin('/quote')} />}>
+      {gate}
+      {offering.photo ? <Image source={{ uri: offering.photo }} style={styles.hero} contentFit="cover" transition={200} /> : null}
       <View style={styles.tags}>
         <Badge label={offering.category} />
         <Badge label={offering.offerType} />
@@ -57,6 +64,7 @@ export default function OfferingDetail() {
 }
 
 const styles = StyleSheet.create({
+  hero: { height: 200, borderRadius: 18, backgroundColor: palette.well },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   price: { fontSize: 28, fontWeight: '700', color: palette.ink },
   body: { fontSize: 16, lineHeight: 23, color: palette.ink },

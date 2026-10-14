@@ -10,22 +10,34 @@ import { Input } from '@/components/Input';
 import { Notice } from '@/components/Notice';
 import { Screen } from '@/components/Screen';
 import { palette } from '@/constants/theme';
-import { draftProposalIntro } from '@/data/ai';
-import { euro, parseEuro, proposalTotal, uid } from '@/data/format';
+import { euro, parseEuro, proposalTotal } from '@/data/format';
 import { ME } from '@/data/mock';
-import type { Proposal } from '@/data/types';
+import type { Proposal, YesNo } from '@/data/types';
+import { useLeadSync } from '@/state/apiSync';
 import { useApp } from '@/state/store';
+
+const COSTS = 'All costs for the offered scope are included, including VAT, travel and setup. No unknown fees.';
 
 export default function ProposalBuilder() {
   const { leadId } = useLocalSearchParams<{ leadId: string }>();
-  const { leads, proposals, templates, saveLeadProposal, spendAi } = useApp();
+  const { leads, proposals, saveLeadProposal } = useApp();
+  useLeadSync(leadId);
   const lead = leads.find((item) => item.id === leadId);
   const existing = proposals.find((item) => item.id === lead?.proposalId);
-  const [proposalId] = useState(existing?.id ?? uid('prop'));
-  const [templateId, setTemplateId] = useState(templates[0]?.id ?? '');
-  const [message, setMessage] = useState(existing?.message ?? '');
-  const [items, setItems] = useState(existing?.items.join(', ') ?? '');
-  const [services, setServices] = useState(existing?.services.join(', ') ?? '');
+  const [dateOk, setDateOk] = useState<YesNo>('');
+  const [placeOk, setPlaceOk] = useState<YesNo>('');
+  const [guestsOk, setGuestsOk] = useState<YesNo>('');
+  const [timesOk, setTimesOk] = useState<YesNo>('');
+  const [dietOk, setDietOk] = useState<YesNo>('');
+  const [dishes, setDishes] = useState('');
+  const [staffCount, setStaffCount] = useState('');
+  const [staffRoles, setStaffRoles] = useState('');
+  const [staffHours, setStaffHours] = useState('');
+  const [setupHours, setSetupHours] = useState('');
+  const [teardownHours, setTeardownHours] = useState('');
+  const [equipmentNote, setEquipmentNote] = useState('');
+  const [drinksPackage, setDrinksPackage] = useState('');
+  const [deviations, setDeviations] = useState(existing?.assumptions ?? '');
   const [food, setFood] = useState(existing ? String(existing.foodCents / 100) : '');
   const [drinks, setDrinks] = useState(existing ? String(existing.drinksCents / 100) : '');
   const [staff, setStaff] = useState(existing ? String(existing.staffCents / 100) : '');
@@ -33,14 +45,22 @@ export default function ProposalBuilder() {
   const [equipment, setEquipment] = useState(existing ? String(existing.equipmentCents / 100) : '');
   const [other, setOther] = useState(existing ? String(existing.otherCents / 100) : '');
   const [discount, setDiscount] = useState(existing ? String(existing.discountCents / 100) : '0');
-  const [included, setIncluded] = useState(existing?.included.join(', ') ?? '');
-  const [excluded, setExcluded] = useState(existing?.excluded.join(', ') ?? '');
-  const [assumptions, setAssumptions] = useState(existing?.assumptions ?? '');
-  const [expires, setExpires] = useState(existing?.expiresAt ?? '2026-10-28');
+  const [deposit, setDeposit] = useState('');
+  const [expires, setExpires] = useState(existing?.expiresAt ?? '');
+  const [costsIncluded, setCostsIncluded] = useState(false);
   const [error, setError] = useState('');
   const [ok, setOk] = useState('');
+
   if (!lead) return <Screen header={<Header title="Proposal" back />}><Notice tone="error" body="Lead not found." /></Screen>;
-  if (!['available', 'partial', 'maybe', 'proposal_draft', 'proposal_submitted', 'continued'].includes(lead.status)) {
+  if (lead.status === 'proposal_submitted' || lead.status === 'continued') {
+    return (
+      <Screen header={<Header title="Proposal" back />}>
+        <Notice tone="info" body="This price is already sent. Withdraw it before you change it." />
+        <Button label="Back to request" onPress={() => router.back()} />
+      </Screen>
+    );
+  }
+  if (!['available', 'partial', 'maybe', 'proposal_draft'].includes(lead.status)) {
     return (
       <Screen header={<Header title="Proposal" back />}>
         <Notice tone="warning" body="Confirm availability on the lead before writing a proposal." />
@@ -49,17 +69,19 @@ export default function ProposalBuilder() {
     );
   }
 
+  const stopped = [dateOk, placeOk, guestsOk, timesOk, dietOk].includes('no');
+  const confirmed = dateOk === 'yes' && placeOk === 'yes' && guestsOk === 'yes' && timesOk === 'yes' && dietOk === 'yes';
   const build = (): Proposal => ({
-    id: proposalId,
+    id: existing?.id ?? '',
     requestId: lead.request.id,
     providerId: ME,
     leadId: lead.id,
     availability: lead.status === 'partial' ? 'partial' : lead.status === 'maybe' ? 'maybe' : 'available',
     partialNote: lead.availabilityNote,
-    message,
+    message: deviations.trim() || 'Indicative all-in price for the requested scope.',
     guests: lead.request.guests,
-    items: split(items),
-    services: split(services),
+    items: dishes.split('\n').map((item) => item.trim()).filter(Boolean),
+    services: [staffRoles, equipmentNote, drinksPackage].map((item) => item.trim()).filter(Boolean),
     foodCents: parseEuro(food),
     drinksCents: parseEuro(drinks),
     staffCents: parseEuro(staff),
@@ -67,99 +89,119 @@ export default function ProposalBuilder() {
     equipmentCents: parseEuro(equipment),
     otherCents: parseEuro(other),
     discountCents: parseEuro(discount),
-    vatNote: 'Indicative VAT treatment. The final invoice is agreed directly.',
-    included: split(included),
-    excluded: split(excluded),
-    assumptions,
+    vatNote: 'One indicative total including VAT for this scope and these guests.',
+    included: costsIncluded ? [COSTS] : [],
+    excluded: [],
+    assumptions: deviations,
     expiresAt: expires,
+    details: {
+      date_ok: dateOk,
+      place_ok: placeOk,
+      guests_ok: guestsOk,
+      times_ok: timesOk,
+      diet_ok: dietOk,
+      dishes,
+      staff_count: Number(staffCount) || 0,
+      staff_roles: staffRoles,
+      staff_hours: staffHours,
+      setup_hours: setupHours,
+      teardown_hours: teardownHours,
+      equipment: equipmentNote,
+      drinks_package: drinksPackage,
+      deposit_cents: parseEuro(deposit),
+      costs_included: costsIncluded,
+    },
     status: 'draft',
     matchScore: 75,
   });
 
-  const save = (submit: boolean) => {
+  const save = async (submit: boolean) => {
+    if (submit && !confirmed) {
+      setError('Answer date, place, guests, times and diet with yes or no. No on any of these stops the price.');
+      return;
+    }
+    if (submit && stopped) {
+      setError('No on the date, place, guests, times or diet stops this proposal. Decline the request instead of sending a price.');
+      return;
+    }
+    if (submit && !expires.trim()) {
+      setError('Add the date this price is valid until.');
+      return;
+    }
+    if (submit && !costsIncluded) {
+      setError('Confirm that the all-in price includes VAT, travel and setup for the offered scope.');
+      return;
+    }
     const proposal = build();
-    if (submit && !proposal.message.trim()) {
-      setError('Add a short introduction.');
-      return;
-    }
     if (submit && proposalTotal(proposal) <= 0) {
-      setError('Add at least one estimated amount.');
+      setError('Add the all-in price. The lines must add up to that total.');
       return;
     }
-    const result = saveLeadProposal(proposal, submit);
+    const result = await saveLeadProposal(proposal, submit);
     if (!result.ok) {
       setError(result.reason);
       return;
     }
     setError('');
-    setOk(submit ? 'Proposal sent as an indication.' : 'Draft saved.');
+    setOk(submit ? 'Price sent.' : 'Price saved.');
     if (submit) setTimeout(() => router.back(), 500);
   };
 
-  const applyTemplate = () => {
-    const template = templates.find((item) => item.id === templateId);
-    if (!template) return;
-    const guests = lead.request.guests || 1;
-    setMessage(template.message);
-    setItems(template.items.join(', '));
-    setServices(template.services.join(', '));
-    setIncluded(template.included.join(', '));
-    setExcluded(template.excluded.join(', '));
-    setAssumptions(template.assumptions);
-    setFood(String((template.foodPerPersonCents * guests) / 100));
-    setDrinks(String((template.drinksPerPersonCents * guests) / 100));
-    setStaff(String((template.staffPerPersonCents * guests) / 100));
-    setDelivery(String(template.deliveryCents / 100));
-  };
-
   return (
-    <Screen header={<Header title="Indicative proposal" back />} footer={<Button label="Send proposal" onPress={() => save(true)} />}>
+    <Screen header={<Header title="Indicative proposal" back />} footer={stopped ? undefined : <Button label="Send proposal" onPress={() => save(true)} />}>
       {error ? <Notice tone="error" body={error} /> : null}
       {ok ? <Notice tone="success" body={ok} /> : null}
       <Disclaimer />
-      {templates.length ? (
+      <Text style={styles.label}>Customer request · read only</Text>
+      <Text style={styles.muted}>{lead.request.guests} guests · {lead.request.date} · {lead.request.city} {lead.request.postcode}</Text>
+      <Text style={styles.muted}>{lead.request.eventType || 'Occasion not set'} · {lead.request.setting || 'Indoor / outdoor not set'}</Text>
+      <Text style={styles.muted}>Food: {lead.request.cuisines.join(', ') || 'Not set'} · Halal {lead.request.halal ? 'yes' : 'no'}</Text>
+      {(lead.request.summary ?? []).map((line) => <Text key={line} style={styles.muted}>{line}</Text>)}
+      {lead.request.allergies ? <Text style={styles.muted}>Allergies: {lead.request.allergies}</Text> : null}
+      {lead.request.notes ? <Text style={styles.muted}>{lead.request.notes}</Text> : null}
+      <Answer label="Can you do the date?" value={dateOk} onChange={setDateOk} />
+      <Answer label="Can you cover the place?" value={placeOk} onChange={setPlaceOk} />
+      <Answer label="Can you cover the guest count?" value={guestsOk} onChange={setGuestsOk} />
+      <Answer label="Can you cover the times?" value={timesOk} onChange={setTimesOk} />
+      <Answer label="Can you meet the diet requirements?" value={dietOk} onChange={setDietOk} />
+      {stopped ? <Notice tone="warning" body="No on the date, place, guests, times or diet stops this proposal. Decline the request instead of sending a price." /> : null}
+      {confirmed ? (
         <>
-          <Text style={styles.label}>Template</Text>
-          <ChipSingle options={templates.map((item) => item.name)} value={templates.find((item) => item.id === templateId)?.name ?? ''} onChange={(name) => setTemplateId(templates.find((item) => item.name === name)?.id ?? '')} />
-          <Button label="Insert template" variant="secondary" onPress={applyTemplate} />
+          <Input label="Dishes you offer" value={dishes} onChangeText={setDishes} multiline hint="One dish per line. Counts and names are yours to write." />
+          <Input label="Staff count" value={staffCount} onChangeText={setStaffCount} keyboardType="number-pad" />
+          <Input label="Staff roles" value={staffRoles} onChangeText={setStaffRoles} />
+          <Input label="Staff hours" value={staffHours} onChangeText={setStaffHours} />
+          <Input label="Setup hours" value={setupHours} onChangeText={setSetupHours} hint="Separate from the catering start and end." />
+          <Input label="Teardown hours" value={teardownHours} onChangeText={setTeardownHours} />
+          <Input label="Equipment" value={equipmentNote} onChangeText={setEquipmentNote} hint="Counts and what you bring." />
+          <Input label="Drinks package" value={drinksPackage} onChangeText={setDrinksPackage} />
+          <Input label="Deviations from the request" value={deviations} onChangeText={setDeviations} multiline />
+          <Input label="Food € incl. VAT" value={food} onChangeText={setFood} keyboardType="decimal-pad" />
+          <Input label="Included drinks €" value={drinks} onChangeText={setDrinks} keyboardType="decimal-pad" />
+          <Input label="Staff €" value={staff} onChangeText={setStaff} keyboardType="decimal-pad" />
+          <Input label="Travel €" value={delivery} onChangeText={setDelivery} keyboardType="decimal-pad" />
+          <Input label="Equipment €" value={equipment} onChangeText={setEquipment} keyboardType="decimal-pad" />
+          <Input label="Setup and teardown €" value={other} onChangeText={setOther} keyboardType="decimal-pad" />
+          <Input label="Discount €" value={discount} onChangeText={setDiscount} keyboardType="decimal-pad" />
+          <Text style={styles.total}>All-in price {euro(proposalTotal(build()))}</Text>
+          <Text style={styles.muted}>One indicative total for this scope and these guests. The lines above are the whole price and must add up.</Text>
+          <Input label="Deposit €" value={deposit} onChangeText={setDeposit} keyboardType="decimal-pad" hint="Separate from the all-in price." />
+          <ChipSingle options={[COSTS]} value={costsIncluded ? COSTS : ''} onChange={() => setCostsIncluded(true)} />
+          <Input label="Valid until" value={expires} onChangeText={setExpires} placeholder="2026-11-01" />
+          <Button label="Save draft" variant="secondary" onPress={() => save(false)} />
         </>
-      ) : (
-        <Text style={styles.muted}>No templates on this plan yet.</Text>
-      )}
-      <Button
-        label="Draft introduction"
-        variant="ghost"
-        onPress={() => {
-          const credit = spendAi();
-          if (!credit.ok) {
-            setError(credit.reason);
-            return;
-          }
-          setMessage(draftProposalIntro(lead.request.eventType, lead.request.city, lead.request.guests));
-        }}
-      />
-      <Input label="Introduction" value={message} onChangeText={setMessage} multiline />
-      <Input label="Menu or dishes" value={items} onChangeText={setItems} hint="Comma separated" />
-      <Input label="Services" value={services} onChangeText={setServices} />
-      <Input label="Food €" value={food} onChangeText={setFood} keyboardType="decimal-pad" />
-      <Input label="Drinks €" value={drinks} onChangeText={setDrinks} keyboardType="decimal-pad" />
-      <Input label="Staff €" value={staff} onChangeText={setStaff} keyboardType="decimal-pad" />
-      <Input label="Delivery / travel €" value={delivery} onChangeText={setDelivery} keyboardType="decimal-pad" />
-      <Input label="Equipment €" value={equipment} onChangeText={setEquipment} keyboardType="decimal-pad" />
-      <Input label="Other €" value={other} onChangeText={setOther} keyboardType="decimal-pad" />
-      <Input label="Discount €" value={discount} onChangeText={setDiscount} keyboardType="decimal-pad" />
-      <Text style={styles.total}>Indicative total {euro(proposalTotal(build()))}</Text>
-      <Input label="Included" value={included} onChangeText={setIncluded} />
-      <Input label="Excluded" value={excluded} onChangeText={setExcluded} />
-      <Input label="Assumptions" value={assumptions} onChangeText={setAssumptions} multiline />
-      <Input label="Expiry date" value={expires} onChangeText={setExpires} placeholder="2026-10-28" />
-      <Button label="Save draft" variant="secondary" onPress={() => save(false)} />
+      ) : null}
     </Screen>
   );
 }
 
-function split(value: string) {
-  return value.split(',').map((item) => item.trim()).filter(Boolean);
+function Answer({ label, value, onChange }: { label: string; value: YesNo; onChange: (value: YesNo) => void }) {
+  return (
+    <>
+      <Text style={styles.label}>{label}</Text>
+      <ChipSingle options={['Yes', 'No']} value={value === 'yes' ? 'Yes' : value === 'no' ? 'No' : ''} onChange={(item) => onChange(item === 'Yes' ? 'yes' : 'no')} />
+    </>
+  );
 }
 
 const styles = StyleSheet.create({

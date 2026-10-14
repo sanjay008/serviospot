@@ -9,16 +9,18 @@ import { Notice } from '@/components/Notice';
 import { Screen } from '@/components/Screen';
 import { palette } from '@/constants/theme';
 import { draftTemplate } from '@/data/ai';
-import { parseEuro, uid } from '@/data/format';
+import { parseEuro } from '@/data/format';
 import type { ProposalTemplate } from '@/data/types';
+import { useTemplatesSync } from '@/state/apiSync';
 import { useApp } from '@/state/store';
 
 export default function TemplatesScreen() {
   const { templates, saveTemplate, removeTemplate, entitlements, spendAi, me } = useApp();
+  useTemplatesSync();
   const [editing, setEditing] = useState<ProposalTemplate | null>(null);
   const [error, setError] = useState('');
   const blank = (): ProposalTemplate => ({
-    id: uid('tpl'),
+    id: '',
     name: '',
     message: '',
     items: [],
@@ -32,23 +34,30 @@ export default function TemplatesScreen() {
     deliveryCents: 0,
   });
   return (
-    <Screen header={<Header title="Templates" subtitle={`${templates.length} of ${entitlements.templateLimit}`} back />}>
+    <Screen refresh header={<Header title="Templates" subtitle={`${templates.length} of ${entitlements.templateLimit}`} back />}>
       {error ? <Notice tone="error" body={error} /> : null}
-      {!entitlements.templateLimit ? <Notice tone="warning" body="Proposal templates start on the Starter plan. You can still type a proposal by hand." /> : null}
+      {!entitlements.templateLimit ? <Notice tone="warning" body="Saved quotes start on Gold. You can still type a price by hand." /> : null}
       {templates.map((template) => (
         <Card key={template.id}>
           <Text style={styles.name}>{template.name}</Text>
           <Text style={styles.meta}>{template.items.join(', ')}</Text>
           <Button label="Edit" variant="secondary" onPress={() => setEditing(template)} />
-          <Button label="Delete" variant="ghost" onPress={() => removeTemplate(template.id)} />
+          <Button
+            label="Delete"
+            variant="ghost"
+            onPress={async () => {
+              const result = await removeTemplate(template.id);
+              if (!result.ok) setError(result.reason);
+            }}
+          />
         </Card>
       ))}
       {editing ? (
         <TemplateEditor
           template={editing}
           onCancel={() => setEditing(null)}
-          onSave={(template) => {
-            const result = saveTemplate(template);
+          onSave={async (template) => {
+            const result = await saveTemplate(template);
             if (!result.ok) {
               setError(result.reason);
               return;

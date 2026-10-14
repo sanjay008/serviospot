@@ -15,18 +15,18 @@ export const requestLabel: Record<RequestStatus, string> = {
 };
 
 export const leadLabel: Record<LeadStatus, string> = {
-  invited: 'New invite',
-  viewed: 'Viewed',
-  available: 'Available',
-  partial: 'Partially available',
-  maybe: 'Needs confirmation',
-  unavailable: 'Not available',
-  proposal_draft: 'Proposal draft',
-  proposal_submitted: 'Proposal sent',
-  continued: 'Customer continued',
-  not_selected: 'Not selected',
-  expired: 'Expired',
-  withdrawn: 'Withdrawn',
+  invited: 'New request',
+  viewed: 'You opened it',
+  available: 'You can do it',
+  partial: 'Partly free',
+  maybe: 'Need to check',
+  unavailable: 'Cannot do it',
+  proposal_draft: 'Quote not sent yet',
+  proposal_submitted: 'Quote sent',
+  continued: 'They picked you',
+  not_selected: 'They picked someone else',
+  expired: 'Too late',
+  withdrawn: 'You cancelled it',
 };
 
 export function euro(cents: number | null | undefined) {
@@ -66,6 +66,14 @@ export function uid(prefix: string) {
 
 export function toggleIn(list: string[], item: string) {
   return list.includes(item) ? list.filter((entry) => entry !== item) : [...list, item];
+}
+
+/** Splits "+31 6 1234 5678" or "06 1234 5678" into the country code and number the API expects. */
+export function splitPhone(input: string) {
+  const digits = input.replace(/[^\d+]/g, '');
+  if (digits.startsWith('+31')) return { country_code: '31', phone: digits.slice(3) };
+  if (digits.startsWith('+')) return { country_code: digits.slice(1, 3), phone: digits.slice(3) };
+  return { country_code: '31', phone: digits.replace(/^0/, '') };
 }
 
 export function containsContact(text: string) {

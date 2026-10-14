@@ -28,7 +28,7 @@ export function searchProviders(providers: Provider[], offerings: Offering[], qu
       if (maxPrice && provider.startingPriceCents > maxPrice) return false;
       if (filters.dietary.length && !filters.dietary.every((tag) => provider.dietary.includes(tag) || mine.some((item) => item.dietary.includes(tag)))) return false;
       if (filters.fulfillment.length && !filters.fulfillment.every((mode) => mine.some((item) => item.fulfillment.includes(mode)))) return false;
-      if (filters.staff && !provider.services.includes('Staff')) return false;
+      if (filters.staff && !provider.services.includes('staff')) return false;
       if (filters.minRating != null && provider.rating < filters.minRating) return false;
       if (filters.verifiedOnly && !provider.verified) return false;
       if (maxMinOrder && provider.minOrderCents > maxMinOrder) return false;

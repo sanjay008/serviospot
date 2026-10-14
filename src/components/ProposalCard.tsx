@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '@/components/Avatar';
 import { Badge } from '@/components/Badge';
-import { palette, shadow } from '@/constants/theme';
+import { palette } from '@/constants/theme';
 import { euro, perPersonCents, proposalTotal } from '@/data/format';
 import type { Proposal, Provider } from '@/data/types';
 
@@ -37,9 +37,9 @@ export function ProposalCard({ proposal, provider, onPress }: { proposal: Propos
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: palette.surface, borderRadius: 16, borderWidth: 1, borderColor: palette.line, padding: 14, ...shadow },
+  card: { backgroundColor: palette.surface, borderRadius: 16, borderWidth: 1, borderColor: palette.line, padding: 14 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  meta: { flex: 1, gap: 4 },
+  meta: { flex: 1, gap: 4, minWidth: 0 },
   name: { fontSize: 16, fontWeight: '700', color: palette.ink },
   muted: { fontSize: 13, color: palette.gold, fontWeight: '600' },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },

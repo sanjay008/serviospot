@@ -1,43 +1,38 @@
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
-import { Screen } from '@/components/Screen';
-import { palette } from '@/constants/theme';
-import { useApp } from '@/state/store';
+import { notificationOpenedApp } from '@/notifications/push';
+import { useCategoriesSync, usePlansSync } from '@/state/apiSync';
+import { homeFor, useApp } from '@/state/store';
+
+const splash = require('../../assets/images/splash-icon.png');
 
 export default function SplashScreen() {
-  const { session } = useApp();
+  const { session, restored } = useApp();
+  const [timeUp, setTimeUp] = useState(false);
+  usePlansSync();
+  useCategoriesSync();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!session.signedIn) {
-        router.replace('/login');
-        return;
-      }
-      if (session.mode === 'provider') router.replace(session.hasProviderProfile ? '/business' : '/setup');
-      else router.replace('/customer');
-    }, 1100);
+    const timer = setTimeout(() => setTimeUp(true), 1600);
     return () => clearTimeout(timer);
-  }, [session.hasProviderProfile, session.mode, session.signedIn]);
+  }, []);
+
+  useEffect(() => {
+    if (!timeUp || !restored || notificationOpenedApp()) return;
+    router.replace(homeFor(session));
+  }, [timeUp, restored, session]);
 
   return (
-    <Screen scroll={false}>
-      <View style={styles.center}>
-        <View style={styles.logo}>
-          <Text style={styles.mark}>S</Text>
-        </View>
-        <Text style={styles.title}>ServioSpot</Text>
-        <Text style={styles.body}>Catering, in one app</Text>
-      </View>
-    </Screen>
+    <View style={styles.screen}>
+      <Image source={splash} style={styles.art} contentFit="contain" accessibilityLabel="ServioSpot" />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 },
-  logo: { width: 72, height: 72, borderRadius: 20, backgroundColor: palette.accent, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  mark: { color: '#fff', fontSize: 32, fontWeight: '700' },
-  title: { fontSize: 28, fontWeight: '700', color: palette.ink },
-  body: { fontSize: 15, color: palette.muted },
+  screen: { flex: 1, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
+  art: { width: '50%', aspectRatio: 1024 / 271 },
 });

@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Badge } from '@/components/Badge';
@@ -36,14 +37,22 @@ export function OfferingCard({
   return (
     <View style={styles.card}>
       <Pressable accessibilityRole="button" onPress={onPress} style={styles.row}>
+        {offering.photo ? (
+          <Image source={{ uri: offering.photo }} style={styles.photo} contentFit="cover" transition={200} />
+        ) : (
+          <View style={[styles.photo, styles.fallback]}>
+            <Text style={styles.letter}>{offering.title.slice(0, 1)}</Text>
+          </View>
+        )}
         <View style={styles.text}>
           <Badge label={offering.category || offering.offerType} />
-          <Text style={styles.title}>{offering.title}</Text>
+          <Text style={styles.title} numberOfLines={2}>
+            {offering.title}
+          </Text>
           {providerName ? <Text style={styles.muted}>{providerName}</Text> : null}
           <Text style={styles.price}>{price}</Text>
           {!offering.active ? <Text style={styles.muted}>Inactive</Text> : null}
         </View>
-        <View style={styles.heart} />
       </Pressable>
       {actionLabel ? (
         <Pressable accessibilityRole="button" onPress={onSave} style={styles.action}>
@@ -51,7 +60,7 @@ export function OfferingCard({
         </Pressable>
       ) : onSave ? (
         <Pressable accessibilityRole="button" accessibilityLabel={saved ? 'Remove saved offering' : 'Save offering'} onPress={onSave} hitSlop={8} style={styles.heartButton}>
-          <Icon name={saved ? 'heartOn' : 'heart'} color={saved ? palette.danger : palette.muted} size={20} />
+          <Icon name={saved ? 'heartOn' : 'heart'} color={saved ? palette.danger : palette.muted} size={18} />
         </Pressable>
       ) : null}
     </View>
@@ -59,14 +68,16 @@ export function OfferingCard({
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: palette.surface, borderRadius: 16, borderWidth: 1, borderColor: palette.line, padding: 14, gap: 8, position: 'relative' },
-  row: { flexDirection: 'row', gap: 8 },
-  text: { flex: 1, gap: 6 },
+  card: { backgroundColor: palette.surface, borderRadius: 16, borderWidth: 1, borderColor: palette.line, padding: 10, position: 'relative' },
+  row: { flexDirection: 'row', gap: 12, alignItems: 'center', paddingRight: 28 },
+  photo: { width: 84, height: 84, borderRadius: 14, backgroundColor: palette.well },
+  fallback: { alignItems: 'center', justifyContent: 'center' },
+  letter: { fontSize: 22, fontWeight: '700', color: palette.accent },
+  text: { flex: 1, gap: 4, minWidth: 0 },
   title: { fontSize: 16, fontWeight: '700', color: palette.ink },
   muted: { fontSize: 13, color: palette.muted },
   price: { fontSize: 14, fontWeight: '700', color: palette.accent },
-  heart: { width: 44, height: 44 },
-  heartButton: { position: 'absolute', top: 10, right: 8, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  action: { position: 'absolute', top: 10, right: 10, minHeight: 44, justifyContent: 'center' },
+  heartButton: { position: 'absolute', top: 8, right: 6, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  action: { position: 'absolute', top: 10, right: 10, minHeight: 36, justifyContent: 'center' },
   actionText: { color: palette.accent, fontWeight: '700', fontSize: 13 },
 });

@@ -1,14 +1,11 @@
-import { Redirect } from 'expo-router';
 import { Tabs } from 'expo-router/js-tabs';
 
-import { tabIcon, tabOptions } from '@/navigation/tabs';
-import { useApp } from '@/state/store';
+import { tabIcon, useTabScreenOptions } from '@/navigation/tabs';
 
 export default function CustomerTabs() {
-  const { session } = useApp();
-  if (!session.signedIn) return <Redirect href="/login" />;
+  const options = useTabScreenOptions();
   return (
-    <Tabs screenOptions={tabOptions()}>
+    <Tabs screenOptions={options}>
       <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: tabIcon('home') }} />
       <Tabs.Screen name="requests" options={{ title: 'Requests', tabBarIcon: tabIcon('doc') }} />
       <Tabs.Screen name="favorites" options={{ title: 'Saved', tabBarIcon: tabIcon('heart') }} />

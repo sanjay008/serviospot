@@ -11,11 +11,13 @@ import { Header } from '@/components/Header';
 import { Screen } from '@/components/Screen';
 import { palette } from '@/constants/theme';
 import { euro, formatDate, perPersonCents, proposalTotal } from '@/data/format';
+import { useRequestSync } from '@/state/apiSync';
 import { useApp } from '@/state/store';
 
 export default function CompareScreen() {
   const { requestId } = useLocalSearchParams<{ requestId: string }>();
   const { proposals, providers } = useApp();
+  useRequestSync(requestId);
   const [sort, setSort] = useState('Match');
   const rows = proposals.filter((item) => item.requestId === requestId && item.status === 'submitted');
   const ordered = [...rows].sort((a, b) => {
@@ -24,7 +26,7 @@ export default function CompareScreen() {
     return b.matchScore - a.matchScore;
   });
   return (
-    <Screen header={<Header title="Compare" subtitle="Indicative, not ranked by cheapest" back />}>
+    <Screen refresh header={<Header title="Compare" subtitle="Indicative, not ranked by cheapest" back />}>
       <Disclaimer />
       <ChipSingle options={['Match', 'Rating', 'Price']} value={sort} onChange={setSort} />
       {sort === 'Price' ? <Text style={styles.note}>Sorting by price does not mean the lowest indication is the best fit.</Text> : null}

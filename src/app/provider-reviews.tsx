@@ -6,17 +6,22 @@ import { Card } from '@/components/Card';
 import { EmptyState } from '@/components/EmptyState';
 import { Header } from '@/components/Header';
 import { Input } from '@/components/Input';
+import { Notice } from '@/components/Notice';
 import { Screen } from '@/components/Screen';
 import { palette } from '@/constants/theme';
+import { useVendorReviewsSync } from '@/state/apiSync';
 import { useApp } from '@/state/store';
 
 export default function ProviderReviews() {
   const { reviews, me, respondToReview } = useApp();
+  useVendorReviewsSync();
   const rows = reviews.filter((review) => review.providerId === me.id);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [error, setError] = useState('');
   return (
-    <Screen header={<Header title="Reviews" subtitle={`${me.rating.toFixed(1)} · ${me.reviewCount}`} back />}>
+    <Screen refresh header={<Header title="Reviews" subtitle={`${me.rating.toFixed(1)} · ${me.reviewCount}`} back />}>
       <Text style={styles.note}>These are verified completed-job reviews. You can post one public reply.</Text>
+      {error ? <Notice tone="error" body={error} /> : null}
       {rows.length === 0 ? <EmptyState icon="star" title="No reviews yet" body="A review appears after a customer confirms they used you for the event." /> : null}
       {rows.map((review) => (
         <Card key={review.id}>
@@ -26,7 +31,10 @@ export default function ProviderReviews() {
           {review.response ? <Text style={styles.reply}>Your reply: {review.response}</Text> : (
             <>
               <Input label="Public reply" value={drafts[review.id] ?? ''} onChangeText={(value) => setDrafts({ ...drafts, [review.id]: value })} />
-              <Button label="Post reply" variant="secondary" onPress={() => respondToReview(review.id, drafts[review.id] ?? '')} />
+              <Button label="Post reply" variant="secondary" onPress={async () => {
+                const result = await respondToReview(review.id, drafts[review.id] ?? '');
+                setError(result.ok ? '' : result.reason);
+              }} />
             </>
           )}
         </Card>

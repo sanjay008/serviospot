@@ -1,70 +1,86 @@
-import { Redirect, router } from 'expo-router';
+import { Redirect, router, useLocalSearchParams, type Href } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 
+import { useLoginMutation, type ApiFailure, type ApiRecord } from '@/api';
+import { toSessionPatch } from '@/api/mappers';
+import { AuthLink, AuthScreen, AuthTitle, authButton } from '@/components/AuthScreen';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { Notice } from '@/components/Notice';
-import { Screen } from '@/components/Screen';
 import { palette } from '@/constants/theme';
-import { useApp } from '@/state/store';
+import { continueAfterLogin } from '@/hooks/use-login-gate';
+import { homeFor, useApp } from '@/state/store';
+
+function textField(record: ApiRecord, ...keys: string[]) {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return '';
+}
 
 export default function LoginScreen() {
-  const { session, signIn } = useApp();
+  const { role, from, next } = useLocalSearchParams<{ role?: string; from?: string; next?: string }>();
+  const vendor = role === 'vendor';
+  const { session, startSession, hydrate } = useApp();
+  const [signedInOnOpen] = useState(session.signedIn);
+  const [login, { isLoading }] = useLoginMutation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [resetNote, setResetNote] = useState(false);
 
-  if (session.signedIn) {
-    if (session.mode === 'provider') return <Redirect href={session.hasProviderProfile ? '/business' : '/setup'} />;
-    return <Redirect href="/customer" />;
-  }
+  const submit = async () => {
+    const cleanEmail = email.trim();
+    if (!cleanEmail.includes('@') || password.length < 6) {
+      setError('Enter your email and a password of at least 6 characters.');
+      return;
+    }
+    setError('');
+    try {
+      const reply = await login({ email: cleanEmail, password, role: vendor ? 'vendor' : 'customer' }).unwrap();
+      const user = reply.user && typeof reply.user === 'object' ? (reply.user as ApiRecord) : reply;
+      const destination = startSession({
+        name: textField(user, 'full_name', 'name') || cleanEmail,
+        email: textField(user, 'email') || cleanEmail,
+        phone: textField(user, 'phone'),
+        mode: vendor ? 'provider' : 'customer',
+        // A vendor counts as set up once a plan is picked, so a reopen mid-flow lands on the plan screen.
+        hasProviderProfile: false,
+      });
+      hydrate({ session: toSessionPatch(reply) });
+      if (vendor) router.replace('/vendor-onboarding');
+      else if (!continueAfterLogin(from, next)) router.replace(destination);
+    } catch (failure) {
+      setError((failure as ApiFailure).message || 'Could not log in. Try again.');
+    }
+  };
+
+  if (signedInOnOpen && !vendor) return <Redirect href={homeFor(session)} />;
 
   return (
-    <Screen>
-      <View style={styles.brand}>
-        <View style={styles.logo}>
-          <Text style={styles.mark}>S</Text>
-        </View>
-        <Text style={styles.title}>Log in</Text>
-        <Text style={styles.body}>Use your ServioSpot email and password.</Text>
-      </View>
+    <AuthScreen back>
+      <AuthTitle title="Welcome back" subtitle={vendor ? 'Log in to your vendor account.' : 'Log in to your account.'} />
       {error ? <Notice tone="error" body={error} /> : null}
-      <Input label="Email" value={email} onChangeText={setEmail} placeholder="you@email.com" keyboardType="email-address" autoCapitalize="none" />
+      {resetNote ? <Notice tone="info" body="Password reset is not available yet. Contact support to reset your password." /> : null}
+      <Input label="Email" value={email} onChangeText={setEmail} placeholder="Email or phone" keyboardType="email-address" autoCapitalize="none" />
       <Input label="Password" value={password} onChangeText={setPassword} placeholder="Password" secure autoCapitalize="none" />
       <Button
         label="Log in"
-        onPress={() => {
-          if (!email.includes('@') || password.length < 6) {
-            setError('Enter your email and a password of at least 6 characters.');
-            return;
-          }
-          const result = signIn({ email, password });
-          if (!result.ok) {
-            setError(result.reason);
-            return;
-          }
-          router.replace(result.destination ?? '/customer');
-        }}
+        style={authButton}
+        loading={isLoading}
+        onPress={submit}
       />
-      <Pressable onPress={() => router.push('/register')} style={styles.linkHit}>
-        <Text style={styles.link}>
-          New here? <Text style={styles.linkStrong}>Create an account</Text>
-        </Text>
+      <Pressable onPress={() => setResetNote(true)} style={styles.forgot}>
+        <Text style={styles.forgotText}>Forgot password?</Text>
       </Pressable>
-      <Text style={styles.hint}>Sample customer: anna.devries@example.nl / demo123{'\n'}Sample provider: hello@mangoandco.nl / demo123</Text>
-    </Screen>
+      <AuthLink before="Don't have an account?" action="Register" onPress={() => router.push(vendor ? '/vendor-onboarding' : (`/register${from ? `?from=${encodeURIComponent(from)}&next=${encodeURIComponent(next ?? from)}` : ''}` as Href))} />
+    </AuthScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  brand: { gap: 6, paddingTop: 28, paddingBottom: 8 },
-  logo: { width: 52, height: 52, borderRadius: 16, backgroundColor: palette.accent, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
-  mark: { color: '#fff', fontSize: 24, fontWeight: '700' },
-  title: { fontSize: 28, fontWeight: '700', color: palette.ink },
-  body: { fontSize: 15, lineHeight: 21, color: palette.muted },
-  linkHit: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
-  link: { color: palette.muted, fontSize: 15 },
-  linkStrong: { color: palette.accent, fontWeight: '700' },
-  hint: { color: palette.muted, fontSize: 12, lineHeight: 18, textAlign: 'center' },
+  forgot: { minHeight: 36, alignItems: 'center', justifyContent: 'center' },
+  forgotText: { color: palette.accent, fontSize: 14, fontWeight: '700' },
 });

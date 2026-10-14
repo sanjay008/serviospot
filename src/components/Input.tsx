@@ -60,7 +60,7 @@ export function Input({
 const styles = StyleSheet.create({
   wrap: { gap: 6 },
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  label: { fontSize: 13, fontWeight: '600', color: palette.ink },
+  label: { fontSize: 15, fontWeight: '700', color: palette.ink },
   toggle: { fontSize: 13, fontWeight: '600', color: palette.accent },
   input: {
     minHeight: 48,
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     borderColor: palette.line,
     backgroundColor: palette.surface,
     paddingHorizontal: 14,
-    fontSize: 16,
+    fontSize: 17,
     color: palette.ink,
   },
   multi: { minHeight: 110, paddingTop: 12 },

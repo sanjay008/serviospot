@@ -1,4 +1,8 @@
-export type PlanId = 'free' | 'starter' | 'professional' | 'business';
+export type PlanId = 'free' | 'gold' | 'platinum';
+/** A service category from getCategories. `code` is what the API stores, `name` is what people see. */
+export type Category = { code: string; name: string };
+
+export type Invoice = { id: string; number: string; amountCents: number; status: string; date: string };
 export type OfferType = 'dish' | 'menu' | 'service' | 'beverage' | 'concept' | 'rental';
 export type PriceType = 'per_person' | 'per_item' | 'per_tray' | 'per_hour' | 'per_day' | 'fixed' | 'package' | 'on_request';
 export type Fulfillment = 'delivery' | 'pickup' | 'on_site';
@@ -88,6 +92,7 @@ export type Provider = {
   contactPerson: string;
   address: string;
   cover: string;
+  photo: string;
 };
 
 export type Offering = {
@@ -111,6 +116,7 @@ export type Offering = {
   allergensConfirmed: boolean;
   included: string[];
   active: boolean;
+  photo: string;
 };
 
 export type MasterItem = {
@@ -120,6 +126,53 @@ export type MasterItem = {
   cuisine: string;
   category: string;
   aliases: string[];
+};
+
+export type YesNo = '' | 'yes' | 'no';
+
+/** Customer request answers from the clickable demo wizard. */
+export type RequestAnswers = {
+  venueKind: '' | 'home' | 'venue';
+  venueName: string;
+  accessNotes: string;
+  occasion: string;
+  cuisine: string;
+  cuisineStyle: string;
+  vegetarian: string;
+  base: string;
+  chicken: string;
+  pork: string;
+  beef: string;
+  fish: string;
+  shrimp: string;
+  vegetables: string;
+  extraVegetarian: string;
+  starters: string;
+  desserts: string;
+  servingFormat: string;
+  staffed: YesNo;
+  warming: YesNo;
+  tableware: string;
+  plates: YesNo;
+  cutlery: YesNo;
+  glasses: YesNo;
+  cateringStart: string;
+  cateringEndDate: string;
+  cateringEnd: string;
+  decoration: YesNo;
+  buffetSetup: YesNo;
+  serving: YesNo;
+  drinksService: YesNo;
+  dishwashing: YesNo;
+  cleanup: YesNo;
+  handoff: '' | 'delivery' | 'pickup';
+  handoffTime: string;
+  drinks: YesNo;
+  drinkDetails: string;
+  halal: YesNo;
+  forbidden: string;
+  vegan: YesNo;
+  otherDiet: string;
 };
 
 export type QuoteDraft = {
@@ -132,6 +185,7 @@ export type QuoteDraft = {
   flexibleDate: boolean;
   postcode: string;
   city: string;
+  location: string;
   setting: 'indoor' | 'outdoor' | 'both' | '';
   guests: string;
   adults: string;
@@ -147,9 +201,11 @@ export type QuoteDraft = {
   servicePrefs: string[];
   budgetType: 'total' | 'per_person' | 'open';
   budget: string;
+  budgetTotal: string;
   notes: string;
   missing: string[];
   understood: boolean;
+  answers: RequestAnswers;
 };
 
 export type QuoteRequest = {
@@ -177,6 +233,7 @@ export type QuoteRequest = {
   budgetType: 'total' | 'per_person' | 'open';
   budgetCents: number | null;
   notes: string;
+  summary: string[];
   createdAt: string;
   contactProviderIds: string[];
   invitedCount: number;
@@ -206,6 +263,7 @@ export type Proposal = {
   excluded: string[];
   assumptions: string;
   expiresAt: string;
+  details?: Record<string, unknown>;
   status: 'draft' | 'submitted' | 'withdrawn';
   matchScore: number;
   withdrawReason?: string;
@@ -339,6 +397,7 @@ export type Session = {
   name: string;
   email: string;
   phone: string;
+  photo: string;
   mode: 'customer' | 'provider';
   hasProviderProfile: boolean;
   planId: PlanId;

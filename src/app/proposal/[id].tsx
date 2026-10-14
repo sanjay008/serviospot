@@ -13,14 +13,18 @@ import { Notice } from '@/components/Notice';
 import { Screen } from '@/components/Screen';
 import { palette } from '@/constants/theme';
 import { euro, formatDate, perPersonCents, proposalTotal } from '@/data/format';
+import { useConversationsSync, useProposalSync } from '@/state/apiSync';
 import { useApp } from '@/state/store';
 
 export default function ProposalDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { proposals, providers, requests, withdrawProposal, openChat } = useApp();
+  useProposalSync(id);
+  useConversationsSync('customer');
   const proposal = proposals.find((item) => item.id === id);
   const [reason, setReason] = useState('');
   const [note, setNote] = useState('');
+  const [failed, setFailed] = useState(false);
   if (!proposal) return <Screen header={<Header title="Proposal" back />}><ErrorState body="This proposal is not available." onRetry={() => router.back()} /></Screen>;
   const provider = providers.find((item) => item.id === proposal.providerId);
   const request = requests.find((item) => item.id === proposal.requestId);
@@ -67,13 +71,12 @@ export default function ProposalDetail() {
           label="Ask a question"
           variant="secondary"
           onPress={() => {
-            const chatId = openChat({
-              box: 'customer',
-              requestId: proposal.requestId,
-              providerId: proposal.providerId,
-              title: provider?.name ?? 'Provider',
-              subtitle: request?.eventType ?? 'Request',
-            });
+            const chatId = openChat({ box: 'customer', requestId: proposal.requestId, providerId: proposal.providerId });
+            if (!chatId) {
+              setFailed(true);
+              setNote('There is no chat for this request yet.');
+              return;
+            }
             router.push(`/chat/${chatId}`);
           }}
         />
@@ -81,8 +84,16 @@ export default function ProposalDetail() {
       {proposal.leadId && proposal.status === 'submitted' ? (
         <Card>
           <Input label="Withdraw reason" value={reason} onChangeText={setReason} />
-          <Button label="Withdraw proposal" variant="danger" onPress={() => { withdrawProposal(proposal.id, reason || 'Withdrawn'); setNote('Proposal withdrawn.'); }} />
-          {note ? <Notice tone="success" body={note} /> : null}
+          <Button
+            label="Withdraw proposal"
+            variant="danger"
+            onPress={async () => {
+              const result = await withdrawProposal(proposal.id, reason || 'Withdrawn');
+              setFailed(!result.ok);
+              setNote(result.ok ? 'Proposal withdrawn.' : result.reason);
+            }}
+          />
+          {note ? <Notice tone={failed ? 'error' : 'success'} body={note} /> : null}
         </Card>
       ) : null}
     </Screen>

@@ -11,11 +11,13 @@ import { Screen } from '@/components/Screen';
 import { CONTINUE_COPY, NOT_A_BOOKING } from '@/constants/copy';
 import { palette } from '@/constants/theme';
 import { euro, proposalTotal } from '@/data/format';
+import { useProposalSync } from '@/state/apiSync';
 import { useApp } from '@/state/store';
 
 export default function ContinueScreen() {
   const { proposalId } = useLocalSearchParams<{ proposalId: string }>();
   const { proposals, providers, continueWith } = useApp();
+  useProposalSync(proposalId);
   const proposal = proposals.find((item) => item.id === proposalId);
   const [accepted, setAccepted] = useState(false);
   const [error, setError] = useState('');
@@ -28,8 +30,8 @@ export default function ContinueScreen() {
         <Button
           label="Release contact details"
           disabled={!accepted}
-          onPress={() => {
-            const result = continueWith(proposal.id);
+          onPress={async () => {
+            const result = await continueWith(proposal.id);
             if (!result.ok) {
               setError(result.reason);
               return;

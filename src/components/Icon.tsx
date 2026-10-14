@@ -1,4 +1,5 @@
 import { SymbolView, type SymbolViewProps } from 'expo-symbols';
+import Svg, { Path } from 'react-native-svg';
 
 const ICONS = {
   search: { ios: 'magnifyingglass', android: 'search' },
@@ -65,6 +66,9 @@ const ICONS = {
 export type IconName = keyof typeof ICONS;
 
 export function Icon({ name, color, size = 22 }: { name: IconName; color: string; size?: number }) {
+  if (name === 'heart' || name === 'heartOn') {
+    return <HeartShape filled={name === 'heartOn'} color={color} size={size} />;
+  }
   const spec = ICONS[name];
   return (
     <SymbolView
@@ -72,5 +76,22 @@ export function Icon({ name, color, size = 22 }: { name: IconName; color: string
       tintColor={color}
       size={size}
     />
+  );
+}
+
+const HEART =
+  'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z';
+
+function HeartShape({ filled, color, size }: { filled: boolean; color: string; size: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d={HEART}
+        fill={filled ? color : 'none'}
+        stroke={color}
+        strokeWidth={filled ? 0 : 1.8}
+        strokeLinejoin="round"
+      />
+    </Svg>
   );
 }

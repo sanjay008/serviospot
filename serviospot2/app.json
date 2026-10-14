@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "ServioSpot 2",
+    "slug": "serviospot2",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "serviospot2",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anand-sewpal.ServioSpot2"
+    },
+    "android": {
+      "package": "com.anand_sewpal.ServioSpot2",
+      "softwareKeyboardLayoutMode": "resize"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-splash-screen"
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}

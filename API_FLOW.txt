@@ -1,0 +1,341 @@
+================================================================================
+                        SERVIOSPOT - API TEST FLOW
+================================================================================
+
+All APIs from ServioSpot.postman_collection.json (74 requests, 70 paths),
+which screen calls them, and what to tap.
+
+--------------------------------------------------------------------------------
+ 0. HOW TO READ THE LOG (Metro terminal)
+--------------------------------------------------------------------------------
+
+  Every API prints two blocks:
+
+    [API #12] → POST https://app.erpportaal.nl/api/serviospot/getLeads
+    SEND { "token": "LqgmLo…HyRj" }
+
+    [API #12] ← OK 200 https://app.erpportaal.nl/api/serviospot/getLeads (310 ms)
+    REPLY { "status_code": 200, "status": true, "data": { ... } }
+
+  ← OK     = call worked
+  ✗ FAIL   = call failed (status code + backend message is shown)
+  token and password are always hidden.
+
+
+--------------------------------------------------------------------------------
+ 1. BEFORE YOU START
+--------------------------------------------------------------------------------
+
+  [ ] One VENDOR account     → vendor screens and leads
+  [ ] One CUSTOMER account   → requests, proposals, reviews
+  [ ] Vendor on GOLD or PLATINUM plan
+        (leads, calendar, saved quotes, statistics are off on Free)
+  [ ] Development build on the phone
+        (savePushToken only runs when notifications are allowed)
+
+
+--------------------------------------------------------------------------------
+ 2. BIG PICTURE - APP START
+--------------------------------------------------------------------------------
+
+  APP OPENS (Splash)
+  │   APIs: get_language, getPlans
+  │
+  ├── Saved login = Customer ............. → CUSTOMER HOME
+  ├── Saved login = Vendor (has plan) .... → VENDOR HOME
+  ├── Saved login = Vendor (no plan) ..... → SELECT PLAN
+  └── No saved login ..................... → ROLE SCREEN
+                                              │
+        ┌─────────────────────────────────────┤
+        │                                     │
+     [Customer]                            [Vendor]
+        │  (no login needed)                  │
+        ▼                                     │
+     CUSTOMER HOME (browse as guest)       LOGIN  (login)
+        │                                     │   └─ "Register" → REGISTER
+        │  Tap "Request proposals"            │                   (register)
+        ▼                                     ▼
+     POPUP "Login required"                SELECT PLAN
+        ├── Not now → stay on screen          │
+        └── Log in → LOGIN (login)            │
+              │  └─ "Register" → REGISTER     │
+              │                  (register)   │
+              ▼                               │
+           REQUEST FORM (quote)               │
+                                              │  Continue → saveSubscription
+                                              ▼
+                                           YOUR SERVICES
+                                              │  Go to home → saveVendorServices
+                                              ▼
+                                           VENDOR HOME
+
+
+--------------------------------------------------------------------------------
+ 3. TEST ORDER (switch between the two accounts)
+--------------------------------------------------------------------------------
+
+  A customer request reaches the vendor as a lead, so follow this order:
+
+  STEP 1  VENDOR    Register / Login → Select plan → Your services → Home
+  STEP 2  VENDOR    Add dishes, edit page, settings (section 5)
+  STEP 3  VENDOR    More → Sign out
+            │
+            ▼
+  STEP 4  CUSTOMER  Register / Login
+  STEP 5  CUSTOMER  Browse, search, save favorites
+  STEP 6  CUSTOMER  Verify email + phone
+  STEP 7  CUSTOMER  Send a quote request              → submitRequest
+  STEP 8  CUSTOMER  Me → Sign out
+            │
+            ▼
+  STEP 9  VENDOR    Login → Requests tab → open the lead      → getLead
+  STEP 10 VENDOR    "Yes, I can do it" → Send a price         → saveProposal
+  STEP 11 VENDOR    Ask a question → send a message           → sendMessage
+  STEP 12 VENDOR    Sign out
+            │
+            ▼
+  STEP 13 CUSTOMER  Login → Requests → request → proposal     → getProposal
+  STEP 14 CUSTOMER  Continue with provider                    → continueWithProvider
+  STEP 15 CUSTOMER  Save outcome → write review               → saveOutcome, saveReview
+  STEP 16 CUSTOMER  Notifications, Terms, Privacy, Report, Export
+  STEP 17 CUSTOMER  Sign out
+            │
+            ▼
+  STEP 18 VENDOR    Login → More → Reviews → Post reply       → saveReviewResponse
+            │
+            ▼
+  STEP 19 LAST      Me → Delete account (TEST ACCOUNT ONLY)   → deleteAccount
+
+
+--------------------------------------------------------------------------------
+ 4. CUSTOMER FLOW
+--------------------------------------------------------------------------------
+
+  CUSTOMER APP (bottom tabs: Home | Requests | Saved | Chat | Me)
+  │
+  ├── HOME TAB
+  │   │   APIs: getProviders, getCategories, me, getNotifications, getUnreadCount
+  │   │
+  │   ├── Search bar / category tile
+  │   │     └── SEARCH ................................ searchProviders
+  │   │
+  │   ├── Tap a provider
+  │   │     └── PROVIDER PAGE ......................... getProviderDetails
+  │   │         │                                       getProviderOfferings
+  │   │         │                                       getProviderReviews
+  │   │         ├── Heart on provider ................. saveFavorite (provider)
+  │   │         │     └── tap heart again ............. deleteFavorite
+  │   │         ├── Heart on a dish ................... saveFavorite (offering)
+  │   │         ├── Tap a dish → DISH PAGE ............ getOffering
+  │   │         └── "Report this profile" ............. saveReport
+  │   │
+  │   └── "Request proposals"
+  │         └── QUOTE FORM
+  │             ├── Each "Continue" ................... saveRequestDraft
+  │             ├── Phone not verified → YOUR ACCOUNT
+  │             │     ├── Verify email (any 4 digits) . verifyEmail
+  │             │     └── Verify phone (any 4 digits) . verifyPhone
+  │             └── Last step ......................... submitRequest
+  │
+  ├── REQUESTS TAB ................................... getRequests
+  │   │
+  │   └── Tap a request
+  │       └── REQUEST ................................ getRequestDetails, getProposals
+  │           ├── "Cancel request" ................... cancelRequest
+  │           │     (use a second request for this)
+  │           ├── "Compare proposals" ................ getRequestDetails, getProposals
+  │           └── Tap a proposal
+  │               └── PROPOSAL ....................... getProposal
+  │                   ├── Chat button → CHAT ......... getMessages, sendMessage
+  │                   └── "Continue with provider"
+  │                       └── "Release contact details" continueWithProvider
+  │                           └── CONTACTS ........... getReleasedContacts
+  │                               └── Outcome link
+  │                                   └── AFTER THE EVENT
+  │                                       ├── "Save outcome" .... saveOutcome
+  │                                       └── Choose "Yes, a provider..."
+  │                                           └── "Write a verified review"
+  │                                               └── "Submit review" .. saveReview
+  │
+  ├── SAVED TAB ...................................... getFavorites
+  │
+  ├── CHAT TAB ....................................... getConversations
+  │   └── Tap a chat ................................. getMessages
+  │       └── Send text .............................. sendMessage
+  │
+  └── ME TAB ......................................... me
+      ├── Notifications .............................. getNotifications, getUnreadCount
+      │   ├── Tap one ................................ markNotificationRead
+      │   └── "Mark all read" ........................ markAllNotificationsRead
+      ├── Notification settings ...................... getNotificationSettings
+      │   └── Change a switch ........................ updateNotificationSettings
+      ├── Terms ...................................... getLegal (terms)
+      ├── Privacy .................................... getLegal (privacy)
+      ├── Report something → "Submit report" ......... saveReport
+      ├── Export my data ............................. exportAccount
+      ├── Sign out ................................... logout
+      └── Delete account ............................. deleteAccount
+            !! Deletes the account for real. Do this LAST, test account only.
+
+
+--------------------------------------------------------------------------------
+ 5. VENDOR FLOW
+--------------------------------------------------------------------------------
+
+  VENDOR APP (bottom tabs: Home | Requests | Menu | Chat | More)
+  │
+  ├── HOME TAB
+  │   │   APIs: getVendorDashboard, getVendorProfile, getLeads,
+  │   │         getVendorOfferings, getPlans, getNotifications, getUnreadCount
+  │   │
+  │   └── Tap a lead → LEAD (see Requests tab below)
+  │
+  ├── REQUESTS TAB ................................... getLeads
+  │   │
+  │   └── Tap a lead
+  │       └── LEAD ................................... getLead
+  │           ├── "Yes, I can do it" ................. saveAvailability
+  │           ├── "Only part of it" .................. saveAvailability
+  │           ├── "I need to check" .................. saveAvailability
+  │           ├── "I cannot do it" ................... saveAvailability
+  │           ├── "Send a price"
+  │           │     └── PRICE BUILDER ................ getLead, getTemplates
+  │           │         └── Send ..................... saveProposal
+  │           ├── "View or withdraw your price"
+  │           │     └── PROPOSAL → "Withdraw" ........ withdrawProposal
+  │           │         (do this on a second lead)
+  │           └── "Ask a question" → CHAT ............ getMessages, sendMessage
+  │
+  ├── MENU TAB ....................................... getVendorOfferings
+  │   ├── "Add a dish" → Save ........................ saveOffering
+  │   ├── Tap a dish → Save .......................... updateOffering
+  │   └── On/off switch on a dish .................... setOfferingActive
+  │
+  ├── CHAT TAB ....................................... getConversations
+  │   └── Tap a chat → send text ..................... getMessages, sendMessage
+  │
+  └── MORE TAB ....................................... getVendorProfile
+      ├── Edit your page → Save ...................... updateVendorProfile
+      ├── Business check → Save ...................... saveVerification
+      ├── Your plan .................................. getSubscription, getInvoices, getPlans
+      │   └── "Switch to ..." ........................ saveSubscription
+      ├── Jobs you want .............................. getPreferences
+      │   └── Save ................................... savePreferences
+      ├── Days you can cook (Gold/Platinum) .......... getCalendar
+      │   └── Tap a day .............................. saveCalendar
+      ├── Saved quotes ............................... getTemplates
+      │   ├── "Save template" ........................ saveTemplate
+      │   └── "Delete" ............................... deleteTemplate
+      ├── How requests go (Gold/Platinum) ............ getAnalytics
+      ├── Reviews .................................... getVendorReviews
+      │   └── "Post reply" ........................... saveReviewResponse
+      ├── Alerts ..................................... getNotificationSettings
+      │   └── Change a switch ........................ updateNotificationSettings
+      └── Sign out ................................... logout
+
+
+--------------------------------------------------------------------------------
+ 6. CHECKLIST - tick [x] when the log shows "← OK"
+--------------------------------------------------------------------------------
+
+  START + AUTH (7)
+  [ ] get_language ................ Splash (open the app)
+  [ ] getPlans .................... Splash / Select plan / Your plan
+  [ ] register (customer) ......... Role → Customer → Register
+  [ ] register (vendor) ........... Role → Vendor → Register
+  [ ] login (customer) ............ Role → Customer → Log in
+  [ ] login (vendor) .............. Role → Vendor → Log in
+  [ ] logout ...................... Me / More → Sign out
+
+  PUBLIC - work without login (9)
+  [ ] getCategories ............... Customer Home
+  [ ] getProviders ................ Customer Home
+  [ ] searchProviders ............. Search
+  [ ] getProviderDetails .......... Provider page
+  [ ] getProviderOfferings ........ Provider page
+  [ ] getProviderReviews .......... Provider page
+  [ ] getOffering ................. Dish page
+  [ ] getLegal (terms) ............ Me → Terms
+  [ ] getLegal (privacy) .......... Me → Privacy
+
+  ACCOUNT (13)
+  [ ] me .......................... Customer Home / Me tab
+  [ ] verifyEmail ................. Requests → Verify your phone → Verify email
+  [ ] verifyPhone ................. Same screen → Verify phone
+  [ ] savePushToken ............... First launch, allow notifications (dev build)
+  [ ] getNotifications ............ Home bell / Me → Notifications
+  [ ] getUnreadCount .............. Home
+  [ ] markNotificationRead ........ Notifications → tap one
+  [ ] markAllNotificationsRead .... Notifications → Mark all read
+  [ ] getNotificationSettings ..... Me → Notification settings / More → Alerts
+  [ ] updateNotificationSettings .. Same screen → change a switch
+  [ ] saveReport .................. Me → Report something → Submit report
+  [ ] exportAccount ............... Me → Export my data
+  [ ] deleteAccount ............... Me → Delete account  (LAST, test account)
+
+  CUSTOMER (15)
+  [ ] saveFavorite (provider) ..... Heart on a provider
+  [ ] saveFavorite (offering) ..... Heart on a dish
+  [ ] deleteFavorite .............. Tap the heart again
+  [ ] getFavorites ................ Saved tab
+  [ ] saveRequestDraft ............ Request proposals → each Continue
+  [ ] submitRequest ............... Request proposals → last step
+  [ ] getRequests ................. Requests tab
+  [ ] getRequestDetails ........... Tap a request
+  [ ] cancelRequest ............... Request → Cancel request
+  [ ] getProposals ................ Tap a request
+  [ ] getProposal ................. Tap a proposal
+  [ ] continueWithProvider ........ Proposal → Continue → Release contact details
+  [ ] getReleasedContacts ......... Contacts screen (opens after continue)
+  [ ] saveOutcome ................. Contacts → outcome link → Save outcome
+  [ ] saveReview .................. "Yes, a provider..." → Submit review
+
+  CHAT (3)
+  [ ] getConversations ............ Chat tab
+  [ ] getMessages ................. Open a chat
+  [ ] sendMessage ................. Send a text
+
+  VENDOR (27)
+  [ ] saveSubscription ............ Select plan → Continue / More → Your plan → Switch
+  [ ] getSubscription ............. More → Your plan
+  [ ] getInvoices ................. More → Your plan
+  [ ] saveVendorServices .......... Your services → Go to home
+  [ ] getVendorDashboard .......... Vendor Home
+  [ ] getLeads .................... Home / Requests tab
+  [ ] getLead ..................... Tap a lead
+  [ ] saveAvailability ............ Lead → Yes / Only part / Need to check / Cannot
+  [ ] saveProposal ................ Lead → Send a price → Send
+  [ ] withdrawProposal ............ Lead → View or withdraw your price → Withdraw
+  [ ] getVendorOfferings .......... Menu tab
+  [ ] saveOffering ................ Menu → Add a dish → Save
+  [ ] updateOffering .............. Menu → tap a dish → Save
+  [ ] setOfferingActive ........... Menu → on/off switch
+  [ ] getVendorProfile ............ Home / More
+  [ ] updateVendorProfile ......... More → Edit your page → Save
+  [ ] saveVerification ............ More → Business check → Save
+  [ ] getPreferences .............. More → Jobs you want
+  [ ] savePreferences ............. More → Jobs you want → Save
+  [ ] getCalendar ................. More → Days you can cook
+  [ ] saveCalendar ................ Days you can cook → tap a day
+  [ ] getTemplates ................ More → Saved quotes
+  [ ] saveTemplate ................ Saved quotes → Save template
+  [ ] deleteTemplate .............. Saved quotes → Delete
+  [ ] getAnalytics ................ More → How requests go
+  [ ] getVendorReviews ............ More → Reviews
+  [ ] saveReviewResponse .......... Reviews → Post reply
+
+  TOTAL: 7 + 9 + 13 + 15 + 3 + 27 = 74
+
+
+--------------------------------------------------------------------------------
+ 7. WHEN A CALL FAILS
+--------------------------------------------------------------------------------
+
+  LOG SAYS                         MEANING                       FIX
+  -------------------------------  ----------------------------  -------------------------------
+  401 token is required            Guest (not logged in)         Log in with a real account
+  404 on getLead / getProposal     Opened a dummy row (dummy-…)  Open a real item from the list
+  ✗ FAIL NETWORK                   No internet or wrong URL      Check EXPO_PUBLIC_API_URL
+  Screen says "Not on this plan"   Vendor is on Free plan        More → Your plan → Gold/Platinum
+
+================================================================================
