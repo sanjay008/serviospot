@@ -12,8 +12,7 @@ import { continueAfterLogin } from '@/hooks/use-login-gate';
 import { homeFor, useApp } from '@/state/store';
 
 export default function RegisterScreen() {
-  const { role, from, next } = useLocalSearchParams<{ role?: string; from?: string; next?: string }>();
-  const vendor = role === 'vendor';
+  const { from, next } = useLocalSearchParams<{ from?: string; next?: string }>();
   const { session, startSession, hydrate } = useApp();
   const [signedInOnOpen] = useState(session.signedIn);
   const [registerUser, { isLoading }] = useRegisterMutation();
@@ -23,11 +22,10 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  if (vendor) return <Redirect href="/vendor-onboarding" />;
-  if (signedInOnOpen) return <Redirect href={homeFor(session)} />;
+  if (signedInOnOpen) return <Redirect href={homeFor(session) as any} />;
 
-  const finish = (destination: '/customer' | '/business' | '/vendor-onboarding' | undefined) => {
-    if (!continueAfterLogin(from, next)) router.replace(destination ?? '/customer');
+  const finish = (destination: '/customer' | '/vendor' | undefined) => {
+    if (!continueAfterLogin(from, next)) router.replace(destination ?? '/customer' as any);
   };
 
   const submit = async () => {
@@ -65,7 +63,7 @@ export default function RegisterScreen() {
       <Input label="Phone" value={phone} onChangeText={setPhone} placeholder="Phone number" keyboardType="phone-pad" />
       <Input label="Password" value={password} onChangeText={setPassword} placeholder="Password" secure autoCapitalize="none" />
       <Button label="Register" style={authButton} loading={isLoading} onPress={submit} />
-      <AuthLink before="Already have an account?" action="Log in" onPress={() => router.push('/login')} />
+      <AuthLink before="Already have an account?" action="Log in" onPress={() => router.push('/login' as any)} />
     </AuthScreen>
   );
 }

@@ -1,16 +1,14 @@
-import { Tabs } from 'expo-router/js-tabs';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { tabIcon, useTabScreenOptions } from '@/navigation/tabs';
+import { palette } from '@/flow2/constants/theme';
 
-export default function CustomerTabs() {
-  const options = useTabScreenOptions();
+export default function CustomerLayout() {
   return (
-    <Tabs screenOptions={options}>
-      <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: tabIcon('home') }} />
-      <Tabs.Screen name="requests" options={{ title: 'Requests', tabBarIcon: tabIcon('doc') }} />
-      <Tabs.Screen name="favorites" options={{ title: 'Saved', tabBarIcon: tabIcon('heart') }} />
-      <Tabs.Screen name="messages" options={{ title: 'Chat', tabBarIcon: tabIcon('chat') }} />
-      <Tabs.Screen name="account" options={{ title: 'Me', tabBarIcon: tabIcon('person') }} />
-    </Tabs>
+    <SafeAreaProvider>
+      <StatusBar style="dark" />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: palette.bg } }} />
+    </SafeAreaProvider>
   );
 }

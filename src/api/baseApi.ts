@@ -1,16 +1,26 @@
 import { createApi, type BaseQueryFn } from '@reduxjs/toolkit/query/react';
+import { apiRequest, type ApiMethod } from '@/api/client';
 
-import { ApiError, apiPost } from '@/api/client';
-
-export type ApiQuery = { path: string; body?: Record<string, unknown> };
+export type ApiQuery = {
+  path: string;
+  method?: ApiMethod;
+  params?: Record<string, string | number | boolean | null | undefined>;
+  body?: Record<string, unknown>;
+  headers?: Record<string, string>;
+};
 export type ApiFailure = { status: number; message: string };
 
-const baseQuery: BaseQueryFn<ApiQuery, unknown, ApiFailure> = async ({ path, body }) => {
+const baseQuery: BaseQueryFn<ApiQuery, unknown, ApiFailure> = async (args, { signal }) => {
   try {
-    return { data: await apiPost(path, body) };
+    const data = await apiRequest(args.path, args.body, { method: args.method, params: args.params, headers: args.headers, signal });
+    return { data };
   } catch (error) {
-    if (error instanceof ApiError) return { error: { status: error.status, message: error.message } };
-    return { error: { status: 0, message: 'Could not reach the server' } };
+    return {
+      error: {
+        status: error && typeof error === 'object' && 'status' in error ? Number(error.status) || 0 : 0,
+        message: error instanceof Error ? error.message : 'Could not reach the server.',
+      },
+    };
   }
 };
 

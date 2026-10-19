@@ -31,7 +31,7 @@ export const leadLabel: Record<LeadStatus, string> = {
 
 export function euro(cents: number | null | undefined) {
   if (cents == null) return 'On request';
-  return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(cents / 100);
+  return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 }
 
 export function parseEuro(input: string) {
@@ -43,7 +43,7 @@ export function parseEuro(input: string) {
 export function formatDate(iso: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return new Intl.DateTimeFormat('nl-NL', {
+  return new Intl.DateTimeFormat('en-GB', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

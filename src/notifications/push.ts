@@ -1,8 +1,5 @@
-import Constants from 'expo-constants';
-import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 
-import { apiActions } from '@/api/actions';
 import type { AppNotification, NotifyPrefs } from '@/data/types';
 
 type NotificationsModule = typeof import('expo-notifications');
@@ -78,31 +75,8 @@ export async function notificationPermission(): Promise<'granted' | 'denied' | '
 }
 
 export async function prepareNotifications() {
-  if (!Notifications || Platform.OS === 'web') return null;
-  if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
-      name: 'ServioSpot',
-      importance: Notifications.AndroidImportance.HIGH,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#7C5CFF',
-    });
-  }
-  const existing = await Notifications.getPermissionsAsync();
-  let status = existing.status;
-  if (status !== 'granted') {
-    status = (await Notifications.requestPermissionsAsync()).status;
-  }
-  if (status !== 'granted' || !Device.isDevice) return null;
-  const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
-  if (!projectId) return null;
-  try {
-    const token = await Notifications.getExpoPushTokenAsync({ projectId });
-    apiActions.savePushToken(token.data);
-    return token.data;
-  } catch {
-    // Android needs a Firebase key and iOS needs an Apple push key before a remote token exists.
-    return null;
-  }
+  // Remote push registration is paused while API calls are disabled.
+  return null;
 }
 
 export async function presentLocal(note: Pick<AppNotification, 'title' | 'body' | 'href'>) {

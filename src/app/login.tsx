@@ -50,14 +50,13 @@ export default function LoginScreen() {
         hasProviderProfile: false,
       });
       hydrate({ session: toSessionPatch(reply) });
-      if (vendor) router.replace('/vendor-onboarding');
-      else if (!continueAfterLogin(from, next)) router.replace(destination);
-    } catch (failure) {
-      setError((failure as ApiFailure).message || 'Could not log in. Try again.');
-    }
-  };
+        if (!continueAfterLogin(from, next)) router.replace(destination as any);
+      } catch (failure) {
+        setError((failure as ApiFailure).message || 'Could not log in. Try again.');
+      }
+    };
 
-  if (signedInOnOpen && !vendor) return <Redirect href={homeFor(session)} />;
+    if (signedInOnOpen) return <Redirect href={homeFor(session) as any} />;
 
   return (
     <AuthScreen back>
@@ -75,7 +74,7 @@ export default function LoginScreen() {
       <Pressable onPress={() => setResetNote(true)} style={styles.forgot}>
         <Text style={styles.forgotText}>Forgot password?</Text>
       </Pressable>
-      <AuthLink before="Don't have an account?" action="Register" onPress={() => router.push(vendor ? '/vendor-onboarding' : (`/register${from ? `?from=${encodeURIComponent(from)}&next=${encodeURIComponent(next ?? from)}` : ''}` as Href))} />
+      <AuthLink before="Don't have an account?" action="Register" onPress={() => router.push(`/register${from ? `?from=${encodeURIComponent(from as any)}&next=${encodeURIComponent(next ?? from)}` : ''}` as Href)} />
     </AuthScreen>
   );
 }

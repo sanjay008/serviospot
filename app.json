@@ -8,9 +8,10 @@
     "scheme": "serviospot",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "bundleIdentifier": "com.anand-sewpal.ServioSpot"
+      "bundleIdentifier": "com.serviospot.app"
     },
     "android": {
+      "versionCode": 2,
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
@@ -18,7 +19,7 @@
         "monochromeImage": "./assets/images/icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.anand_sewpal.ServioSpot"
+      "package": "com.serviospot.app"
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
@@ -29,8 +30,8 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#FFFFFF",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
+          "image": "./assets/images/splash-logo.png",
+          "imageWidth": 280,
           "resizeMode": "contain"
         }
       ],
@@ -47,6 +48,15 @@
         {
           "color": "#7C5CFF",
           "defaultChannel": "default"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          }
         }
       ]
     ],

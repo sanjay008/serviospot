@@ -1,5 +1,4 @@
 import { skipToken } from '@reduxjs/toolkit/query/react';
-import { chatSocket } from '@/chat/socket';
 import { useEffect, useEffectEvent, useMemo, useState } from 'react';
 
 import {
@@ -133,11 +132,7 @@ export function useMessagesSync(conversationId: string | undefined, box: 'custom
   useOnData(messages.data, (data) => {
     if (conversationId) setMessages(conversationId, rowsOf(data).map((row) => toMessage(row, box)).filter(hasId));
   });
-  useEffect(() => {
-    if (!signedIn || !conversationId) return;
-    chatSocket.join(conversationId);
-    return () => chatSocket.leave(conversationId);
-  }, [signedIn, conversationId]);
+  // Chat socket room joining is temporarily disabled while investigating APK crashes.
 }
 
 export function useLegalText(doc: 'terms' | 'privacy') {

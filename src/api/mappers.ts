@@ -399,7 +399,7 @@ export function toNotification(r: R, audience: 'customer' | 'provider'): AppNoti
     body: str(r, 'body', 'message') ?? '',
     at: str(r, 'created_at', 'at') ?? '',
     read: bool(r, 'read', 'is_read') ?? false,
-    href: str(r, 'href', 'url', 'link') ?? (audience === 'provider' ? '/business/leads' : '/customer/requests'),
+    href: str(r, 'href', 'url', 'link') ?? (audience === 'provider' ? '/vendor/leads' : '/customer/requests'),
   };
 }
 

@@ -1,8 +1,7 @@
 import { API_URL, getAuthToken } from '@/api/client';
 
 /**
- * Live chat socket. The REST calls still save the chat.
- * Backend should accept this WebSocket and relay `message` events.
+ * Live chat socket for the offline prototype. The server relays `message` events.
  *
  * Client sends:
  *   { "event": "auth", "token": "..." }
@@ -22,6 +21,7 @@ export type SocketChatMessage = {
   text?: string;
   created_at?: string;
   is_mine?: boolean;
+  client_id?: string;
 };
 
 type Incoming = {
@@ -37,12 +37,14 @@ type Incoming = {
   created_at?: string;
   at?: string;
   is_mine?: boolean;
+  client_id?: string;
 };
 
 const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL ?? API_URL.replace(/^http/i, 'ws') + '/serviospot/chat';
 
 const listeners = new Set<(message: SocketChatMessage) => void>();
 const rooms = new Set<string>();
+const pendingMessages: Record<string, unknown>[] = [];
 
 let socket: WebSocket | null = null;
 let token = '';
@@ -50,6 +52,13 @@ let stopped = true;
 let retry = 0;
 let timer: ReturnType<typeof setTimeout> | null = null;
 let loggedFailure = false;
+let status: 'connecting' | 'connected' | 'disconnected' = 'disconnected';
+const statusListeners = new Set<(next: typeof status) => void>();
+
+function setStatus(next: typeof status) {
+  status = next;
+  statusListeners.forEach((listener) => listener(next));
+}
 
 function send(payload: Record<string, unknown>) {
   if (socket?.readyState !== WebSocket.OPEN) return;
@@ -79,16 +88,19 @@ function publish(raw: Incoming) {
     message: text,
     created_at: nested?.created_at ?? nested?.at ?? raw.created_at ?? raw.at,
     is_mine: nested?.is_mine ?? raw.is_mine,
+    client_id: nested?.client_id ?? raw.client_id,
   };
   listeners.forEach((listener) => listener(message));
 }
 
 function open() {
-  if (stopped || !token || socket) return;
+  if (stopped || socket) return;
+  setStatus('connecting');
   let next: WebSocket;
   try {
     next = new WebSocket(SOCKET_URL);
   } catch {
+    setStatus('disconnected');
     scheduleReconnect();
     return;
   }
@@ -96,8 +108,10 @@ function open() {
   next.onopen = () => {
     retry = 0;
     loggedFailure = false;
-    send({ event: 'auth', token });
+    setStatus('connected');
+    if (token) send({ event: 'auth', token });
     rooms.forEach((conversationId) => send({ event: 'join', conversation_id: conversationId }));
+    pendingMessages.splice(0).forEach(send);
   };
   next.onmessage = (event) => {
     try {
@@ -108,6 +122,7 @@ function open() {
     }
   };
   next.onerror = () => {
+    setStatus('disconnected');
     if (__DEV__ && !loggedFailure) {
       loggedFailure = true;
       console.log(`[chat] socket not connected yet ${SOCKET_URL}`);
@@ -115,25 +130,29 @@ function open() {
   };
   next.onclose = () => {
     if (socket === next) socket = null;
+    setStatus('disconnected');
     scheduleReconnect();
   };
 }
 
 export const chatSocket = {
-  connect(nextToken: string) {
+  connect(nextToken = token) {
+    const tokenChanged = !!nextToken && nextToken !== token;
     token = nextToken;
     stopped = false;
-    if (socket) return;
-    open();
+    if (!socket) open();
+    else if (tokenChanged && socket.readyState === WebSocket.OPEN) send({ event: 'auth', token });
   },
   disconnect() {
     stopped = true;
     token = '';
     rooms.clear();
+    pendingMessages.length = 0;
     if (timer) clearTimeout(timer);
     timer = null;
     socket?.close();
     socket = null;
+    setStatus('disconnected');
   },
   join(conversationId: string) {
     if (!conversationId) return;
@@ -144,15 +163,22 @@ export const chatSocket = {
     rooms.delete(conversationId);
     send({ event: 'leave', conversation_id: conversationId });
   },
-  /** Tells the server a message was saved, so it can show it to the other person. */
-  relay(conversationId: string, message: string) {
-    send({ event: 'message', conversation_id: conversationId, message });
+  /** Sends a message through the live socket while REST chat APIs are paused. */
+  relay(conversationId: string, message: string, from: 'customer' | 'vendor', clientId: string) {
+    const payload = { event: 'message', conversation_id: conversationId, message, from, client_id: clientId };
+    if (socket?.readyState === WebSocket.OPEN) send(payload);
+    else pendingMessages.push(payload);
   },
   subscribe(listener: (message: SocketChatMessage) => void) {
     listeners.add(listener);
     return () => {
       listeners.delete(listener);
     };
+  },
+  subscribeStatus(listener: (next: typeof status) => void) {
+    statusListeners.add(listener);
+    listener(status);
+    return () => statusListeners.delete(listener);
   },
 };
 

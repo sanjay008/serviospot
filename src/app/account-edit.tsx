@@ -18,7 +18,7 @@ export default function AccountEditScreen() {
   const [phone, setPhone] = useState(session.phone);
   const [photo, setPhoto] = useState(session.photo);
 
-  if (!session.signedIn) return <Redirect href="/role" />;
+  if (!session.signedIn) return <Redirect href="/" />;
 
   return (
     <Screen header={<Header title="Edit account" subtitle="Your photo, name, email and phone" back />}>

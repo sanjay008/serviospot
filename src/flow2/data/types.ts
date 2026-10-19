@@ -28,6 +28,7 @@ export interface DishCounts {
 export interface Provider {
   id: string;
   name: string;
+  photo?: string;
   cuisine: Bilingual;
   city: string;
   radiusKm: number;
@@ -42,6 +43,22 @@ export interface Provider {
   description: Bilingual;
   plan: Plan;
   approved: boolean;
+}
+
+export interface MenuItem {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  active: boolean;
+  imageUri?: string;
+}
+
+export interface FlowChatMessage {
+  id: string;
+  text: string;
+  createdAt: number;
+  sender: 'customer' | 'vendor';
 }
 
 export interface RequestDraft {
@@ -128,6 +145,7 @@ export interface OnboardingDraft {
   phoneVerified: boolean;
   type: 'private' | 'business';
   profileName: string;
+  profileImageUri?: string;
   company: string;
   kvk: string;
   street: string;

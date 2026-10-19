@@ -8,7 +8,7 @@ export function Header({ title, subtitle, back, right }: { title: string; subtit
   return (
     <View style={styles.row}>
       {back ? (
-        <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/flow2'))} style={styles.back}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={styles.back}>
           <Icon name="back" color={palette.ink} size={18} />
         </Pressable>
       ) : null}

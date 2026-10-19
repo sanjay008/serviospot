@@ -1,9 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
-export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://app.erpportaal.nl/api';
+export type ApiMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+export type ApiAuthMode = 'body' | 'bearer' | 'none';
 
-// Public calls are rejected without this. Set EXPO_PUBLIC_COMPANY_LOGIN in .env.
+/** Set these in a local .env file or the matching EAS environment. Calls stay off by default. */
+export const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? '').trim().replace(/\/+$/, '');
+export const API_ENABLED = process.env.EXPO_PUBLIC_API_ENABLED === 'true';
+export const API_AUTH_MODE = (process.env.EXPO_PUBLIC_API_AUTH_MODE ?? 'body') as ApiAuthMode;
 export const COMPANY_LOGIN = process.env.EXPO_PUBLIC_COMPANY_LOGIN ?? '';
 
 const TOKEN_KEY = 'authToken';
@@ -38,21 +42,14 @@ export class ApiError extends Error {
   }
 }
 
-type Envelope<T> = {
-  status_code?: number;
-  status?: boolean;
-  message?: string;
-  data?: T;
-};
-
 const LOG_LIMIT = 2000;
 let logCount = 0;
+const SECRET_FIELDS = /^(password|token|authorization|company_login|email|phone|phone_number|full_name|name|photo|logo|image|code|otp)$/i;
 
-/** Hides secrets at any depth, in what is sent and in what comes back. */
+/** Avoid putting credentials, personal details, or full image data in Metro logs. */
 function mask(key: string, value: unknown) {
   if (typeof value !== 'string') return value;
-  if (key === 'password') return '***';
-  if (key === 'token') return value.length > 12 ? `${value.slice(0, 6)}…${value.slice(-4)}` : '***';
+  if (SECRET_FIELDS.test(key)) return '***';
   if (value.startsWith('data:')) return `${value.slice(0, value.indexOf(',') + 1)}… (${Math.round(value.length / 1024)} KB)`;
   return value;
 }
@@ -63,58 +60,99 @@ function preview(value: unknown) {
   return text.length > LOG_LIMIT ? `${text.slice(0, LOG_LIMIT)}… (+${text.length - LOG_LIMIT} chars)` : text;
 }
 
-/** Logs a request in dev builds and returns a function that logs its reply. Shows in the Metro terminal. */
 type ReplyLogger = (status: number | string, reply: unknown, failed?: boolean) => void;
 
-export function startApiLog(url: string, body: Record<string, unknown>): ReplyLogger {
+/** Development-only request and response trace. Sensitive values are masked before logging. */
+export function startApiLog(method: ApiMethod, url: string, body: unknown): ReplyLogger {
   if (!__DEV__) return () => {};
   const id = ++logCount;
   const started = Date.now();
-  console.log(`[API #${id}] → POST ${url}\nSEND ${preview(body)}`);
+  console.log(`[API #${id}] → ${method} ${url}\nSEND ${preview(body)}`);
   return (status, reply, failed = false) => {
-    console.log(
-      `[API #${id}] ${failed ? '✗ FAIL' : '← OK'} ${status} ${url} (${Date.now() - started} ms)\nREPLY ${preview(reply)}`,
-    );
+    console.log(`[API #${id}] ${failed ? '✗ FAIL' : '← OK'} ${status} ${url} (${Date.now() - started} ms)\nREPLY ${preview(reply)}`);
   };
 }
 
-/** Every ServioSpot call is a POST. The token, or company_login when signed out, goes in the body. */
-export async function apiPost<T>(path: string, body: Record<string, unknown> = {}): Promise<T> {
+function responseMessage(reply: unknown, fallback: string) {
+  if (reply && typeof reply === 'object') {
+    const record = reply as Record<string, unknown>;
+    if (typeof record.message === 'string' && record.message.trim()) return record.message;
+    if (typeof record.error === 'string' && record.error.trim()) return record.error;
+  }
+  return fallback;
+}
+
+/** Shared REST transport. Endpoint files own paths/types; this function owns HTTP and auth behavior. */
+export async function apiRequest<T>(
+  path: string,
+  body: Record<string, unknown> = {},
+  options: {
+    method?: ApiMethod;
+    params?: Record<string, string | number | boolean | null | undefined>;
+    headers?: Record<string, string>;
+    signal?: AbortSignal;
+  } = {},
+): Promise<T> {
+  if (!API_ENABLED) throw new ApiError('API calls are disabled. Set EXPO_PUBLIC_API_ENABLED=true when the backend is ready.', 0);
+  if (!API_URL) throw new ApiError('API URL is missing. Set EXPO_PUBLIC_API_URL before enabling API calls.', 0);
+  if (!['body', 'bearer', 'none'].includes(API_AUTH_MODE)) throw new ApiError('Invalid EXPO_PUBLIC_API_AUTH_MODE. Use body, bearer, or none.', 0);
+
+  const method = options.method ?? 'POST';
+  const normalizedPath = path.replace(/^\/+/, '');
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(options.params ?? {})) {
+    if (value !== undefined && value !== null) query.set(key, String(value));
+  }
+  const queryString = query.toString();
+  const url = `${API_URL}/${normalizedPath}${queryString ? `?${queryString}` : ''}`;
   const payload: Record<string, unknown> = { ...body };
-  if (authToken) payload.token = authToken;
-  else payload.company_login = COMPANY_LOGIN;
+  const headers: Record<string, string> = { Accept: 'application/json', ...options.headers };
 
-  const url = `${API_URL}/${path}`;
-  const logReply = startApiLog(url, payload);
+  if (method !== 'GET' && method !== 'DELETE') headers['Content-Type'] = headers['Content-Type'] ?? 'application/json';
+  if (API_AUTH_MODE === 'body' && authToken) payload.token = authToken;
+  else if (API_AUTH_MODE === 'body' && !authToken && COMPANY_LOGIN) payload.company_login = COMPANY_LOGIN;
+  if (API_AUTH_MODE === 'bearer' && authToken) headers.Authorization = `Bearer ${authToken}`;
 
+  const logReply = startApiLog(method, url, method === 'GET' || method === 'DELETE' ? undefined : payload);
   let response: Response;
   try {
     response = await fetch(url, {
-      method: 'POST',
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      method,
+      headers,
+      ...(method === 'GET' || method === 'DELETE' ? {} : { body: JSON.stringify(payload) }),
+      signal: options.signal,
     });
   } catch (error) {
-    logReply('NETWORK', String(error), true);
-    throw error;
+    const message = error instanceof Error ? error.message : 'Could not reach the server.';
+    logReply('NETWORK', message, true);
+    throw new ApiError(message, 0);
   }
 
   const text = await response.text();
-  let json: Envelope<T> | null = null;
+  let reply: unknown = undefined;
   if (text) {
     try {
-      json = JSON.parse(text) as Envelope<T>;
+      reply = JSON.parse(text) as unknown;
     } catch {
       logReply(response.status, text, true);
       throw new ApiError('The server sent a reply the app could not read.', response.status);
     }
   }
 
-  const status = json?.status_code ?? response.status;
-  if (!response.ok || json?.status === false) {
-    logReply(status, json, true);
-    throw new ApiError(json?.message || `Request failed (${status})`, status);
+  const record = reply && typeof reply === 'object' ? reply as Record<string, unknown> : null;
+  const statusRejected = record?.status === false;
+  if (!response.ok || statusRejected) {
+    const message = responseMessage(reply, `Request failed (${response.status}).`);
+    const status = typeof record?.status_code === 'number' ? record.status_code : response.status;
+    logReply(status, reply, true);
+    throw new ApiError(message, status);
   }
-  logReply(status, json);
-  return json?.data as T;
+
+  logReply(response.status, reply);
+  return (record && Object.prototype.hasOwnProperty.call(record, 'data') ? record.data : reply) as T;
+}
+
+/** Backward-compatible POST helper for existing action code. */
+export function apiPost<T>(path: string, body: Record<string, unknown> = {}) {
+  return apiRequest<T>(path, body, { method: 'POST' });
 }

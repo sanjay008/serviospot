@@ -36,7 +36,9 @@ export function Screen({
   );
 
   return (
-    <KeyboardAvoidingView style={[styles.flex, { backgroundColor: canvas ?? palette.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView
+      style={[styles.flex, { backgroundColor: canvas ?? palette.bg }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <View style={[styles.flex, { backgroundColor: canvas ?? palette.bg, paddingTop: insets.top }]}>
         {header ? <View style={frame}>{header}</View> : null}
         {body}

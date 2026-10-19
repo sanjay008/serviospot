@@ -2,13 +2,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useContext, useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react';
 
 import { apiActions } from '@/api/actions';
-import { chatSocket } from '@/chat/socket';
 import { restoreAuthToken, setAuthToken } from '@/api/client';
 import { recordOf, toMessage } from '@/api/mappers';
 import type { ApiRecord } from '@/api/types';
 import { MAX_CONTINUES } from '@/constants/copy';
 import { clone, containsContact } from '@/data/format';
-import { blankProvider, guestSession, leadPreferences as seedPrefs, ME, notifyPrefs as seedNotify, planBase, profileViews } from '@/data/mock';
+import { blankDraft, blankProvider, guestSession, leadPreferences as seedPrefs, ME, notifyPrefs as seedNotify, planBase, profileViews } from '@/data/mock';
 import type {
   Category,
   ChatMessage,
@@ -31,7 +30,6 @@ import type {
   Session,
   AppNotification,
 } from '@/data/types';
-import { blankDraft } from '@/data/mock';
 
 type Result = { ok: true } | { ok: false; reason: string };
 
@@ -95,7 +93,7 @@ type Store = {
   setMessages: (conversationId: string, messages: ChatMessage[]) => void;
   /** Adds one live chat message without replacing the thread. */
   receiveChat: (conversationId: string, raw: ApiRecord) => void;
-  startSession: (account: { name: string; email: string; phone: string; mode: 'customer' | 'provider'; hasProviderProfile: boolean }) => '/customer' | '/business' | '/vendor-onboarding';
+  startSession: (account: { name: string; email: string; phone: string; mode: 'customer' | 'provider'; hasProviderProfile: boolean }) => '/customer' | '/vendor';
   verifyEmail: () => Promise<Result>;
   verifyPhone: () => Promise<Result>;
   /** Clears the session on this phone. Call it only after the logout or delete API succeeded. */
@@ -132,8 +130,8 @@ type Store = {
   reports: string[];
 };
 
-function destinationFor(account: { mode: 'customer' | 'provider'; hasProviderProfile: boolean }): '/customer' | '/business' | '/vendor-onboarding' {
-  if (account.mode === 'provider') return account.hasProviderProfile ? '/business' : '/vendor-onboarding';
+function destinationFor(account: { mode: 'customer' | 'provider'; hasProviderProfile: boolean }): '/customer' | '/vendor' {
+  if (account.mode === 'provider') return '/vendor';
   return '/customer';
 }
 
@@ -152,9 +150,9 @@ async function settled(result: { ok: true } | { ok: false; reason: string }): Pr
 }
 
 /** Where a signed-in user lands when the app opens. */
-export function homeFor(session: Session): '/role' | '/customer' | '/business' | '/vendor-onboarding' {
-  if (!session.signedIn) return '/role';
-  if (session.mode === 'provider') return session.hasProviderProfile ? '/business' : '/vendor-onboarding';
+export function homeFor(session: Session): '/' | '/customer' | '/vendor' {
+  if (!session.signedIn) return '/';
+  if (session.mode === 'provider') return '/vendor';
   return '/customer';
 }
 
@@ -401,7 +399,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             : requests.some((item) => item.id === conversation.requestId && item.contactProviderIds.includes(conversation.providerId));
         if (!released && containsContact(text)) return { ok: false, reason: 'contact' };
         const result = await settled(await apiActions.sendMessage(conversationId, text.trim()));
-        if (result.ok) chatSocket.relay(conversationId, text.trim());
+        // Socket relay is temporarily disabled while investigating APK crashes.
         return result;
       },
       openChat: (input) =>
@@ -490,7 +488,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return result;
       },
       cycleDay: async (iso) => {
-        const order: Array<DayStatus> = ['available', 'limited', 'unavailable'];
+        const order: DayStatus[] = ['available', 'limited', 'unavailable'];
         const next = order[(Math.max(order.indexOf(days[iso] as DayStatus), -1) + 1) % order.length];
         const result = await settled(await apiActions.calendar(iso, next));
         if (result.ok) setDays((current) => ({ ...current, [iso]: next }));
