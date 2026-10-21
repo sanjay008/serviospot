@@ -12,7 +12,7 @@ import { Screen } from '@/flow2/components/Screen';
 import { SectionTitle } from '@/flow2/components/SectionTitle';
 import { palette } from '@/flow2/constants/theme';
 import { money } from '@/flow2/data/format';
-import { b } from '@/flow2/data/options';
+import { b, eventNameForOccasion } from '@/flow2/data/options';
 import { useApp } from '@/flow2/state/app';
 
 export default function VendorProposalsScreen() {
@@ -33,8 +33,8 @@ export default function VendorProposalsScreen() {
             <Card key={lead.id}>
               <View style={styles.head}>
                 <View style={styles.headText}>
-                  <Text style={styles.ref}>{lead.reference}</Text>
-                  <Text style={styles.provider}>{provider?.name ?? lead.providerId}</Text>
+                  <Text style={styles.ref}>{provider?.name ?? lead.providerId}</Text>
+                  <Text style={styles.provider}>{t(eventNameForOccasion(lead.request.occasion))}</Text>
                 </View>
                 <Badge label={t(b('Verzonden', 'Sent'))} tone="good" />
               </View>

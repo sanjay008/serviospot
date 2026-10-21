@@ -74,5 +74,5 @@ const styles = StyleSheet.create({
   from: { fontSize: 14, color: palette.muted },
   amount: { fontSize: 16, fontWeight: '800', color: palette.ink },
   viewBtn: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  viewText: { fontSize: 14, fontWeight: '700', color: palette.accent },
+  viewText: { fontSize: 14, fontWeight: '700', color: palette.accentDark },
 });

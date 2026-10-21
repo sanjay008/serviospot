@@ -21,11 +21,15 @@ export const CUISINE_STYLES: { value: string; label: { nl: string; en: string } 
 ];
 
 export const OCCASIONS: { value: string; label: { nl: string; en: string } }[] = [
-  { value: 'birthday', label: b('Verjaardag', 'Birthday') },
+  { value: 'birthday', label: b('Verjaardagsfeest', 'Birthday Party') },
   { value: 'wedding', label: b('Bruiloft', 'Wedding') },
   { value: 'business', label: b('Zakelijk evenement', 'Business event') },
   { value: 'other', label: b('Anders', 'Other') },
 ];
+
+export function eventNameForOccasion(occasion: string) {
+  return OCCASIONS.find((item) => item.value === occasion)?.label ?? b('Evenement', 'Event');
+}
 
 export const VENUE_TYPES: { value: 'home' | 'venue'; label: { nl: string; en: string } }[] = [
   { value: 'home', label: b('Thuis', 'Home') },

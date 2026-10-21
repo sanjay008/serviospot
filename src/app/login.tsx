@@ -29,14 +29,17 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [resetNote, setResetNote] = useState(false);
 
   const submit = async () => {
-    const cleanEmail = email.trim();
-    if (!cleanEmail.includes('@') || password.length < 6) {
-      setError('Enter your email and a password of at least 6 characters.');
-      return;
-    }
+    const cleanEmail = email.trim().toLowerCase();
+    const nextErrors = {
+      email: !cleanEmail ? 'Email is required.' : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail) ? 'Enter a valid email address.' : undefined,
+      password: !password ? 'Password is required.' : password.length < 8 ? 'Password must be at least 8 characters.' : undefined,
+    };
+    setFieldErrors(nextErrors);
+    if (Object.values(nextErrors).some(Boolean)) return;
     setError('');
     try {
       const reply = await login({ email: cleanEmail, password, role: vendor ? 'vendor' : 'customer' }).unwrap();
@@ -63,8 +66,8 @@ export default function LoginScreen() {
       <AuthTitle title="Welcome back" subtitle={vendor ? 'Log in to your vendor account.' : 'Log in to your account.'} />
       {error ? <Notice tone="error" body={error} /> : null}
       {resetNote ? <Notice tone="info" body="Password reset is not available yet. Contact support to reset your password." /> : null}
-      <Input label="Email" value={email} onChangeText={setEmail} placeholder="Email or phone" keyboardType="email-address" autoCapitalize="none" />
-      <Input label="Password" value={password} onChangeText={setPassword} placeholder="Password" secure autoCapitalize="none" />
+      <Input label="Email" value={email} onChangeText={(value) => { setEmail(value); setFieldErrors((current) => ({ ...current, email: undefined })); setError(''); }} placeholder="Email address" keyboardType="email-address" autoCapitalize="none" error={fieldErrors.email} />
+      <Input label="Password" value={password} onChangeText={(value) => { setPassword(value); setFieldErrors((current) => ({ ...current, password: undefined })); setError(''); }} placeholder="At least 8 characters" secure autoCapitalize="none" error={fieldErrors.password} />
       <Button
         label="Log in"
         style={authButton}
@@ -81,5 +84,5 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   forgot: { minHeight: 36, alignItems: 'center', justifyContent: 'center' },
-  forgotText: { color: palette.accent, fontSize: 14, fontWeight: '700' },
+  forgotText: { color: palette.accentDark, fontSize: 14, fontWeight: '700' },
 });

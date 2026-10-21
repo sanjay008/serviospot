@@ -1,13 +1,13 @@
 import { Platform } from 'react-native';
 export const palette = {
-  bg: '#F6F4FB',
+  bg: '#FAF8FF',
   surface: '#FFFFFF',
-  ink: '#1E1B4B',
+  ink: '#2A2442',
   muted: '#7A7693',
   line: '#EEEDF5',
-  accent: '#7C5CFF',
+  accent: '#7C5BFF',
   accentDark: '#5B45E0',
-  accentSoft: '#F3EFFF',
+  accentSoft: '#F1EDFC',
   mint: '#DCFCE7',
   mintDark: '#059669',
   gold: '#D97706',
@@ -17,7 +17,7 @@ export const palette = {
   warning: '#D97706',
   warningSoft: '#FEF3C7',
   infoSoft: '#E0F2FE',
-  well: '#F6F5FB',
+  well: '#F7F5FC',
 } as const;
 
 export const radius = {

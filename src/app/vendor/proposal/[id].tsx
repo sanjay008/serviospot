@@ -15,7 +15,7 @@ import { Screen } from '@/flow2/components/Screen';
 import { SectionTitle } from '@/flow2/components/SectionTitle';
 import { palette } from '@/flow2/constants/theme';
 import { money } from '@/flow2/data/format';
-import { b } from '@/flow2/data/options';
+import { b, eventNameForOccasion } from '@/flow2/data/options';
 import type { Availability } from '@/flow2/data/types';
 import { useApp } from '@/flow2/state/app';
 
@@ -71,7 +71,7 @@ export default function VendorProposalBuilderScreen() {
 
   return (
     <Screen
-      header={<Header title={t(b('Voorstel maken', 'Compose proposal'))} subtitle={lead.reference} back />}
+      header={<Header title={t(b('Voorstel maken', 'Compose proposal'))} subtitle={t(eventNameForOccasion(lead.request.occasion))} back />}
       footer={<Button label={t(b('Voorstel versturen', 'Send proposal'))} onPress={send} />}>
       <Card>
         <SectionTitle title={t(b('Beschikbaarheid', 'Availability'))} />

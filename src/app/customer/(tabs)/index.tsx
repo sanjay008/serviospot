@@ -18,6 +18,15 @@ export default function CustomerHomeScreen() {
   const [cuisine, setCuisine] = useState('all');
   const [filtersOpen, setFiltersOpen] = useState(false);
 
+  const toggleFilters = () => {
+    if (filtersOpen) {
+      setCuisine('all');
+      setFiltersOpen(false);
+      return;
+    }
+    setFiltersOpen(true);
+  };
+
   const filtered = useMemo(() => {
     const search = query.trim().toLowerCase();
     return providers.filter((provider) => {
@@ -44,7 +53,7 @@ export default function CustomerHomeScreen() {
           />
           {query ? <Pressable accessibilityRole="button" accessibilityLabel={t(b('Wissen', 'Clear'))} onPress={() => setQuery('')}><Icon name="close" color={palette.muted} size={18} /></Pressable> : null}
         </View>
-        <Pressable accessibilityRole="button" accessibilityState={{ expanded: filtersOpen }} onPress={() => setFiltersOpen((open) => !open)} style={[styles.filterButton, filtersOpen && styles.filterButtonActive]}>
+        <Pressable accessibilityRole="button" accessibilityState={{ expanded: filtersOpen }} onPress={toggleFilters} style={[styles.filterButton, filtersOpen && styles.filterButtonActive]}>
           <Icon name="filter" color={filtersOpen ? '#FFFFFF' : palette.accentDark} size={19} />
         </Pressable>
       </View>

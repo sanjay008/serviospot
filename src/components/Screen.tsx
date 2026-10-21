@@ -27,9 +27,10 @@ export function Screen({
   style?: StyleProp<ViewStyle>;
 }) {
   const insets = useSafeAreaInsets();
-  const { gutter, maxWidth } = useResponsive();
+  const { gutter, maxWidth, width } = useResponsive();
   const bottom = footer ? 20 : tab ? 24 : insets.bottom + 24;
   const frame = { width: '100%' as const, maxWidth, alignSelf: 'center' as const };
+  const topSpace = width < 360 ? 12 : width >= 768 ? 20 : 16;
   const [refreshing, setRefreshing] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -46,7 +47,7 @@ export function Screen({
 
   const body = scroll ? (
     <ScrollView
-      style={styles.flex}
+      style={[styles.flex, styles.body]}
       contentContainerStyle={{ paddingBottom: bottom, flexGrow: 1 }}
       automaticallyAdjustKeyboardInsets
       keyboardShouldPersistTaps="handled"
@@ -58,15 +59,15 @@ export function Screen({
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={palette.accent} colors={[palette.accent]} progressBackgroundColor={palette.surface} />
         ) : undefined
       }>
-      <View style={[styles.content, frame, { paddingHorizontal: gutter }, style]}>{children}</View>
+      <View style={[styles.content, frame, { paddingHorizontal: gutter, paddingTop: topSpace }, style]}>{children}</View>
     </ScrollView>
   ) : (
-    <View style={[styles.flex, styles.content, frame, { paddingHorizontal: gutter }, style]}>{children}</View>
+    <View style={[styles.flex, styles.body, styles.content, frame, { paddingHorizontal: gutter, paddingTop: topSpace }, style]}>{children}</View>
   );
 
   return (
-    <KeyboardAvoidingView style={[styles.flex, { backgroundColor: canvas ?? palette.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <View style={[styles.flex, { backgroundColor: canvas ?? palette.bg, paddingTop: insets.top }]}>
+    <KeyboardAvoidingView style={[styles.flex, { backgroundColor: canvas ?? palette.surface }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <View style={[styles.flex, { backgroundColor: canvas ?? palette.surface, paddingTop: insets.top }]}>
         {header ? <View style={frame}>{header}</View> : null}
         {body}
         {footer ? (
@@ -81,6 +82,7 @@ export function Screen({
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  body: { backgroundColor: palette.bg },
   content: { gap: 12 },
   footer: { paddingTop: 12, backgroundColor: palette.surface, borderTopWidth: 1, borderTopColor: palette.line },
 });

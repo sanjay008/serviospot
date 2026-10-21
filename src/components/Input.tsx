@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   wrap: { gap: 6 },
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   label: { fontSize: 15, fontWeight: '700', color: palette.ink },
-  toggle: { fontSize: 13, fontWeight: '600', color: palette.accent },
+  toggle: { fontSize: 13, fontWeight: '600', color: palette.accentDark },
   input: {
     minHeight: 48,
     borderRadius: 12,

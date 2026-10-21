@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { palette } from '@/flow2/constants/theme';
+import { typography } from '@/constants/typography';
 
 export function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
@@ -23,8 +24,8 @@ export function Pill({ label, tone = 'accent' }: { label: string; tone?: 'accent
 
 const styles = StyleSheet.create({
   wrap: { gap: 2, marginTop: 4 },
-  title: { fontSize: 18, fontWeight: '700', color: palette.ink },
-  subtitle: { fontSize: 14, lineHeight: 20, color: palette.muted },
+  title: { fontSize: typography.sectionTitle, lineHeight: 24, fontWeight: '700', color: palette.ink },
+  subtitle: { fontSize: typography.secondary, lineHeight: 20, color: palette.muted },
   pill: { alignSelf: 'flex-start', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
   pillText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.4 },
 });

@@ -60,5 +60,5 @@ const styles = StyleSheet.create({
   tagLeft: { textAlign: 'left' },
   linkHit: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   link: { color: palette.muted, fontSize: 15, textAlign: 'center' },
-  linkStrong: { color: palette.accent, fontWeight: '700' },
+  linkStrong: { color: palette.accentDark, fontWeight: '700' },
 });

@@ -213,7 +213,7 @@ export function toProvider(r: R, forcedId?: string): Provider {
     website: str(r, 'website', 'url') ?? '',
     contactPerson: str(r, 'contact_person', 'owner_name', 'full_name') ?? '',
     address: str(r, 'address') ?? '',
-    cover: str(r, 'cover_color') ?? '#7C5CFF',
+    cover: str(r, 'cover_color') ?? '#7C5BFF',
     photo: str(r, 'photo', 'image', 'logo', 'cover_image', 'image_url') ?? '',
   };
 }

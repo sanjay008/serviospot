@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
 import { palette } from '@/constants/theme';
+import { typography } from '@/constants/typography';
 import { useResponsive } from '@/hooks/use-responsive';
 
 export function Header({ title, subtitle, back, right }: { title: string; subtitle?: string; back?: boolean; right?: React.ReactNode }) {
@@ -11,7 +12,7 @@ export function Header({ title, subtitle, back, right }: { title: string; subtit
     <View style={[styles.row, { paddingHorizontal: gutter }]}>
       {back ? (
         <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={styles.back}>
-          <Icon name="back" color={palette.ink} size={18} />
+          <Icon name="back" color={palette.accentDark} size={18} />
         </Pressable>
       ) : null}
       <View style={styles.titles}>
@@ -40,7 +41,7 @@ export function PageTitle({ title, subtitle }: { title: string; subtitle?: strin
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 8, gap: 10 },
+  row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 10, paddingTop: 10, gap: 10, backgroundColor: palette.surface },
   back: {
     width: 36,
     height: 36,
@@ -52,11 +53,11 @@ const styles = StyleSheet.create({
     borderColor: palette.line,
   },
   titles: { flex: 1, gap: 2, minWidth: 0 },
-  title: { fontSize: 18, fontWeight: '700', color: palette.ink },
-  subtitle: { fontSize: 13, color: palette.muted },
+  title: { fontSize: typography.screenTitle, fontWeight: '700', color: palette.ink },
+  subtitle: { fontSize: typography.caption, lineHeight: 18, color: palette.muted },
   right: { flexShrink: 1, alignItems: 'flex-end', maxWidth: '46%' },
   page: { gap: 2, paddingTop: 8 },
-  pageTitle: { fontSize: 26, fontWeight: '700', color: palette.ink },
-  pageTitleCompact: { fontSize: 22 },
-  pageSub: { fontSize: 14, lineHeight: 20, color: palette.muted },
+  pageTitle: { fontSize: typography.pageTitle, lineHeight: 32, fontWeight: '700', color: palette.ink },
+  pageTitleCompact: { fontSize: typography.compactPageTitle, lineHeight: 28 },
+  pageSub: { fontSize: typography.secondary, lineHeight: 20, color: palette.muted },
 });

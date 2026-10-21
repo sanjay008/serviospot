@@ -199,7 +199,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const addChatMessage = useCallback((conversationId: string, message: FlowChatMessage) => {
     setChatMessages((current) => {
       const messages = current[conversationId] ?? [];
-      if (messages.some((item) => item.id === message.id || (item.sender === message.sender && item.text === message.text && Math.abs(item.createdAt - message.createdAt) < 2500))) return current;
+      if (messages.some((item) => item.id === message.id || (item.sender === message.sender && item.text === message.text && item.imageUri === message.imageUri && Math.abs(item.createdAt - message.createdAt) < 2500))) return current;
       return { ...current, [conversationId]: [...messages, message] };
     });
   }, []);

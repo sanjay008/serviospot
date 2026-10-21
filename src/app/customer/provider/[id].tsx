@@ -19,9 +19,11 @@ import { b, CAPABILITIES } from '@/flow2/data/options';
 import { PLAN_LABELS } from '@/flow2/data/seed';
 import { useApp } from '@/flow2/state/app';
 
+const APP_LOADED_AT = Date.now();
+
 export default function ProviderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { t, lang, providers, menuItems } = useApp();
+  const { t, lang, providers, menuItems, requests, proposalsFor } = useApp();
   const provider = providers.find((item) => item.id === id);
 
   if (!provider) {
@@ -38,6 +40,10 @@ export default function ProviderDetailScreen() {
     { value: 'pickup', label: b('Ophalen', 'Pickup') },
     { value: 'onsite', label: b('Op locatie', 'On-site') },
   ].filter((item) => provider.fulfilment.includes(item.value as never));
+  const hasReviewEligibleRequest = requests.some((request) =>
+    new Date(request.date).getTime() < APP_LOADED_AT &&
+    proposalsFor(request.id).some((proposal) => proposal.providerId === provider.id && proposal.contactReleased),
+  );
 
   return (
     <Screen
@@ -73,20 +79,32 @@ export default function ProviderDetailScreen() {
         <Text style={styles.description}>{t(provider.description)}</Text>
       </Card>
 
+      <Card style={styles.reviewCard}>
+        <SectionTitle title="Rating & reviews" subtitle="Verified reviews are available after an event with this caterer." />
+        {hasReviewEligibleRequest ? (
+          <Button label="Write a review" variant="secondary" onPress={() => router.push({ pathname: '/customer/review', params: { providerId: provider.id } } as any)} />
+        ) : (
+          <Text style={styles.reviewHint}>After your event, confirm the caterer in My requests to unlock a verified review.</Text>
+        )}
+      </Card>
+
       <SectionTitle title="Menu & packages" subtitle="Starting prices; confirm the final details with the provider." />
       {(provider.id === 'my-vendor' ? menuItems.filter((item) => item.active) : [
         { id: `${provider.id}-menu-a`, name: `${provider.name} signature buffet`, description: `A popular ${t(provider.cuisine)} package for events.`, price: provider.fromPrice, imageUri: undefined },
         { id: `${provider.id}-menu-b`, name: 'Vegetarian event package', description: 'A flexible vegetarian selection with warm sides.', price: provider.fromPrice + 3, imageUri: undefined },
       ]).map((item) => (
         <Card key={item.id} style={styles.menuCard}>
-          <MenuDishImage name={item.name} description={item.description} imageUri={item.imageUri} style={styles.menuImage} />
-          <View style={styles.menuHead}>
+          <View style={styles.menuRow}>
+            <MenuDishImage name={item.name} description={item.description} imageUri={item.imageUri} style={styles.menuImage} />
             <View style={styles.menuText}>
               <Text style={styles.menuName}>{item.name}</Text>
-              <Text style={styles.menuPrice}>{money(item.price, lang)} <Text style={styles.menuUnit}>per guest · from</Text></Text>
+              <Text style={styles.menuDescription} numberOfLines={3}>{item.description}</Text>
+              <View style={styles.menuPriceRow}>
+                <Text style={styles.menuPrice}>{money(item.price, lang)}</Text>
+                <Text style={styles.menuUnit}>per guest · from</Text>
+              </View>
             </View>
           </View>
-          <Text style={styles.description}>{item.description}</Text>
         </Card>
       ))}
 
@@ -133,17 +151,21 @@ const styles = StyleSheet.create({
   metaText: { fontSize: 13, color: palette.muted },
   tags: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
   description: { fontSize: 14, lineHeight: 21, color: palette.ink },
+  reviewCard: { gap: 12 },
+  reviewHint: { color: palette.muted, fontSize: 13, lineHeight: 19 },
   fromRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   fromLabel: { fontSize: 15, color: palette.muted },
   fromValue: { fontSize: 20, fontWeight: '800', color: palette.ink },
   fromUnit: { fontSize: 13, fontWeight: '500', color: palette.muted },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   listCard: { paddingVertical: 4 },
-  menuCard: { gap: 10 },
-  menuImage: { height: 150, borderRadius: 14 },
-  menuHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  menuText: { flex: 1, gap: 3 },
-  menuName: { fontSize: 15, fontWeight: '800', color: palette.ink },
-  menuPrice: { color: palette.accentDark, fontSize: 16, fontWeight: '800' },
-  menuUnit: { color: palette.muted, fontSize: 12, fontWeight: '500' },
+  menuCard: { padding: 14, marginBottom: 3 },
+  menuRow: { flexDirection: 'row', alignItems: 'stretch', gap: 16 },
+  menuImage: { width: 104, height: 124, borderRadius: 14 },
+  menuText: { flex: 1, minWidth: 0, justifyContent: 'center', gap: 8 },
+  menuName: { fontSize: 16, lineHeight: 22, fontWeight: '800', color: palette.ink },
+  menuDescription: { fontSize: 13, lineHeight: 19, color: palette.muted },
+  menuPriceRow: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', columnGap: 6, rowGap: 2, marginTop: 2 },
+  menuPrice: { color: palette.accentDark, fontSize: 17, lineHeight: 22, fontWeight: '800' },
+  menuUnit: { color: palette.muted, fontSize: 12, lineHeight: 17, fontWeight: '500' },
 });

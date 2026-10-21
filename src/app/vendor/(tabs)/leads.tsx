@@ -9,7 +9,7 @@ import { Icon } from '@/flow2/components/Icon';
 import { Screen } from '@/flow2/components/Screen';
 import { palette } from '@/flow2/constants/theme';
 import { dateLong, money } from '@/flow2/data/format';
-import { b, totalDishes } from '@/flow2/data/options';
+import { b, eventNameForOccasion, totalDishes } from '@/flow2/data/options';
 import type { LeadStatus } from '@/flow2/data/types';
 import { useApp } from '@/flow2/state/app';
 
@@ -37,7 +37,7 @@ export default function VendorLeadsScreen() {
       {view === 'proposals' ? <>
         {sent.length === 0 ? <EmptyState icon="send" title="No proposals yet" body="Open an incoming request and send your first proposal." action="View requests" onAction={() => router.setParams({ view: 'requests' })} /> : sent.map((lead) => (
           <View key={lead.id} style={styles.card}>
-            <View style={styles.head}><View style={styles.headText}><Text style={styles.ref}>{lead.reference}</Text><Text style={styles.provider}>{lead.request.guests} guests · {lead.request.city}</Text></View><Badge label="Sent" tone="good" /></View>
+            <View style={styles.head}><View style={styles.headText}><Text style={styles.ref}>{providers.find((item) => item.id === lead.providerId)?.name ?? lead.providerId}</Text><Text style={styles.provider}>{t(eventNameForOccasion(lead.request.occasion))}</Text></View><Badge label="Sent" tone="good" /></View>
             <Text style={styles.metaText}>{money(lead.proposal?.total ?? 0, lang)} total · {money(lead.proposal?.perGuest ?? 0, lang)} per guest</Text>
             <Button label="View request" variant="secondary" onPress={() => router.push(`/vendor/lead/${lead.id}` as any)} />
           </View>
@@ -52,8 +52,8 @@ export default function VendorLeadsScreen() {
             <View key={lead.id} style={styles.card}>
               <View style={styles.head}>
                 <View style={styles.headText}>
-                  <Text style={styles.ref}>{lead.reference}</Text>
-                  <Text style={styles.provider}>{provider?.name ?? lead.providerId}</Text>
+                  <Text style={styles.ref}>{provider?.name ?? lead.providerId}</Text>
+                  <Text style={styles.provider}>{t(eventNameForOccasion(lead.request.occasion))}</Text>
                 </View>
                 <Badge label={t(LEAD_LABELS[lead.status])} tone={lead.status === 'proposal' ? 'good' : lead.status === 'declined' ? 'bad' : 'accent'} />
               </View>

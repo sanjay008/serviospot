@@ -57,6 +57,7 @@ export interface MenuItem {
 export interface FlowChatMessage {
   id: string;
   text: string;
+  imageUri?: string;
   createdAt: number;
   sender: 'customer' | 'vendor';
 }
@@ -141,6 +142,7 @@ export interface OnboardingDraft {
   email: string;
   phone: string;
   password: string;
+  accountCreated: boolean;
   emailVerified: boolean;
   phoneVerified: boolean;
   type: 'private' | 'business';

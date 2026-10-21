@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   actions: { flex: 1, gap: 12 },
   actionsWide: { flex: 0, flexDirection: 'row', gap: 20 },
   action: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 32 },
-  actionText: { fontSize: 15, fontWeight: '600', color: palette.accent },
+  actionText: { fontSize: 15, fontWeight: '600', color: palette.accentDark },
   remove: { color: palette.danger },
   error: { fontSize: 13, color: palette.danger },
 });

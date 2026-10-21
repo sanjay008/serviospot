@@ -9,6 +9,7 @@ export const initialOnboarding: OnboardingDraft = {
   email: '',
   phone: '',
   password: '',
+  accountCreated: false,
   emailVerified: false,
   phoneVerified: false,
   type: 'private',

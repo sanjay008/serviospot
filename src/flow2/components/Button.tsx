@@ -28,7 +28,7 @@ export function Button({
       onPress={onPress}
       style={({ pressed }) => [styles.base, styles[variant], busy && styles.disabled, pressed && !busy && styles.pressed, style]}>
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' || variant === 'danger' ? '#fff' : palette.accent} />
+        <ActivityIndicator color={variant === 'primary' || variant === 'danger' ? '#fff' : palette.accentDark} />
       ) : (
         <Text style={[styles.label, styles[`${variant}Label`]]} numberOfLines={2}>
           {label}

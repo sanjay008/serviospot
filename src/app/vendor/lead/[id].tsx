@@ -11,13 +11,14 @@ import { Notice } from '@/flow2/components/Notice';
 import { RequestSummary } from '@/flow2/components/RequestSummary';
 import { Screen } from '@/flow2/components/Screen';
 import { SectionTitle } from '@/flow2/components/SectionTitle';
-import { b } from '@/flow2/data/options';
+import { b, eventNameForOccasion } from '@/flow2/data/options';
 import { useApp } from '@/flow2/state/app';
 
 export default function VendorLeadDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { t, leads, setLeadStatus } = useApp();
+  const { t, leads, providers, setLeadStatus } = useApp();
   const lead = leads.find((item) => item.id === id);
+  const provider = lead ? providers.find((item) => item.id === lead.providerId) : undefined;
 
   if (!lead) {
     return (
@@ -28,7 +29,7 @@ export default function VendorLeadDetailScreen() {
   }
 
   return (
-    <Screen header={<Header title={lead.reference} subtitle={t(b('Aanvraag beoordelen', 'Review request'))} back />}>
+    <Screen header={<Header title={provider?.name ?? lead.providerId} subtitle={t(eventNameForOccasion(lead.request.occasion))} back />}>
       <Notice tone="info" body={t(b('De aanbieder neemt de aanvraag als uitgangspunt en bevestigt elk onderdeel. Een losse prijs is onvoldoende.', 'The provider starts from the request and confirms every item. A bare price is insufficient.'))} />
 
       <Card>

@@ -14,6 +14,8 @@ import { Screen } from '@/flow2/components/Screen';
 import { SectionTitle } from '@/flow2/components/SectionTitle';
 import { Stepper } from '@/flow2/components/Stepper';
 import { palette } from '@/flow2/constants/theme';
+import { setAuthToken, useRegisterMutation, useVerifyEmailMutation, useVerifyPhoneMutation } from '@/api';
+import { splitPhone } from '@/data/format';
 import { CAPABILITIES, CUISINES, CUISINE_STYLES } from '@/flow2/data/options';
 import { useApp } from '@/flow2/state/app';
 
@@ -21,6 +23,57 @@ export default function VendorOnboardingScreen() {
   const { onboarding, patchOnboarding, submitOnboarding } = useApp();
   const [step, setStep] = useState(0);
   const [error, setError] = useState('');
+  const [errorStep, setErrorStep] = useState<number | null>(null);
+  const [accountFieldErrors, setAccountFieldErrors] = useState<{ name?: string; email?: string; phone?: string; password?: string }>({});
+  const [registerVendor, { isLoading: registering }] = useRegisterMutation();
+  const [verifyEmail, { isLoading: verifyingEmail }] = useVerifyEmailMutation();
+  const [verifyPhone, { isLoading: verifyingPhone }] = useVerifyPhoneMutation();
+
+  const ensureVendorAccount = async () => {
+    if (onboarding.accountCreated) return;
+    if (!onboarding.name.trim() || !onboarding.email.trim() || !onboarding.phone.trim()) throw new Error('Enter your name, email and phone number first.');
+    if (onboarding.password.length < 8) throw new Error('Enter a password of at least 8 characters.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(onboarding.email)) throw new Error('Enter a valid email address.');
+    if (!/^[+()0-9\s-]{8,20}$/.test(onboarding.phone)) throw new Error('Enter a valid phone number.');
+    const account = await registerVendor({
+      role: 'vendor',
+      full_name: onboarding.name.trim(),
+      email: onboarding.email.trim().toLowerCase(),
+      password: onboarding.password,
+      ...splitPhone(onboarding.phone),
+      ...(onboarding.city.trim() ? { city: onboarding.city.trim() } : {}),
+    }).unwrap();
+    await setAuthToken(account.token);
+    patchOnboarding({ accountCreated: true });
+  };
+
+  const runVerification = async (kind: 'email' | 'phone') => {
+    setError('');
+    setErrorStep(null);
+    const fieldError = kind === 'email'
+      ? !onboarding.email.trim() ? 'Email is required.' : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(onboarding.email) ? 'Enter a valid email address.' : ''
+      : !onboarding.phone.trim() ? 'Phone number is required.' : !/^[+()0-9\s-]{8,20}$/.test(onboarding.phone) ? 'Enter a valid phone number.' : '';
+    if (fieldError) {
+      setAccountFieldErrors((current) => ({ ...current, [kind]: fieldError }));
+      return;
+    }
+    setAccountFieldErrors((current) => ({ ...current, [kind]: undefined }));
+    try {
+      await ensureVendorAccount();
+      if (kind === 'email') {
+        await verifyEmail().unwrap();
+        patchOnboarding({ emailVerified: true });
+      } else {
+        await verifyPhone({ phone: onboarding.phone.trim() }).unwrap();
+        patchOnboarding({ phoneVerified: true });
+      }
+    } catch (cause) {
+      const failure = cause as { data?: { message?: unknown; error?: unknown }; error?: unknown };
+      const message = failure.data?.message ?? failure.data?.error ?? failure.error;
+      setError(typeof message === 'string' ? message : cause instanceof Error ? cause.message : 'Verification failed. Please try again.');
+      setErrorStep(step);
+    }
+  };
 
   const steps = [
     'Account & verification',
@@ -77,6 +130,16 @@ export default function VendorOnboardingScreen() {
   };
 
   const next = () => {
+    if (step === 0) {
+      const fieldErrors = {
+        name: onboarding.name.trim() ? undefined : 'Name is required.',
+        email: !onboarding.email.trim() ? 'Email is required.' : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(onboarding.email) ? 'Enter a valid email address.' : !onboarding.emailVerified ? 'Verify your email first.' : undefined,
+        phone: !onboarding.phone.trim() ? 'Phone number is required.' : !/^[+()0-9\s-]{8,20}$/.test(onboarding.phone) ? 'Enter a valid phone number.' : !onboarding.phoneVerified ? 'Verify your phone first.' : undefined,
+        password: onboarding.password.length >= 8 ? undefined : 'Password must be at least 8 characters.',
+      };
+      setAccountFieldErrors(fieldErrors);
+      if (Object.values(fieldErrors).some(Boolean)) return;
+    }
     // Temporary APK flow: bypass step validation so vendors can continue directly.
     // Restore this block when validation is re-enabled:
     // const message = validate(step);
@@ -85,11 +148,13 @@ export default function VendorOnboardingScreen() {
     //   return;
     // }
     setError('');
+    setErrorStep(null);
     setStep((current) => Math.min(steps.length - 1, current + 1));
   };
 
   const back = () => {
     setError('');
+    setErrorStep(null);
     setStep((current) => Math.max(0, current - 1));
   };
 
@@ -105,6 +170,7 @@ export default function VendorOnboardingScreen() {
     //   }
     // }
     setError('');
+    setErrorStep(null);
     submitOnboarding();
     router.replace('/vendor' as any);
   };
@@ -113,34 +179,24 @@ export default function VendorOnboardingScreen() {
 
   return (
     <Screen
-      header={<Header title={'Provider onboarding'} subtitle={'8 steps · private and business'} back />}
+      header={<Header title={'Provider onboarding'} subtitle={'8 steps · private and business'} back prominent />}
       footer={
         <View style={styles.footerRow}>
           {step > 0 ? <Button label={'Back'} variant="secondary" onPress={back} style={styles.footerBtn} /> : null}
           {step < steps.length - 1 ? <Button label={'Next'} onPress={next} style={styles.footerBtn} /> : <Button label={'Confirm & submit'} onPress={submit} style={styles.footerBtn} />}
         </View>
       }>
-      <ProgressSteps steps={steps} current={step} onPress={(index) => setStep(index)} />
+      <ProgressSteps steps={steps} current={step} onPress={(index) => { setError(''); setErrorStep(null); setStep(index); }} />
       <Text style={styles.stepTitle}>{steps[step]}</Text>
-      {error ? <Notice tone="error" body={error} /> : null}
+      {error && errorStep === step ? <Notice tone="error" body={error} /> : null}
 
       {step === 0 ? (
         <>
           <Card>
-            <Input label={'Full name'} value={onboarding.name} onChangeText={(value) => patchOnboarding({ name: value })} autoCapitalize="words" />
-            <Input label={'Email'} value={onboarding.email} onChangeText={(value) => patchOnboarding({ email: value, emailVerified: false })} keyboardType="email-address" autoCapitalize="none" />
-            <Input label={'Phone'} value={onboarding.phone} onChangeText={(value) => patchOnboarding({ phone: value, phoneVerified: false })} keyboardType="phone-pad" />
-            <Input label={'Password (min. 8 characters)'} value={onboarding.password} onChangeText={(value) => patchOnboarding({ password: value })} secure autoCapitalize="none" />
-          </Card>
-          <Card>
-            <View style={styles.verifyRow}>
-              <Text style={styles.verifyText}>{'Email verification'}</Text>
-              <Button label={onboarding.emailVerified ? 'Verified' : 'Simulate'} variant={onboarding.emailVerified ? 'secondary' : 'primary'} disabled={onboarding.emailVerified} onPress={() => patchOnboarding({ emailVerified: true })} />
-            </View>
-            <View style={styles.verifyRow}>
-              <Text style={styles.verifyText}>{'Phone verification'}</Text>
-              <Button label={onboarding.phoneVerified ? 'Verified' : 'Simulate'} variant={onboarding.phoneVerified ? 'secondary' : 'primary'} disabled={onboarding.phoneVerified} onPress={() => patchOnboarding({ phoneVerified: true })} />
-            </View>
+            <Input label={'Full name'} value={onboarding.name} onChangeText={(value) => { patchOnboarding({ name: value }); setAccountFieldErrors((current) => ({ ...current, name: undefined })); }} autoCapitalize="words" editable={!onboarding.accountCreated} error={accountFieldErrors.name} />
+            <Input label={'Email'} value={onboarding.email} onChangeText={(value) => { patchOnboarding({ email: value, emailVerified: false }); setAccountFieldErrors((current) => ({ ...current, email: undefined })); }} keyboardType="email-address" autoCapitalize="none" editable={!onboarding.accountCreated} error={accountFieldErrors.email} rightAction={onboarding.email.trim() ? { label: onboarding.emailVerified ? 'Verified' : 'Verify', onPress: () => void runVerification('email'), disabled: onboarding.emailVerified || registering || verifyingEmail || verifyingPhone } : undefined} />
+            <Input label={'Phone'} value={onboarding.phone} onChangeText={(value) => { patchOnboarding({ phone: value, phoneVerified: false }); setAccountFieldErrors((current) => ({ ...current, phone: undefined })); }} keyboardType="phone-pad" editable={!onboarding.accountCreated} error={accountFieldErrors.phone} rightAction={onboarding.phone.trim() ? { label: onboarding.phoneVerified ? 'Verified' : 'Verify', onPress: () => void runVerification('phone'), disabled: onboarding.phoneVerified || registering || verifyingEmail || verifyingPhone } : undefined} />
+            <Input label={'Password (min. 8 characters)'} value={onboarding.password} onChangeText={(value) => { patchOnboarding({ password: value }); setAccountFieldErrors((current) => ({ ...current, password: undefined })); }} secure autoCapitalize="none" editable={!onboarding.accountCreated} error={accountFieldErrors.password} />
           </Card>
         </>
       ) : null}
@@ -287,8 +343,6 @@ const styles = StyleSheet.create({
   footerRow: { flexDirection: 'row', gap: 10 },
   footerBtn: { flex: 1 },
   stepTitle: { fontSize: 20, fontWeight: '700', color: palette.ink },
-  verifyRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
-  verifyText: { flex: 1, fontSize: 15, color: palette.ink },
   paragraph: { fontSize: 14, lineHeight: 21, color: palette.ink },
   row: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, paddingVertical: 4 },
   rowLabel: { flex: 1, fontSize: 14, color: palette.muted },
