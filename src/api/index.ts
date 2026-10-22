@@ -1,5 +1,5 @@
 export { api, type ApiFailure } from '@/api/baseApi';
-export { API_AUTH_MODE, API_ENABLED, API_URL, getAuthToken, restoreAuthToken, setAuthToken } from '@/api/client';
+export { API_AUTH_MODE, API_ENABLED, API_URL, COMPANY_LOGIN, getAuthToken, restoreAuthToken, setAuthToken } from '@/api/client';
 export * from '@/api/accountApi';
 export * from '@/api/authApi';
 export * from '@/api/chatApi';

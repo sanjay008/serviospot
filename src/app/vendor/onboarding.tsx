@@ -14,8 +14,6 @@ import { Screen } from '@/flow2/components/Screen';
 import { SectionTitle } from '@/flow2/components/SectionTitle';
 import { Stepper } from '@/flow2/components/Stepper';
 import { palette } from '@/flow2/constants/theme';
-import { setAuthToken, useRegisterMutation, useVerifyEmailMutation, useVerifyPhoneMutation } from '@/api';
-import { splitPhone } from '@/data/format';
 import { CAPABILITIES, CUISINES, CUISINE_STYLES } from '@/flow2/data/options';
 import { useApp } from '@/flow2/state/app';
 
@@ -24,59 +22,8 @@ export default function VendorOnboardingScreen() {
   const [step, setStep] = useState(0);
   const [error, setError] = useState('');
   const [errorStep, setErrorStep] = useState<number | null>(null);
-  const [accountFieldErrors, setAccountFieldErrors] = useState<{ name?: string; email?: string; phone?: string; password?: string }>({});
-  const [registerVendor, { isLoading: registering }] = useRegisterMutation();
-  const [verifyEmail, { isLoading: verifyingEmail }] = useVerifyEmailMutation();
-  const [verifyPhone, { isLoading: verifyingPhone }] = useVerifyPhoneMutation();
-
-  const ensureVendorAccount = async () => {
-    if (onboarding.accountCreated) return;
-    if (!onboarding.name.trim() || !onboarding.email.trim() || !onboarding.phone.trim()) throw new Error('Enter your name, email and phone number first.');
-    if (onboarding.password.length < 8) throw new Error('Enter a password of at least 8 characters.');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(onboarding.email)) throw new Error('Enter a valid email address.');
-    if (!/^[+()0-9\s-]{8,20}$/.test(onboarding.phone)) throw new Error('Enter a valid phone number.');
-    const account = await registerVendor({
-      role: 'vendor',
-      full_name: onboarding.name.trim(),
-      email: onboarding.email.trim().toLowerCase(),
-      password: onboarding.password,
-      ...splitPhone(onboarding.phone),
-      ...(onboarding.city.trim() ? { city: onboarding.city.trim() } : {}),
-    }).unwrap();
-    await setAuthToken(account.token);
-    patchOnboarding({ accountCreated: true });
-  };
-
-  const runVerification = async (kind: 'email' | 'phone') => {
-    setError('');
-    setErrorStep(null);
-    const fieldError = kind === 'email'
-      ? !onboarding.email.trim() ? 'Email is required.' : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(onboarding.email) ? 'Enter a valid email address.' : ''
-      : !onboarding.phone.trim() ? 'Phone number is required.' : !/^[+()0-9\s-]{8,20}$/.test(onboarding.phone) ? 'Enter a valid phone number.' : '';
-    if (fieldError) {
-      setAccountFieldErrors((current) => ({ ...current, [kind]: fieldError }));
-      return;
-    }
-    setAccountFieldErrors((current) => ({ ...current, [kind]: undefined }));
-    try {
-      await ensureVendorAccount();
-      if (kind === 'email') {
-        await verifyEmail().unwrap();
-        patchOnboarding({ emailVerified: true });
-      } else {
-        await verifyPhone({ phone: onboarding.phone.trim() }).unwrap();
-        patchOnboarding({ phoneVerified: true });
-      }
-    } catch (cause) {
-      const failure = cause as { data?: { message?: unknown; error?: unknown }; error?: unknown };
-      const message = failure.data?.message ?? failure.data?.error ?? failure.error;
-      setError(typeof message === 'string' ? message : cause instanceof Error ? cause.message : 'Verification failed. Please try again.');
-      setErrorStep(step);
-    }
-  };
-
   const steps = [
-    'Account & verification',
+    'Contact details',
     'Provider & private address',
     'Service area & fulfilment',
     'Catering capabilities',
@@ -86,15 +33,7 @@ export default function VendorOnboardingScreen() {
     'Review & submit',
   ];
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Retained for re-enabling onboarding checks after the APK demo.
   const validate = (index: number): string => {
-    if (index === 0) {
-      if (!onboarding.name.trim() || !onboarding.email.trim() || !onboarding.phone.trim()) return 'Enter name, email and phone.';
-      if (onboarding.password.length < 8) return 'Enter a password of at least 8 characters.';
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(onboarding.email)) return 'Enter a valid email.';
-      if (!/^[+()0-9\s-]{8,20}$/.test(onboarding.phone)) return 'Enter a valid phone number.';
-      if (!onboarding.emailVerified || !onboarding.phoneVerified) return 'Verify both email and phone first.';
-    }
     if (index === 1) {
       if (!onboarding.profileName.trim() || !onboarding.street.trim() || !onboarding.city.trim()) return 'Enter profile name and full address.';
       if (onboarding.type === 'business' && !onboarding.company.trim()) return 'Business name is required for business providers.';
@@ -130,23 +69,12 @@ export default function VendorOnboardingScreen() {
   };
 
   const next = () => {
-    if (step === 0) {
-      const fieldErrors = {
-        name: onboarding.name.trim() ? undefined : 'Name is required.',
-        email: !onboarding.email.trim() ? 'Email is required.' : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(onboarding.email) ? 'Enter a valid email address.' : !onboarding.emailVerified ? 'Verify your email first.' : undefined,
-        phone: !onboarding.phone.trim() ? 'Phone number is required.' : !/^[+()0-9\s-]{8,20}$/.test(onboarding.phone) ? 'Enter a valid phone number.' : !onboarding.phoneVerified ? 'Verify your phone first.' : undefined,
-        password: onboarding.password.length >= 8 ? undefined : 'Password must be at least 8 characters.',
-      };
-      setAccountFieldErrors(fieldErrors);
-      if (Object.values(fieldErrors).some(Boolean)) return;
+    const message = validate(step);
+    if (message) {
+      setError(message);
+      setErrorStep(step);
+      return;
     }
-    // Temporary APK flow: bypass step validation so vendors can continue directly.
-    // Restore this block when validation is re-enabled:
-    // const message = validate(step);
-    // if (message) {
-    //   setError(message);
-    //   return;
-    // }
     setError('');
     setErrorStep(null);
     setStep((current) => Math.min(steps.length - 1, current + 1));
@@ -159,16 +87,15 @@ export default function VendorOnboardingScreen() {
   };
 
   const submit = () => {
-    // Temporary APK flow: bypass all onboarding validation on submit.
-    // Restore the validation loop below when validation is re-enabled:
-    // for (let index = 0; index < steps.length; index += 1) {
-    //   const message = validate(index);
-    //   if (message) {
-    //     setStep(index);
-    //     setError(message);
-    //     return;
-    //   }
-    // }
+    for (let index = 0; index < steps.length; index += 1) {
+      const message = validate(index);
+      if (message) {
+        setStep(index);
+        setError(message);
+        setErrorStep(index);
+        return;
+      }
+    }
     setError('');
     setErrorStep(null);
     submitOnboarding();
@@ -191,14 +118,11 @@ export default function VendorOnboardingScreen() {
       {error && errorStep === step ? <Notice tone="error" body={error} /> : null}
 
       {step === 0 ? (
-        <>
-          <Card>
-            <Input label={'Full name'} value={onboarding.name} onChangeText={(value) => { patchOnboarding({ name: value }); setAccountFieldErrors((current) => ({ ...current, name: undefined })); }} autoCapitalize="words" editable={!onboarding.accountCreated} error={accountFieldErrors.name} />
-            <Input label={'Email'} value={onboarding.email} onChangeText={(value) => { patchOnboarding({ email: value, emailVerified: false }); setAccountFieldErrors((current) => ({ ...current, email: undefined })); }} keyboardType="email-address" autoCapitalize="none" editable={!onboarding.accountCreated} error={accountFieldErrors.email} rightAction={onboarding.email.trim() ? { label: onboarding.emailVerified ? 'Verified' : 'Verify', onPress: () => void runVerification('email'), disabled: onboarding.emailVerified || registering || verifyingEmail || verifyingPhone } : undefined} />
-            <Input label={'Phone'} value={onboarding.phone} onChangeText={(value) => { patchOnboarding({ phone: value, phoneVerified: false }); setAccountFieldErrors((current) => ({ ...current, phone: undefined })); }} keyboardType="phone-pad" editable={!onboarding.accountCreated} error={accountFieldErrors.phone} rightAction={onboarding.phone.trim() ? { label: onboarding.phoneVerified ? 'Verified' : 'Verify', onPress: () => void runVerification('phone'), disabled: onboarding.phoneVerified || registering || verifyingEmail || verifyingPhone } : undefined} />
-            <Input label={'Password (min. 8 characters)'} value={onboarding.password} onChangeText={(value) => { patchOnboarding({ password: value }); setAccountFieldErrors((current) => ({ ...current, password: undefined })); }} secure autoCapitalize="none" editable={!onboarding.accountCreated} error={accountFieldErrors.password} />
-          </Card>
-        </>
+        <Card style={styles.accountFields}>
+          <Input label={'Full name'} value={onboarding.name} onChangeText={(value) => patchOnboarding({ name: value })} placeholder={'Your full name'} autoCapitalize="words" />
+          <Input label={'Email'} value={onboarding.email} onChangeText={(value) => patchOnboarding({ email: value, emailVerified: false })} placeholder={'you@example.com'} keyboardType="email-address" autoCapitalize="none" />
+          <Input label={'Phone'} value={onboarding.phone} onChangeText={(value) => patchOnboarding({ phone: value, phoneVerified: false })} placeholder={'+31 6 1234 5678'} keyboardType="phone-pad" />
+        </Card>
       ) : null}
 
       {step === 1 ? (
@@ -340,6 +264,7 @@ function CheckRow({ checked, onPress, label }: { checked: boolean; onPress: () =
 }
 
 const styles = StyleSheet.create({
+  accountFields: { gap: 14 },
   footerRow: { flexDirection: 'row', gap: 10 },
   footerBtn: { flex: 1 },
   stepTitle: { fontSize: 20, fontWeight: '700', color: palette.ink },

@@ -8,7 +8,7 @@ export type ApiAuthMode = 'body' | 'bearer' | 'none';
 export const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? '').trim().replace(/\/+$/, '');
 export const API_ENABLED = process.env.EXPO_PUBLIC_API_ENABLED === 'true';
 export const API_AUTH_MODE = (process.env.EXPO_PUBLIC_API_AUTH_MODE ?? 'body') as ApiAuthMode;
-export const COMPANY_LOGIN = process.env.EXPO_PUBLIC_COMPANY_LOGIN ?? '';
+export const COMPANY_LOGIN = (process.env.EXPO_PUBLIC_COMPANY_LOGIN ?? 'catering').trim() || 'catering';
 
 const TOKEN_KEY = 'authToken';
 const canUseStorage = () => Platform.OS !== 'web' || typeof window !== 'undefined';
@@ -91,6 +91,8 @@ export async function apiRequest<T>(
     params?: Record<string, string | number | boolean | null | undefined>;
     headers?: Record<string, string>;
     signal?: AbortSignal;
+    /** Skip the saved session token for public authentication requests. */
+    auth?: boolean;
   } = {},
 ): Promise<T> {
   if (!API_ENABLED) throw new ApiError('API calls are disabled. Set EXPO_PUBLIC_API_ENABLED=true when the backend is ready.', 0);
@@ -98,7 +100,10 @@ export async function apiRequest<T>(
   if (!['body', 'bearer', 'none'].includes(API_AUTH_MODE)) throw new ApiError('Invalid EXPO_PUBLIC_API_AUTH_MODE. Use body, bearer, or none.', 0);
 
   const method = options.method ?? 'POST';
-  const normalizedPath = path.replace(/^\/+/, '');
+  let normalizedPath = path.replace(/^\/+/, '');
+  // Auth routes include `/api` for a host-only base URL. Existing app
+  // configuration may already include that segment, so keep it only once.
+  if (/\/api$/i.test(API_URL) && /^api\//i.test(normalizedPath)) normalizedPath = normalizedPath.slice(4);
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(options.params ?? {})) {
     if (value !== undefined && value !== null) query.set(key, String(value));
@@ -109,9 +114,11 @@ export async function apiRequest<T>(
   const headers: Record<string, string> = { Accept: 'application/json', ...options.headers };
 
   if (method !== 'GET' && method !== 'DELETE') headers['Content-Type'] = headers['Content-Type'] ?? 'application/json';
-  if (API_AUTH_MODE === 'body' && authToken) payload.token = authToken;
-  else if (API_AUTH_MODE === 'body' && !authToken && COMPANY_LOGIN) payload.company_login = COMPANY_LOGIN;
-  if (API_AUTH_MODE === 'bearer' && authToken) headers.Authorization = `Bearer ${authToken}`;
+  if (options.auth !== false) {
+    if (API_AUTH_MODE === 'body' && authToken) payload.token = authToken;
+    else if (API_AUTH_MODE === 'body' && !authToken && COMPANY_LOGIN) payload.company_login = COMPANY_LOGIN;
+    if (API_AUTH_MODE === 'bearer' && authToken) headers.Authorization = `Bearer ${authToken}`;
+  }
 
   const logReply = startApiLog(method, url, method === 'GET' || method === 'DELETE' ? undefined : payload);
   let response: Response;

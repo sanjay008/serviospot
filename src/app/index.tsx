@@ -7,16 +7,16 @@ import { Button } from '@/flow2/components/Button';
 import { useApp } from '@/flow2/state/app';
 
 export default function RoleSelectionScreen() {
-  const { onboarding, setRole } = useApp();
+  const { setRole } = useApp();
 
   const openCustomer = () => {
     setRole('customer');
-    router.push('/customer/auth' as any);
+    router.push('/customer/auth?role=customer' as any);
   };
 
   const openVendor = () => {
     setRole('vendor');
-    router.push((onboarding.status === 'approved' ? '/vendor' : '/vendor/onboarding') as any);
+    router.push('/customer/auth?role=vendor' as any);
   };
 
   return (
