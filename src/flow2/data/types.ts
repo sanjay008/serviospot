@@ -140,6 +140,7 @@ export interface Proposal {
 export interface OnboardingDraft {
   name: string;
   email: string;
+  emailRequired: boolean;
   phone: string;
   password: string;
   accountCreated: boolean;

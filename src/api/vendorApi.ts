@@ -14,8 +14,45 @@ import type {
   VerificationBody,
 } from '@/api/types';
 
+export type OnboardingOption = { code: string; label_nl: string; label_en: string };
+export type VendorOnboardingOptions = {
+  provider_types: OnboardingOption[];
+  fulfilments: OnboardingOption[];
+  cuisines: OnboardingOption[];
+  cuisine_styles: OnboardingOption[];
+  capabilities: OnboardingOption[];
+};
+export type VendorOnboardingBody = ApiRecord & {
+  email: string;
+  profile_name: string;
+  provider_type: 'private' | 'business';
+  street: string;
+  house_number?: string;
+  postcode: string;
+  city: string;
+  delivery: boolean;
+  pickup: boolean;
+  onsite: boolean;
+  radius_km: number;
+  cuisines: string[];
+  cuisine_styles: string[];
+  capabilities: string[];
+  lead_days: number;
+  description: string;
+  from_price: string;
+  trial_consent: boolean;
+  terms: boolean;
+};
+
 export const vendorApi = api.injectEndpoints({
   endpoints: (build) => ({
+    getOnboardingOptions: build.mutation<VendorOnboardingOptions, { company_login: string }>({
+      query: (body) => ({ path: 'api/serviospot/getOnboardingOptions', body }),
+    }),
+    saveVendorOnboarding: build.mutation<ApiRecord, VendorOnboardingBody>({
+      query: (body) => ({ path: 'api/serviospot/saveVendorOnboarding', body }),
+      invalidatesTags: ['VendorProfile', 'Dashboard'],
+    }),
     getSubscription: build.query<ApiRecord, void>({
       query: () => ({ path: 'serviospot/getSubscription' }),
       providesTags: ['Subscription'],
@@ -128,6 +165,8 @@ export const vendorApi = api.injectEndpoints({
 });
 
 export const {
+  useGetOnboardingOptionsMutation,
+  useSaveVendorOnboardingMutation,
   useGetSubscriptionQuery,
   useSaveSubscriptionMutation,
   useGetInvoicesQuery,

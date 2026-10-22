@@ -15,7 +15,7 @@ import type {
 } from '@/flow2/data/types';
 
 type Patch = Partial<RequestDraft>;
-export type CustomerAccount = { name: string; email: string; phone: string; photo?: string };
+export type CustomerAccount = { name: string; email: string; phone: string; photo?: string; emailRequired?: boolean };
 
 interface AppValue {
   lang: Lang;

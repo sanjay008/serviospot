@@ -7,6 +7,7 @@ const nextId = (prefix: string) => `${prefix}-${++counter}`;
 export const initialOnboarding: OnboardingDraft = {
   name: '',
   email: '',
+  emailRequired: false,
   phone: '',
   password: '',
   accountCreated: false,

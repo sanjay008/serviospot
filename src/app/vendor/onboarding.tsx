@@ -1,5 +1,5 @@
-import { Redirect, router } from 'expo-router';
-import { useState } from 'react';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/flow2/components/Button';
@@ -15,13 +15,98 @@ import { SectionTitle } from '@/flow2/components/SectionTitle';
 import { Stepper } from '@/flow2/components/Stepper';
 import { palette } from '@/flow2/constants/theme';
 import { CAPABILITIES, CUISINES, CUISINE_STYLES } from '@/flow2/data/options';
+import { COMPANY_LOGIN, useGetOnboardingOptionsMutation, useSaveVendorOnboardingMutation, type OnboardingOption, type VendorOnboardingOptions } from '@/api';
 import { useApp } from '@/flow2/state/app';
+import { useApp as useSessionApp } from '@/state/store';
+
+const FALLBACK_ONBOARDING_OPTIONS: VendorOnboardingOptions = {
+  provider_types: [
+    { code: 'private', label_nl: 'Particulier', label_en: 'Private' },
+    { code: 'business', label_nl: 'Bedrijf', label_en: 'Business' },
+  ],
+  fulfilments: [
+    { code: 'delivery', label_nl: 'Bezorgen', label_en: 'Delivery' },
+    { code: 'pickup', label_nl: 'Ophalen', label_en: 'Pickup' },
+    { code: 'onsite', label_nl: 'Op locatie', label_en: 'On-site' },
+  ],
+  cuisines: CUISINES.map((item) => ({ code: item.value, label_nl: item.label.nl, label_en: item.label.en })),
+  cuisine_styles: CUISINE_STYLES.map((item) => ({ code: item.value, label_nl: item.label.nl, label_en: item.label.en })),
+  capabilities: CAPABILITIES.map((item) => ({ code: item.value, label_nl: item.label.nl, label_en: item.label.en })),
+};
+
+function optionsFromApi(value: unknown): VendorOnboardingOptions {
+  const input = value && typeof value === 'object' ? value as Partial<VendorOnboardingOptions> : {};
+  const normalize = (items: unknown) => {
+    if (!Array.isArray(items)) throw new Error('The onboarding options reply is incomplete.');
+    const valid = items.filter((item): item is OnboardingOption =>
+      !!item && typeof item === 'object' && typeof item.code === 'string' && typeof item.label_nl === 'string' && typeof item.label_en === 'string',
+    );
+    return valid;
+  };
+  return {
+    provider_types: normalize(input.provider_types),
+    fulfilments: normalize(input.fulfilments),
+    cuisines: normalize(input.cuisines),
+    cuisine_styles: normalize(input.cuisine_styles),
+    capabilities: normalize(input.capabilities),
+  };
+}
+
+function apiMessage(error: unknown, fallback: string) {
+  if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') return error.message;
+  if (error && typeof error === 'object' && 'data' in error) {
+    const data = error.data;
+    if (data && typeof data === 'object' && 'message' in data && typeof data.message === 'string') return data.message;
+  }
+  return fallback;
+}
 
 export default function VendorOnboardingScreen() {
-  const { onboarding, patchOnboarding, submitOnboarding } = useApp();
+  const { onboarding, patchOnboarding, submitOnboarding, lang } = useApp();
+  const { hydrate, session } = useSessionApp();
   const [step, setStep] = useState(0);
   const [error, setError] = useState('');
   const [errorStep, setErrorStep] = useState<number | null>(null);
+  const [options, setOptions] = useState(FALLBACK_ONBOARDING_OPTIONS);
+  const [optionsReady, setOptionsReady] = useState(false);
+  const [getOptions] = useGetOnboardingOptionsMutation();
+  const [saveVendorOnboarding, { isLoading: saving }] = useSaveVendorOnboardingMutation();
+
+  useEffect(() => {
+    if (!session.signedIn || session.mode !== 'provider') return;
+    patchOnboarding({
+      name: session.name,
+      email: session.email,
+      emailRequired: !session.email,
+      phone: session.phone,
+      accountCreated: true,
+      emailVerified: Boolean(session.email),
+      phoneVerified: Boolean(session.phone),
+      profileName: session.name,
+    });
+  }, [session.signedIn, session.mode, session.name, session.email, session.phone, patchOnboarding]);
+
+  useEffect(() => {
+    let active = true;
+    void getOptions({ company_login: COMPANY_LOGIN })
+      .unwrap()
+      .then((result) => {
+        if (!active) return;
+        setOptions(optionsFromApi(result));
+        setOptionsReady(true);
+      })
+      .catch(() => {
+        if (!active) return;
+        setOptions(FALLBACK_ONBOARDING_OPTIONS);
+        setOptionsReady(true);
+      });
+    return () => { active = false; };
+  }, [getOptions]);
+
+  const optionLabel = (items: OnboardingOption[], code: string) => {
+    const item = items.find((entry) => entry.code === code);
+    return item ? (lang === 'nl' ? item.label_nl : item.label_en) : code;
+  };
   const steps = [
     'Contact details',
     'Provider & private address',
@@ -34,37 +119,7 @@ export default function VendorOnboardingScreen() {
   ];
 
   const validate = (index: number): string => {
-    if (index === 1) {
-      if (!onboarding.profileName.trim() || !onboarding.street.trim() || !onboarding.city.trim()) return 'Enter profile name and full address.';
-      if (onboarding.type === 'business' && !onboarding.company.trim()) return 'Business name is required for business providers.';
-      if (!/^[1-9][0-9]{3}\s?[A-Za-z]{2}$/.test(onboarding.postal)) return 'Enter a valid Dutch postcode.';
-      if (onboarding.kvk && onboarding.type === 'business' && !/^\d{8}$/.test(onboarding.kvk)) return 'KvK is optional; if supplied, it must contain 8 digits.';
-    }
-    if (index === 2) {
-      if (!onboarding.delivery && !onboarding.pickup && !onboarding.onsite) return 'Choose at least one fulfilment type.';
-      if ((onboarding.delivery || onboarding.onsite) && (!Number.isFinite(onboarding.radius) || onboarding.radius < 1)) return 'Choose a positive service radius.';
-    }
-    if (index === 3) {
-      if (!onboarding.cuisines.length || !onboarding.capabilities.length) return 'Choose at least one cuisine and one capability.';
-      if (onboarding.cuisines.includes('surinamese') && !onboarding.cuisineStyles.length) return 'Choose at least one Surinamese style.';
-    }
-    if (index === 4) {
-      const capacities = [
-        ['Delivery', onboarding.delivery, onboarding.minDelivery, onboarding.maxDelivery],
-        ['Pickup', onboarding.pickup, onboarding.minPickup, onboarding.maxPickup],
-        ['On-site', onboarding.onsite, onboarding.minOnsite, onboarding.maxOnsite],
-      ] as const;
-      for (const [label, enabled, minimum, maximum] of capacities) {
-        if (enabled && (!Number.isInteger(minimum) || !Number.isInteger(maximum) || minimum < 1 || maximum < minimum)) {
-          return `${label}: minimum and maximum must be positive whole guest counts, and maximum must be at least minimum.`;
-        }
-      }
-      if (!Number.isInteger(onboarding.leadDays) || onboarding.leadDays < 0) return 'Preparation time must be a whole number of days, 0 or more.';
-    }
-    if (index === 5 && onboarding.description.trim().length < 20) return 'Describe your profile in at least 20 characters.';
-    if (index === 5 && onboarding.fromPrice !== '' && (!Number.isFinite(Number(onboarding.fromPrice)) || Number(onboarding.fromPrice) < 0)) return 'Starting price must be a non-negative amount, or leave it blank.';
-    if (index === 6 && !onboarding.trialConsent) return 'Confirm the free period explanation.';
-    if (index === 7 && !onboarding.terms) return 'Confirm your details and the terms.';
+    if (index === 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(onboarding.email.trim())) return 'Enter a real email address.';
     return '';
   };
 
@@ -86,7 +141,7 @@ export default function VendorOnboardingScreen() {
     setStep((current) => Math.max(0, current - 1));
   };
 
-  const submit = () => {
+  const submit = async () => {
     for (let index = 0; index < steps.length; index += 1) {
       const message = validate(index);
       if (message) {
@@ -98,19 +153,58 @@ export default function VendorOnboardingScreen() {
     }
     setError('');
     setErrorStep(null);
-    submitOnboarding();
-    router.replace('/vendor' as any);
+    try {
+      const saved = await saveVendorOnboarding({
+        email: onboarding.email.trim().toLowerCase(),
+        profile_name: onboarding.profileName.trim(),
+        provider_type: onboarding.type,
+        ...(onboarding.type === 'business' ? { business_name: onboarding.company.trim() } : {}),
+        ...(onboarding.type === 'business' && onboarding.kvk.trim() ? { kvk: onboarding.kvk.trim() } : {}),
+        street: onboarding.street.trim(),
+        ...(onboarding.house.trim() ? { house_number: onboarding.house.trim() } : {}),
+        postcode: onboarding.postal.trim().toUpperCase(),
+        city: onboarding.city.trim(),
+        delivery: onboarding.delivery,
+        pickup: onboarding.pickup,
+        onsite: onboarding.onsite,
+        radius_km: onboarding.radius,
+        cuisines: onboarding.cuisines,
+        cuisine_styles: onboarding.cuisineStyles,
+        capabilities: onboarding.capabilities,
+        min_delivery: onboarding.minDelivery,
+        max_delivery: onboarding.maxDelivery,
+        min_pickup: onboarding.minPickup,
+        max_pickup: onboarding.maxPickup,
+        min_onsite: onboarding.minOnsite,
+        max_onsite: onboarding.maxOnsite,
+        lead_days: onboarding.leadDays,
+        description: onboarding.description.trim(),
+        from_price: onboarding.fromPrice.trim(),
+        trial_consent: onboarding.trialConsent,
+        terms: onboarding.terms,
+      }).unwrap();
+      if (Number(saved.vendor_profile_complete) !== 1) {
+        setError(typeof saved.message === 'string' ? saved.message : '');
+        setErrorStep(7);
+        return;
+      }
+      if (typeof saved.email === 'string') patchOnboarding({ email: saved.email, emailRequired: false });
+      hydrate({ session: { ...(typeof saved.email === 'string' ? { email: saved.email } : {}), hasProviderProfile: true } });
+      submitOnboarding();
+      router.replace('/vendor' as any);
+    } catch (failure) {
+      setError(apiMessage(failure, ''));
+      setErrorStep(7);
+    }
   };
-
-  if (onboarding.status === 'approved') return <Redirect href="/vendor" />;
 
   return (
     <Screen
-      header={<Header title={'Provider onboarding'} subtitle={'8 steps · private and business'} back prominent />}
+      header={<Header title={'Provider onboarding'} subtitle={'8 steps · private and business'} prominent />}
       footer={
         <View style={styles.footerRow}>
           {step > 0 ? <Button label={'Back'} variant="secondary" onPress={back} style={styles.footerBtn} /> : null}
-          {step < steps.length - 1 ? <Button label={'Next'} onPress={next} style={styles.footerBtn} /> : <Button label={'Confirm & submit'} onPress={submit} style={styles.footerBtn} />}
+          {step < steps.length - 1 ? <Button label={step === 3 && !optionsReady ? 'Loading options…' : 'Next'} onPress={next} loading={step === 3 && !optionsReady} style={styles.footerBtn} /> : <Button label={saving ? 'Saving…' : 'Confirm & submit'} onPress={() => void submit()} loading={saving} style={styles.footerBtn} />}
         </View>
       }>
       <ProgressSteps steps={steps} current={step} onPress={(index) => { setError(''); setErrorStep(null); setStep(index); }} />
@@ -119,9 +213,9 @@ export default function VendorOnboardingScreen() {
 
       {step === 0 ? (
         <Card style={styles.accountFields}>
-          <Input label={'Full name'} value={onboarding.name} onChangeText={(value) => patchOnboarding({ name: value })} placeholder={'Your full name'} autoCapitalize="words" />
+          <Row label={'Full name'} value={onboarding.name || '—'} />
           <Input label={'Email'} value={onboarding.email} onChangeText={(value) => patchOnboarding({ email: value, emailVerified: false })} placeholder={'you@example.com'} keyboardType="email-address" autoCapitalize="none" />
-          <Input label={'Phone'} value={onboarding.phone} onChangeText={(value) => patchOnboarding({ phone: value, phoneVerified: false })} placeholder={'+31 6 1234 5678'} keyboardType="phone-pad" />
+          <Row label={'Phone'} value={onboarding.phone || '—'} />
         </Card>
       ) : null}
 
@@ -129,10 +223,10 @@ export default function VendorOnboardingScreen() {
         <Card>
           <Field label={'Provider type'}>
             <ChipSingle
-              options={['private', 'business']}
+              options={options.provider_types.map((item) => item.code)}
               value={onboarding.type}
               onChange={(value) => patchOnboarding({ type: value as 'private' | 'business' })}
-              labelOf={(value) => value}
+              labelOf={(value) => optionLabel(options.provider_types, value)}
             />
           </Field>
           <Input label={'Public profile name'} value={onboarding.profileName} onChangeText={(value) => patchOnboarding({ profileName: value })} autoCapitalize="words" />
@@ -160,10 +254,10 @@ export default function VendorOnboardingScreen() {
             <SectionTitle title={'Which fulfilment types do you offer?'} />
             <Field>
               <ChipGroup
-                options={['delivery', 'pickup', 'onsite']}
+                options={options.fulfilments.map((item) => item.code)}
                 selected={[onboarding.delivery && 'delivery', onboarding.pickup && 'pickup', onboarding.onsite && 'onsite'].filter(Boolean) as string[]}
                 onToggle={(value) => patchOnboarding(value === 'delivery' ? { delivery: !onboarding.delivery } : value === 'pickup' ? { pickup: !onboarding.pickup } : { onsite: !onboarding.onsite })}
-                labelOf={(value) => value}
+                labelOf={(value) => optionLabel(options.fulfilments, value)}
               />
             </Field>
           </Card>
@@ -171,28 +265,30 @@ export default function VendorOnboardingScreen() {
       ) : null}
 
       {step === 3 ? (
-        <>
-          <Card>
-            <SectionTitle title={'Cuisines'} />
-            <Field>
-              <ChipGroup options={CUISINES.map((item) => item.value)} selected={onboarding.cuisines} onToggle={(value) => patchOnboarding({ cuisines: onboarding.cuisines.includes(value) ? onboarding.cuisines.filter((item) => item !== value) : [...onboarding.cuisines, value] })} labelOf={(value) => value} />
-            </Field>
-            {onboarding.cuisines.includes('surinamese') ? (
-              <>
-                <SectionTitle title={'Surinamese styles'} />
-                <Field>
-                  <ChipGroup options={CUISINE_STYLES.map((item) => item.value)} selected={onboarding.cuisineStyles} onToggle={(value) => patchOnboarding({ cuisineStyles: onboarding.cuisineStyles.includes(value) ? onboarding.cuisineStyles.filter((item) => item !== value) : [...onboarding.cuisineStyles, value] })} labelOf={(value) => value} />
-                </Field>
-              </>
-            ) : null}
-          </Card>
-          <Card>
-            <SectionTitle title={'What can you offer?'} />
-            <Field>
-              <ChipGroup options={CAPABILITIES.map((item) => item.value)} selected={onboarding.capabilities} onToggle={(value) => patchOnboarding({ capabilities: onboarding.capabilities.includes(value) ? onboarding.capabilities.filter((item) => item !== value) : [...onboarding.capabilities, value] })} labelOf={(value) => value} />
-            </Field>
-          </Card>
-        </>
+        optionsReady ? (
+          <>
+            <Card>
+              <SectionTitle title={'Cuisines'} />
+              <Field>
+                <ChipGroup options={options.cuisines.map((item) => item.code)} selected={onboarding.cuisines} onToggle={(value) => patchOnboarding({ cuisines: onboarding.cuisines.includes(value) ? onboarding.cuisines.filter((item) => item !== value) : [...onboarding.cuisines, value] })} labelOf={(value) => optionLabel(options.cuisines, value)} />
+              </Field>
+              {onboarding.cuisines.includes('surinamese') ? (
+                <>
+                  <SectionTitle title={'Surinamese styles'} />
+                  <Field>
+                    <ChipGroup options={options.cuisine_styles.map((item) => item.code)} selected={onboarding.cuisineStyles} onToggle={(value) => patchOnboarding({ cuisineStyles: onboarding.cuisineStyles.includes(value) ? onboarding.cuisineStyles.filter((item) => item !== value) : [...onboarding.cuisineStyles, value] })} labelOf={(value) => optionLabel(options.cuisine_styles, value)} />
+                  </Field>
+                </>
+              ) : null}
+            </Card>
+            <Card>
+              <SectionTitle title={'What can you offer?'} />
+              <Field>
+                <ChipGroup options={options.capabilities.map((item) => item.code)} selected={onboarding.capabilities} onToggle={(value) => patchOnboarding({ capabilities: onboarding.capabilities.includes(value) ? onboarding.capabilities.filter((item) => item !== value) : [...onboarding.capabilities, value] })} labelOf={(value) => optionLabel(options.capabilities, value)} />
+              </Field>
+            </Card>
+          </>
+        ) : <Notice tone="info" body={'Loading onboarding options…'} />
       ) : null}
 
       {step === 4 ? (
