@@ -400,6 +400,8 @@ export type Session = {
   photo: string;
   mode: 'customer' | 'provider';
   hasProviderProfile: boolean;
+  /** Original successful OTP verification reply, kept with the restored auth session. */
+  authResponse?: Record<string, unknown>;
   planId: PlanId;
   billing: 'monthly' | 'annual';
   aiUsed: number;

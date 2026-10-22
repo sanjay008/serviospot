@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { Provider } from 'react-redux';
 
 import { NotificationSetup } from '@/components/NotificationSetup';
+import { RequiredVendorOnboardingModal } from '@/components/RequiredVendorOnboardingModal';
 import { palette } from '@/constants/theme';
 import { waitForI18n } from '@/localization/i18n';
 import { AppProvider } from '@/state/store';
@@ -27,6 +28,7 @@ export default function RootLayout() {
         <Flow2Provider>
           <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: palette.bg } }} />
           <NotificationSetup />
+          <RequiredVendorOnboardingModal />
         </Flow2Provider>
       </AppProvider>
     </Provider>

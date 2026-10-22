@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View, type TextInputProps } from 'react-native';
 import { CodeField, Cursor, useBlurOnFulfill, useClearByFocusCell } from 'react-native-confirmation-code-field';
 
-import { COMPANY_LOGIN, setAuthToken, useLoginNewMutation, useResendOtpMutation, useVerifyOtpNewMutation, type ApiFailure, type OtpStartReply, type OtpVerifyReply } from '@/api';
+import { COMPANY_LOGIN, setAuthToken, useCompanyLoginMutation, useLoginNewMutation, useResendOtpMutation, useVerifyOtpNewMutation, type ApiFailure, type OtpStartReply, type OtpVerifyReply } from '@/api';
 import { CountryCodePicker } from '@/components/CountryCodePicker';
 import { Button } from '@/flow2/components/Button';
 import { Card } from '@/flow2/components/Card';
@@ -16,7 +16,17 @@ import { useApp as useSessionApp } from '@/state/store';
 
 type AuthRole = 'customer' | 'vendor';
 type IdentityMethod = 'whatsapp' | 'email';
-type PendingOtp = { userId: string | number; verifyToken: string; otpType: string; role: AuthRole; identity: string; method: IdentityMethod };
+type PendingOtp = {
+  userId: string | number;
+  verifyToken: string;
+  otpType: string;
+  role: AuthRole;
+  identity: string;
+  method: IdentityMethod;
+  emailRequired?: boolean;
+  vendorProfileComplete?: boolean;
+  profileComplete?: boolean;
+};
 const OTP_CELL_COUNT = 6;
 const OTP_AUTOCOMPLETE = Platform.select<TextInputProps['autoComplete']>({ android: 'sms-otp', default: 'one-time-code' });
 
@@ -29,11 +39,17 @@ function userRecord(reply: OtpVerifyReply) {
   return reply.user && typeof reply.user === 'object' ? reply.user : {};
 }
 
+function flag(value: unknown): boolean | undefined {
+  if (value === true || value === 1 || value === '1') return true;
+  if (value === false || value === 0 || value === '0') return false;
+  return undefined;
+}
+
 export default function CustomerAuthScreen() {
   const params = useLocalSearchParams<{ role?: string }>();
   const { role: selectedRole, setRole, setCustomerAccount, patchOnboarding } = useFlowApp();
   const role: AuthRole = params.role === 'vendor' ? 'vendor' : params.role === 'customer' ? 'customer' : selectedRole;
-  const { startSession } = useSessionApp();
+  const { startSession, hydrate } = useSessionApp();
   const [method, setMethod] = useState<IdentityMethod>('whatsapp');
   const [countryCode, setCountryCode] = useState('31');
   const [countryName, setCountryName] = useState('Netherlands');
@@ -47,6 +63,7 @@ export default function CustomerAuthScreen() {
   const [resends, setResends] = useState(0);
   const otpRef = useBlurOnFulfill({ value: otp, cellCount: OTP_CELL_COUNT });
   const [otpFieldProps, getCellOnLayoutHandler] = useClearByFocusCell({ value: otp, setValue: setOtp });
+  const [companyLogin, { isLoading: connecting }] = useCompanyLoginMutation();
   const [loginNew, { isLoading: starting }] = useLoginNewMutation();
   const [verifyOtp, { isLoading: verifying }] = useVerifyOtpNewMutation();
   const [resendOtp, { isLoading: resending }] = useResendOtpMutation();
@@ -74,6 +91,7 @@ export default function CustomerAuthScreen() {
     }
 
     try {
+      await companyLogin({ company_login: COMPANY_LOGIN }).unwrap();
       const reply: OtpStartReply = await loginNew({
         company_login: COMPANY_LOGIN,
         role,
@@ -82,7 +100,17 @@ export default function CustomerAuthScreen() {
       const user = reply.user;
       if (!user?.id || !user.verify_token || !reply.type) throw new Error('The server reply was missing OTP details. Please try again.');
       const identity = method === 'email' ? cleanEmail : `+${countryCode} ${phoneDigits}`;
-      setPending({ userId: user.id, verifyToken: user.verify_token, otpType: reply.type, role, identity, method });
+      setPending({
+        userId: user.id,
+        verifyToken: user.verify_token,
+        otpType: reply.type,
+        role,
+        identity,
+        method,
+        emailRequired: flag(reply.email_required),
+        vendorProfileComplete: flag(reply.vendor_profile_complete),
+        profileComplete: flag(reply.profile_complete),
+      });
       setOtp('');
       setSecondsLeft(30);
       setResends(1);
@@ -116,36 +144,45 @@ export default function CustomerAuthScreen() {
       if (!sessionToken) throw new Error('The server reply was missing a session token. Please try again.');
       await setAuthToken(sessionToken);
 
+      const emailRequired = flag(reply.email_required) ?? flag(user.email_required) ?? pending.emailRequired ?? false;
+      const vendorProfileComplete = flag(reply.vendor_profile_complete) ?? pending.vendorProfileComplete ?? false;
+      const profileComplete = flag(reply.profile_complete) ?? pending.profileComplete;
       const fullName = [user.full_name, user.name, user.first_name].find((value) => typeof value === 'string' && value.trim()) as string | undefined;
-      const accountEmail = typeof user.email === 'string' && user.email.trim() ? user.email.trim() : pending.method === 'email' ? pending.identity : '';
+      const accountEmail = emailRequired ? '' : typeof user.email === 'string' && user.email.trim() ? user.email.trim() : pending.method === 'email' ? pending.identity : '';
       const accountPhone = typeof user.whatsapp_number === 'string' && user.whatsapp_number.trim()
         ? `+${typeof user.country_code === 'string' ? user.country_code : countryCode} ${user.whatsapp_number}`
         : typeof user.phone === 'string' && user.phone.trim() ? user.phone : pending.method === 'whatsapp' ? pending.identity : '';
       const displayName = fullName?.trim() ?? '';
 
       setRole(verifiedRole);
-      setCustomerAccount({ name: displayName, email: accountEmail, phone: accountPhone });
+      setCustomerAccount({ name: displayName, email: accountEmail, phone: accountPhone, emailRequired });
       const destination = startSession({
         name: displayName || accountEmail || accountPhone,
         email: accountEmail,
         phone: accountPhone,
         mode: verifiedRole === 'vendor' ? 'provider' : 'customer',
-        hasProviderProfile: false,
+        hasProviderProfile: verifiedRole === 'vendor' && vendorProfileComplete,
       });
+      hydrate({ session: { authResponse: reply as Record<string, unknown> } });
       if (verifiedRole === 'vendor') {
-        patchOnboarding({
-          name: displayName,
-          email: accountEmail,
-          phone: accountPhone,
-          password: '',
-          accountCreated: true,
-          emailVerified: true,
-          phoneVerified: true,
-          profileName: displayName,
-        });
-        router.replace('/vendor/onboarding' as never);
-      } else if (!displayName) {
-        router.replace('/customer/profile-edit' as never);
+        if (!vendorProfileComplete) {
+          patchOnboarding({
+            name: displayName,
+            email: accountEmail,
+            emailRequired,
+            phone: accountPhone,
+            password: '',
+            accountCreated: true,
+            emailVerified: !emailRequired,
+            phoneVerified: true,
+            profileName: displayName,
+          });
+          router.replace('/vendor' as never);
+        } else {
+          router.replace(destination as never);
+        }
+      } else if (emailRequired || profileComplete === false || !displayName) {
+        router.replace('/customer/profile-edit?required=1' as never);
       } else {
         router.replace(destination as never);
       }
@@ -230,7 +267,7 @@ export default function CustomerAuthScreen() {
               <Input label="Email address" value={email} onChangeText={(value) => { setEmail(value); setError(''); }} placeholder="you@example.com" keyboardType="email-address" autoCapitalize="none" />
             )}
             {error ? <Notice tone="error" body={error} /> : null}
-            <Button label="Send code" onPress={() => void start()} loading={starting} style={styles.submit} />
+            <Button label="Send code" onPress={() => void start()} loading={connecting || starting} style={styles.submit} />
             <View style={styles.switchRow}>
               <Text style={styles.switchText}>{method === 'whatsapp' ? 'Prefer email?' : 'Prefer WhatsApp?'}</Text>
               <Pressable accessibilityRole="button" onPress={() => changeMethod(method === 'whatsapp' ? 'email' : 'whatsapp')}>

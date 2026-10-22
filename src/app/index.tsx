@@ -1,13 +1,18 @@
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { Image } from 'expo-image';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/flow2/components/Button';
 import { useApp } from '@/flow2/state/app';
+import { homeFor, useApp as useSessionApp } from '@/state/store';
 
 export default function RoleSelectionScreen() {
   const { setRole } = useApp();
+  const { session, restored } = useSessionApp();
+
+  if (!restored) return null;
+  if (session.signedIn) return <Redirect href={homeFor(session) as any} />;
 
   const openCustomer = () => {
     setRole('customer');

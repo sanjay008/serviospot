@@ -1,21 +1,17 @@
-import { Redirect, Tabs } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { Platform, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon, type IconName } from '@/flow2/components/Icon';
 import { palette } from '@/flow2/constants/theme';
-import { useApp } from '@/flow2/state/app';
 
 function TabIcon({ name, color, size }: { name: IconName; color: string; size: number }) {
   return <Icon name={name} color={color} size={Math.max(16, size - 2)} />;
 }
 
 export default function VendorTabsLayout() {
-  const { onboarding } = useApp();
   const insets = useSafeAreaInsets();
   const bottom = Math.max(insets.bottom, Platform.OS === 'ios' ? 4 : 8);
-
-  if (onboarding.status !== 'approved') return <Redirect href="/vendor/onboarding" />;
 
   return (
     <Tabs

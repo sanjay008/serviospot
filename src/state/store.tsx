@@ -160,6 +160,13 @@ const SESSION_KEY = 'session';
 /** One-time wipe so the next launch starts signed out. A later login is kept. */
 const STARTUP_LOGOUT_KEY = 'startupLoggedOut';
 
+function logStoredVendorProfileStatus(session: Session, source: 'save' | 'restore') {
+  const response = session.authResponse;
+  const user = response?.user && typeof response.user === 'object' ? response.user as Record<string, unknown> : undefined;
+  const value = response?.vendor_profile_complete ?? user?.vendor_profile_complete;
+  console.log(`[AUTH] ${source}: vendor_profile_complete=`, value ?? '(missing)', '| hasProviderProfile=', session.hasProviderProfile);
+}
+
 const Ctx = createContext<Store | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -200,8 +207,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
           await restoreAuthToken();
           const saved = await AsyncStorage.getItem(SESSION_KEY);
           if (alive && saved) {
-            setSession({ ...guestSession, ...(JSON.parse(saved) as Partial<Session>) });
+            const restoredSession = { ...guestSession, ...(JSON.parse(saved) as Partial<Session>) };
+            setSession(restoredSession);
             setRemember(true);
+            logStoredVendorProfileStatus(restoredSession, 'restore');
           }
         }
       } catch {
@@ -217,7 +226,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!restored) return;
-    if (remember && session.signedIn) void AsyncStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    if (remember && session.signedIn) {
+      logStoredVendorProfileStatus(session, 'save');
+      void AsyncStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    }
     else void AsyncStorage.removeItem(SESSION_KEY);
   }, [restored, remember, session]);
 
