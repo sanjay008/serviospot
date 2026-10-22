@@ -7,12 +7,13 @@ export type ApiQuery = {
   params?: Record<string, string | number | boolean | null | undefined>;
   body?: Record<string, unknown>;
   headers?: Record<string, string>;
+  auth?: boolean;
 };
 export type ApiFailure = { status: number; message: string };
 
 const baseQuery: BaseQueryFn<ApiQuery, unknown, ApiFailure> = async (args, { signal }) => {
   try {
-    const data = await apiRequest(args.path, args.body, { method: args.method, params: args.params, headers: args.headers, signal });
+    const data = await apiRequest(args.path, args.body, { method: args.method, params: args.params, headers: args.headers, signal, auth: args.auth });
     return { data };
   } catch (error) {
     return {
