@@ -14,6 +14,7 @@ import { Notice } from '@/flow2/components/Notice';
 import { Screen } from '@/flow2/components/Screen';
 import { SectionTitle } from '@/flow2/components/SectionTitle';
 import { palette } from '@/flow2/constants/theme';
+import { leading, useType } from '@/hooks/use-type';
 import { money } from '@/flow2/data/format';
 import { b, eventNameForOccasion } from '@/flow2/data/options';
 import type { Availability } from '@/flow2/data/types';
@@ -22,6 +23,7 @@ import { useApp } from '@/flow2/state/app';
 export default function VendorProposalBuilderScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t, lang, leads, sendVendorProposal } = useApp();
+  const type = useType();
   const lead = leads.find((item) => item.id === id);
 
   const [availability, setAvailability] = useState<Availability>('full');
@@ -57,9 +59,9 @@ export default function VendorProposalBuilderScreen() {
             <View style={styles.doneIcon}>
               <Icon name="send" color={palette.accent} size={22} />
             </View>
-            <Text style={styles.doneTitle}>{t(b('Voorstel verzonden', 'Proposal sent'))}</Text>
+            <Text style={[styles.doneTitle, { fontSize: type.sectionTitle }]}>{t(b('Voorstel verzonden', 'Proposal sent'))}</Text>
           </View>
-          <Text style={styles.doneText}>
+          <Text style={[styles.doneText, { fontSize: type.secondary, lineHeight: leading(type.secondary, 7) }]}>
             {t(b('All-inprijs', 'All-in price'))}: {money(total, lang)} · {money(perGuest, lang)} {t(b('p.p.', 'p.p.'))} · {t(b('borg', 'deposit'))} {money(Number(deposit) || 0, lang)}
           </Text>
           <Notice tone="accent" body={t(b('Nooit een verstuurd voorstel stilzwijgend wijzigen. Een inhoudelijke wijziging maakt een nieuwe versie.', 'Never silently edit a sent proposal. A material change creates a new version.'))} />
@@ -97,12 +99,12 @@ export default function VendorProposalBuilderScreen() {
         <Input label={t(b('Materialen incl. btw (€)', 'Equipment incl. VAT (€)'))} value={materialPrice} onChangeText={setMaterialPrice} keyboardType="numeric" />
         <Input label={t(b('Vervoer incl. btw (€)', 'Transport incl. VAT (€)'))} value={travelPrice} onChangeText={setTravelPrice} keyboardType="numeric" />
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>{t(b('Totaal', 'Total'))}</Text>
-          <Text style={styles.totalValue}>{money(total, lang)}</Text>
+          <Text style={[styles.totalLabel, { fontSize: type.body }]}>{t(b('Totaal', 'Total'))}</Text>
+          <Text style={[styles.totalValue, { fontSize: type.sectionTitle }]}>{money(total, lang)}</Text>
         </View>
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>{t(b('Per gast', 'Per guest'))}</Text>
-          <Text style={styles.totalValue}>{money(perGuest, lang)}</Text>
+          <Text style={[styles.totalLabel, { fontSize: type.body }]}>{t(b('Per gast', 'Per guest'))}</Text>
+          <Text style={[styles.totalValue, { fontSize: type.sectionTitle }]}>{money(perGuest, lang)}</Text>
         </View>
       </Card>
 
@@ -118,10 +120,10 @@ export default function VendorProposalBuilderScreen() {
 
 const styles = StyleSheet.create({
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 6 },
-  totalLabel: { fontSize: 15, fontWeight: '700', color: palette.ink },
-  totalValue: { fontSize: 18, fontWeight: '800', color: palette.accentDark },
+  totalLabel: { fontWeight: '700', color: palette.ink },
+  totalValue: { fontWeight: '800', color: palette.accentDark },
   doneHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   doneIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: palette.accentSoft, alignItems: 'center', justifyContent: 'center' },
-  doneTitle: { fontSize: 18, fontWeight: '800', color: palette.ink },
-  doneText: { fontSize: 14, lineHeight: 21, color: palette.ink },
+  doneTitle: { fontWeight: '800', color: palette.ink },
+  doneText: { color: palette.ink },
 });

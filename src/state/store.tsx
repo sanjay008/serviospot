@@ -93,10 +93,10 @@ type Store = {
   setMessages: (conversationId: string, messages: ChatMessage[]) => void;
   /** Adds one live chat message without replacing the thread. */
   receiveChat: (conversationId: string, raw: ApiRecord) => void;
-  startSession: (account: { name: string; email: string; phone: string; mode: 'customer' | 'provider'; hasProviderProfile: boolean }) => '/customer' | '/vendor';
+  startSession: (account: { name: string; email: string; phone: string; mode: 'customer' | 'provider'; hasProviderProfile: boolean; vendorProfileComplete?: 0 | 1; authResponse?: Record<string, unknown> }) => '/customer' | '/vendor';
   verifyEmail: () => Promise<Result>;
   verifyPhone: () => Promise<Result>;
-  /** Clears the session on this phone. Call it only after the logout or delete API succeeded. */
+  /** Clears the saved login on this phone. The app stays signed in until this runs. */
   signOut: () => void;
   setMode: (mode: 'customer' | 'provider') => void;
   setPlan: (planId: PlanId, billing: Session['billing']) => Promise<Result>;
@@ -157,14 +157,25 @@ export function homeFor(session: Session): '/' | '/customer' | '/vendor' {
 }
 
 const SESSION_KEY = 'session';
-/** One-time wipe so the next launch starts signed out. A later login is kept. */
-const STARTUP_LOGOUT_KEY = 'startupLoggedOut';
+let sessionWrite = 0;
+
+/** Keep the saved login small. The auth token lives in its own key, and large replies must not block the write. */
+function sessionToStore(session: Session): Session {
+  const next: Session = { ...session };
+  delete next.authResponse;
+  if (next.photo.startsWith('data:')) next.photo = '';
+  return next;
+}
 
 function logStoredVendorProfileStatus(session: Session, source: 'save' | 'restore') {
   const response = session.authResponse;
+  const nested = response?.data && typeof response.data === 'object' ? response.data as Record<string, unknown> : undefined;
   const user = response?.user && typeof response.user === 'object' ? response.user as Record<string, unknown> : undefined;
-  const value = response?.vendor_profile_complete ?? user?.vendor_profile_complete;
-  console.log(`[AUTH] ${source}: vendor_profile_complete=`, value ?? '(missing)', '| hasProviderProfile=', session.hasProviderProfile);
+  const nestedUser = nested?.user && typeof nested.user === 'object' ? nested.user as Record<string, unknown> : undefined;
+  const raw = response?.vendor_profile_complete ?? user?.vendor_profile_complete ?? nested?.vendor_profile_complete ?? nestedUser?.vendor_profile_complete;
+  const value = session.vendorProfileComplete ?? (raw === true || raw === 1 || raw === '1' ? 1 : raw === false || raw === 0 || raw === '0' ? 0 : session.hasProviderProfile ? 1 : 0);
+  const valueSource = session.vendorProfileComplete !== undefined || raw !== undefined ? 'api/session' : 'session fallback';
+  console.log(`[AUTH] ${source}: vendor_profile_complete=${value} (${valueSource}) | hasProviderProfile=${session.hasProviderProfile}`);
 }
 
 const Ctx = createContext<Store | null>(null);
@@ -172,8 +183,6 @@ const Ctx = createContext<Store | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session>(guestSession);
   const [restored, setRestored] = useState(false);
-  // Only a real login or register is kept on the device; guest sessions are not.
-  const [remember, setRemember] = useState(false);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -198,18 +207,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     let alive = true;
     void (async () => {
       try {
-        const wiped = await AsyncStorage.getItem(STARTUP_LOGOUT_KEY);
-        if (!wiped) {
-          await setAuthToken(null);
-          await AsyncStorage.removeItem(SESSION_KEY);
-          await AsyncStorage.setItem(STARTUP_LOGOUT_KEY, '1');
-        } else {
-          await restoreAuthToken();
-          const saved = await AsyncStorage.getItem(SESSION_KEY);
-          if (alive && saved) {
-            const restoredSession = { ...guestSession, ...(JSON.parse(saved) as Partial<Session>) };
+        await restoreAuthToken();
+        const saved = await AsyncStorage.getItem(SESSION_KEY);
+        if (alive && saved) {
+          const restoredSession = { ...guestSession, ...(JSON.parse(saved) as Partial<Session>) };
+          if (restoredSession.signedIn) {
             setSession(restoredSession);
-            setRemember(true);
             logStoredVendorProfileStatus(restoredSession, 'restore');
           }
         }
@@ -225,13 +228,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!restored) return;
-    if (remember && session.signedIn) {
-      logStoredVendorProfileStatus(session, 'save');
-      void AsyncStorage.setItem(SESSION_KEY, JSON.stringify(session));
-    }
-    else void AsyncStorage.removeItem(SESSION_KEY);
-  }, [restored, remember, session]);
+    if (!restored || !session.signedIn) return;
+    logStoredVendorProfileStatus(session, 'save');
+    const write = ++sessionWrite;
+    void AsyncStorage.setItem(SESSION_KEY, JSON.stringify(sessionToStore(session)))
+      .then(() => {
+        if (write !== sessionWrite) void AsyncStorage.removeItem(SESSION_KEY);
+      })
+      .catch(() => {
+        // A failed write means the next launch asks for login again.
+      });
+  }, [restored, session]);
 
   const api = useMemo<Store>(() => {
     const setters: { [K in ListKey]: Dispatch<SetStateAction<Lists[K]>> } = {
@@ -316,7 +323,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         );
       },
       startSession: (account) => {
-        setRemember(true);
         setSession({
           ...guestSession,
           signedIn: true,
@@ -325,6 +331,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           phone: account.phone,
           mode: account.mode,
           hasProviderProfile: account.hasProviderProfile,
+          vendorProfileComplete: account.vendorProfileComplete ?? (account.hasProviderProfile ? 1 : 0),
+          ...(account.authResponse ? { authResponse: account.authResponse } : {}),
           planId: account.hasProviderProfile ? 'gold' : 'free',
         });
         return destinationFor(account);
@@ -340,9 +348,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return result;
       },
       signOut: () => {
-        setRemember(false);
+        sessionWrite += 1;
         setSession(guestSession);
         void setAuthToken(null);
+        void AsyncStorage.multiRemove([SESSION_KEY, 'flow2Profile']);
         for (const setter of [setRequests, setProposals, setLeads, setConversations, setNotifications, setTemplates, setOutcomes] as Dispatch<SetStateAction<unknown[]>>[]) setter([]);
         setProviders((list) => list.filter((item) => item.id !== ME));
         setOfferings((list) => list.filter((item) => item.providerId !== ME));

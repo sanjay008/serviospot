@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon, type IconName } from '@/flow2/components/Icon';
 import { palette } from '@/flow2/constants/theme';
+import { useType } from '@/hooks/use-type';
 
 function TabIcon({ name, color, size }: { name: IconName; color: string; size: number }) {
   return <Icon name={name} color={color} size={Math.max(16, size - 2)} />;
@@ -11,6 +12,7 @@ function TabIcon({ name, color, size }: { name: IconName; color: string; size: n
 
 export default function VendorTabsLayout() {
   const insets = useSafeAreaInsets();
+  const type = useType();
   const bottom = Math.max(insets.bottom, Platform.OS === 'ios' ? 4 : 8);
 
   return (
@@ -31,7 +33,7 @@ export default function VendorTabsLayout() {
           shadowRadius: 0,
           shadowOffset: { width: 0, height: 0 },
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' as const },
+        tabBarLabelStyle: { fontSize: type.tab, fontWeight: '600' as const },
         tabBarItemStyle: { paddingHorizontal: 2 },
         tabBarButton: (props: any) => (
           <Pressable
@@ -54,9 +56,10 @@ export default function VendorTabsLayout() {
         options={{ title: 'Requests', tabBarIcon: ({ color, size }) => <TabIcon name="inbox" color={String(color)} size={size} /> }}
       />
       <Tabs.Screen
-        name="menu"
-        options={{ title: 'Menu', tabBarIcon: ({ color, size }) => <TabIcon name="food" color={String(color)} size={size} /> }}
+        name="packages"
+        options={{ title: 'Packages', tabBarIcon: ({ color, size }) => <TabIcon name="box" color={String(color)} size={size} /> }}
       />
+      <Tabs.Screen name="menu" options={{ href: null }} />
       <Tabs.Screen
         name="chat"
         options={{ title: 'Chat', tabBarIcon: ({ color, size }) => <TabIcon name="chat" color={String(color)} size={size} /> }}

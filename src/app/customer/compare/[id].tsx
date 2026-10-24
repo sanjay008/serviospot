@@ -7,6 +7,7 @@ import { Header } from '@/flow2/components/Header';
 import { Notice } from '@/flow2/components/Notice';
 import { Screen } from '@/flow2/components/Screen';
 import { palette } from '@/flow2/constants/theme';
+import { useType } from '@/hooks/use-type';
 import { money } from '@/flow2/data/format';
 import { b } from '@/flow2/data/options';
 import { useApp } from '@/flow2/state/app';
@@ -14,6 +15,7 @@ import { useApp } from '@/flow2/state/app';
 export default function CompareScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t, lang, requests, proposalsFor } = useApp();
+  const type = useType();
   const request = requests.find((item) => item.id === id);
   const proposals = request ? proposalsFor(request.id) : [];
 
@@ -36,13 +38,13 @@ export default function CompareScreen() {
         <View>
           <View style={styles.headerRow}>
             <View style={[styles.labelCell, styles.headerCell]}>
-              <Text style={styles.headerTitle}>{t(b('Onderdeel', 'Item'))}</Text>
+              <Text style={[styles.headerTitle, { fontSize: type.caption }]}>{t(b('Onderdeel', 'Item'))}</Text>
             </View>
             {proposals.map((proposal) => (
               <View key={proposal.id} style={[styles.cell, styles.headerCell, { width: cellWidth }]}>
-                <Text style={styles.provider}>{proposal.providerName}</Text>
-                <Text style={styles.providerPrice}>{money(proposal.total, lang)}</Text>
-                <Text style={styles.providerMatch}>
+                <Text style={[styles.provider, { fontSize: type.secondary }]}>{proposal.providerName}</Text>
+                <Text style={[styles.providerPrice, { fontSize: type.body }]}>{money(proposal.total, lang)}</Text>
+                <Text style={[styles.providerMatch, { fontSize: type.small }]}>
                   {proposal.matchScore}% {t(b('match', 'match'))}
                 </Text>
               </View>
@@ -51,22 +53,22 @@ export default function CompareScreen() {
 
           <View style={styles.row}>
             <View style={styles.labelCell}>
-              <Text style={styles.label}>{t(b('Prijs incl. btw', 'Price incl. VAT'))}</Text>
+              <Text style={[styles.label, { fontSize: type.caption }]}>{t(b('Prijs incl. btw', 'Price incl. VAT'))}</Text>
             </View>
             {proposals.map((proposal) => (
               <View key={proposal.id} style={[styles.cell, { width: cellWidth }]}>
-                <Text style={styles.valueStrong}>{money(proposal.total, lang)}</Text>
+                <Text style={[styles.valueStrong, { fontSize: type.body }]}>{money(proposal.total, lang)}</Text>
               </View>
             ))}
           </View>
 
           <View style={styles.row}>
             <View style={styles.labelCell}>
-              <Text style={styles.label}>{t(b('Prijs per gast', 'Price per guest'))}</Text>
+              <Text style={[styles.label, { fontSize: type.caption }]}>{t(b('Prijs per gast', 'Price per guest'))}</Text>
             </View>
             {proposals.map((proposal) => (
               <View key={proposal.id} style={[styles.cell, { width: cellWidth }]}>
-                <Text style={styles.value}>{money(proposal.perGuest, lang)}</Text>
+                <Text style={[styles.value, { fontSize: type.caption }]}>{money(proposal.perGuest, lang)}</Text>
               </View>
             ))}
           </View>
@@ -74,14 +76,14 @@ export default function CompareScreen() {
           {labels.map((label, index) => (
             <View key={label.en} style={styles.row}>
               <View style={styles.labelCell}>
-                <Text style={styles.label}>{t(label)}</Text>
+                <Text style={[styles.label, { fontSize: type.caption }]}>{t(label)}</Text>
               </View>
               {proposals.map((proposal) => {
                 const line = proposal.lines[index];
                 return (
                   <View key={proposal.id} style={[styles.cell, { width: cellWidth }]}>
-                    <Text style={[styles.value, line.differs && styles.differsText]}>{line.offered}</Text>
-                    {line.differs ? <Text style={styles.diffTag}>{t(b('wijkt af', 'differs'))}</Text> : null}
+                    <Text style={[styles.value, { fontSize: type.caption }, line.differs && styles.differsText]}>{line.offered}</Text>
+                    {line.differs ? <Text style={[styles.diffTag, { fontSize: type.micro }]}>{t(b('wijkt af', 'differs'))}</Text> : null}
                   </View>
                 );
               })}
@@ -90,18 +92,18 @@ export default function CompareScreen() {
 
           <View style={styles.row}>
             <View style={styles.labelCell}>
-              <Text style={styles.label}>{t(b('Borg (apart)', 'Deposit (separate)'))}</Text>
+              <Text style={[styles.label, { fontSize: type.caption }]}>{t(b('Borg (apart)', 'Deposit (separate)'))}</Text>
             </View>
             {proposals.map((proposal) => (
               <View key={proposal.id} style={[styles.cell, { width: cellWidth }]}>
-                <Text style={styles.value}>{money(proposal.deposit, lang)}</Text>
+                <Text style={[styles.value, { fontSize: type.caption }]}>{money(proposal.deposit, lang)}</Text>
               </View>
             ))}
           </View>
 
           <View style={styles.row}>
             <View style={styles.labelCell}>
-              <Text style={styles.label}>{t(b('Actie', 'Action'))}</Text>
+              <Text style={[styles.label, { fontSize: type.caption }]}>{t(b('Actie', 'Action'))}</Text>
             </View>
             {proposals.map((proposal) => (
               <View key={proposal.id} style={[styles.cell, { width: cellWidth }]}>
@@ -123,14 +125,14 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', borderTopWidth: 1, borderTopColor: palette.line },
   headerCell: { backgroundColor: palette.accentSoft, borderTopLeftRadius: 0 },
   labelCell: { width: 150, padding: 10, justifyContent: 'center', backgroundColor: palette.surface },
-  label: { fontSize: 13, color: palette.muted },
+  label: { color: palette.muted },
   cell: { padding: 10, gap: 2, backgroundColor: palette.surface, justifyContent: 'center' },
-  headerTitle: { fontSize: 13, fontWeight: '800', color: palette.accentDark },
-  provider: { fontSize: 14, fontWeight: '800', color: palette.ink },
-  providerPrice: { fontSize: 15, fontWeight: '800', color: palette.ink },
-  providerMatch: { fontSize: 12, color: palette.muted },
-  value: { fontSize: 13, color: palette.ink },
-  valueStrong: { fontSize: 15, fontWeight: '800', color: palette.ink },
+  headerTitle: { fontWeight: '800', color: palette.accentDark },
+  provider: { fontWeight: '800', color: palette.ink },
+  providerPrice: { fontWeight: '800', color: palette.ink },
+  providerMatch: { color: palette.muted },
+  value: { color: palette.ink },
+  valueStrong: { fontWeight: '800', color: palette.ink },
   differsText: { color: palette.warning, fontWeight: '700' },
-  diffTag: { fontSize: 11, fontWeight: '700', color: palette.warning },
+  diffTag: { fontWeight: '700', color: palette.warning },
 });

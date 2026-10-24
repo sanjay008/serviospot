@@ -7,6 +7,7 @@ import { Icon } from '@/flow2/components/Icon';
 import { palette } from '@/flow2/constants/theme';
 import type { FlowChatMessage } from '@/flow2/data/types';
 import { useApp } from '@/flow2/state/app';
+import { leading, useType } from '@/hooks/use-type';
 
 type Props = {
   conversationId: string;
@@ -20,6 +21,7 @@ function validTimestamp(timestamp: number) {
 
 export function RealtimeChat({ conversationId, role, recipient }: Props) {
   const { chatMessages, addChatMessage } = useApp();
+  const type = useType();
   const [draft, setDraft] = useState('');
   const messages = useMemo(
     () => [...(chatMessages[conversationId] ?? [])].sort((a, b) => validTimestamp(b.createdAt) - validTimestamp(a.createdAt)),
@@ -70,8 +72,8 @@ export function RealtimeChat({ conversationId, role, recipient }: Props) {
       <View style={[styles.messageRow, mine ? styles.mineRow : styles.theirsRow]}>
         <View style={[styles.bubble, mine ? styles.mineBubble : styles.theirsBubble]}>
           {item.imageUri ? <Image source={{ uri: item.imageUri }} contentFit="cover" style={styles.messageImage} /> : null}
-          {item.text ? <Text style={styles.messageText}>{item.text}</Text> : null}
-          <Text style={[styles.time, mine ? styles.mineTime : styles.theirsTime]}>
+          {item.text ? <Text style={[styles.messageText, { fontSize: type.body, lineHeight: leading(type.body, 6) }]}>{item.text}</Text> : null}
+          <Text style={[styles.time, { fontSize: type.micro }, mine ? styles.mineTime : styles.theirsTime]}>
             {date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
           </Text>
         </View>
@@ -92,8 +94,8 @@ export function RealtimeChat({ conversationId, role, recipient }: Props) {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={(
           <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>Start the conversation</Text>
-            <Text style={styles.emptyBody}>Keep event details and updates with {recipient} in one place.</Text>
+            <Text style={[styles.emptyTitle, { fontSize: type.sectionTitle }]}>Start the conversation</Text>
+            <Text style={[styles.emptyBody, { fontSize: type.secondary, lineHeight: leading(type.secondary, 6) }]}>Keep event details and updates with {recipient} in one place.</Text>
           </View>
         )}
       />
@@ -112,7 +114,7 @@ export function RealtimeChat({ conversationId, role, recipient }: Props) {
           multiline
           maxLength={4000}
           blurOnSubmit={false}
-          style={styles.composer}
+          style={[styles.composer, { fontSize: type.body }]}
         />
         <Pressable
           accessibilityRole="button"
@@ -133,7 +135,7 @@ const styles = StyleSheet.create({
   messageList: { paddingHorizontal: 12, paddingVertical: 10 },
   emptyList: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 12 },
   empty: { alignItems: 'center', justifyContent: 'center', padding: 24 },
-  emptyTitle: { color: palette.ink, fontSize: 17, fontWeight: '800' },
+  emptyTitle: { color: palette.ink, fontWeight: '800' },
   emptyBody: { color: palette.muted, textAlign: 'center', marginTop: 5 },
   messageRow: { width: '100%', marginVertical: 4 },
   mineRow: { alignItems: 'flex-end' },
@@ -142,13 +144,13 @@ const styles = StyleSheet.create({
   mineBubble: { backgroundColor: palette.accentSoft, borderBottomRightRadius: 5 },
   theirsBubble: { backgroundColor: '#FFFFFF', borderBottomLeftRadius: 5 },
   messageImage: { width: 220, height: 160, borderRadius: 10, marginBottom: 4 },
-  messageText: { color: palette.ink, fontSize: 15, lineHeight: 21 },
-  time: { alignSelf: 'flex-end', marginTop: 3, fontSize: 10 },
+  messageText: { color: palette.ink },
+  time: { alignSelf: 'flex-end', marginTop: 3 },
   mineTime: { color: palette.accentDark },
   theirsTime: { color: palette.muted },
   toolbar: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, borderTopColor: palette.line, borderTopWidth: 1, backgroundColor: '#FFFFFF', paddingHorizontal: 10, paddingVertical: 8 },
   photoButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.accentSoft },
-  composer: { flex: 1, minHeight: 42, maxHeight: 110, borderRadius: 22, backgroundColor: palette.well, paddingHorizontal: 15, paddingTop: 10, paddingBottom: 8, fontSize: 15, color: palette.ink },
+  composer: { flex: 1, minHeight: 42, maxHeight: 110, borderRadius: 22, backgroundColor: palette.well, paddingHorizontal: 15, paddingTop: 10, paddingBottom: 8, color: palette.ink },
   sendButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: palette.accent, alignItems: 'center', justifyContent: 'center' },
   sendDisabled: { opacity: 0.55 },
 });

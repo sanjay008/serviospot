@@ -15,6 +15,7 @@ export type IconName =
   | 'chevron'
   | 'back'
   | 'plus'
+  | 'minus'
   | 'filter'
   | 'star'
   | 'pin'
@@ -107,6 +108,7 @@ const ICONS: Record<IconName, () => ReactNode> = {
       <Line x1={5} y1={12} x2={19} y2={12} />
     </>
   ),
+  minus: () => <Line x1={5} y1={12} x2={19} y2={12} />,
   filter: () => <Path d="M3 5h18l-7 8.2V19l-4-2v-3.8z" />,
   star: () => <Path d="M12 3.5l2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L3.2 10l6.1-.9z" />,
   pin: () => (

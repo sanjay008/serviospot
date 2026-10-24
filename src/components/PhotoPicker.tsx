@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
 import { palette } from '@/constants/theme';
+import { useType } from '@/hooks/use-type';
 
 type Shape = 'logo' | 'wide';
 
@@ -25,6 +26,7 @@ export function PhotoPicker({
   error?: string;
 }) {
   const [busy, setBusy] = useState(false);
+  const type = useType();
   const [pickError, setPickError] = useState('');
   const logo = shape === 'logo';
 
@@ -57,7 +59,7 @@ export function PhotoPicker({
 
   return (
     <View style={[styles.wrap, centered && styles.centered]}>
-      {label ? <Text style={styles.label}>{label}</Text> : null}
+      {label ? <Text style={[styles.label, { fontSize: type.label }]}>{label}</Text> : null}
       <View style={[styles.row, !logo && styles.column, centered && styles.centeredRow]}>
         <View style={centered ? styles.avatarWrap : styles.fill}>
           <Pressable
@@ -70,7 +72,7 @@ export function PhotoPicker({
             ) : (
               <View style={styles.empty}>
                 <Icon name={centered ? 'person' : 'photo'} color={palette.accent} size={centered ? 36 : logo ? 28 : 32} />
-                {!logo ? <Text style={styles.hint}>Tap to choose from gallery</Text> : null}
+                {!logo ? <Text style={[styles.hint, { fontSize: type.secondary }]}>Tap to choose from gallery</Text> : null}
               </View>
             )}
           </Pressable>
@@ -84,12 +86,12 @@ export function PhotoPicker({
           <View style={[styles.actions, !logo && styles.actionsWide]}>
             <Pressable accessibilityRole="button" onPress={pick} style={styles.action} hitSlop={8}>
               <Icon name="photo" color={palette.accent} size={18} />
-              <Text style={styles.actionText}>{busy ? 'Opening gallery…' : value ? 'Change photo' : 'Choose from gallery'}</Text>
+              <Text style={[styles.actionText, { fontSize: type.label }]}>{busy ? 'Opening gallery…' : value ? 'Change photo' : 'Choose from gallery'}</Text>
             </Pressable>
             {value ? (
               <Pressable accessibilityRole="button" onPress={() => onChange('')} style={styles.action} hitSlop={8}>
                 <Icon name="trash" color={palette.danger} size={18} />
-                <Text style={[styles.actionText, styles.remove]}>Remove</Text>
+                <Text style={[styles.actionText, styles.remove, { fontSize: type.label }]}>Remove</Text>
               </Pressable>
             ) : null}
           </View>
@@ -97,10 +99,10 @@ export function PhotoPicker({
       </View>
       {centered && value ? (
         <Pressable accessibilityRole="button" accessibilityLabel="Remove photo" onPress={() => onChange('')} hitSlop={8}>
-          <Text style={styles.remove}>Remove</Text>
+          <Text style={[styles.remove, { fontSize: type.label }]}>Remove</Text>
         </Pressable>
       ) : null}
-      {pickError || error ? <Text style={styles.error}>{pickError || error}</Text> : null}
+      {pickError || error ? <Text style={[styles.error, { fontSize: type.caption }]}>{pickError || error}</Text> : null}
     </View>
   );
 }
@@ -109,7 +111,7 @@ const styles = StyleSheet.create({
   wrap: { gap: 8 },
   centered: { alignItems: 'center' },
   centeredRow: { justifyContent: 'center' },
-  label: { fontSize: 15, fontWeight: '700', color: palette.ink },
+  label: { fontWeight: '700', color: palette.ink },
   row: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   column: { flexDirection: 'column', alignItems: 'stretch', gap: 10 },
   fill: { width: '100%' },
@@ -132,11 +134,11 @@ const styles = StyleSheet.create({
   wide: { width: '100%', aspectRatio: 4 / 3, borderRadius: 16, overflow: 'hidden', backgroundColor: palette.accentSoft, borderWidth: 1, borderColor: palette.line },
   pressed: { opacity: 0.85 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6 },
-  hint: { fontSize: 14, color: palette.muted },
+  hint: { color: palette.muted },
   actions: { flex: 1, gap: 12 },
   actionsWide: { flex: 0, flexDirection: 'row', gap: 20 },
   action: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 32 },
-  actionText: { fontSize: 15, fontWeight: '600', color: palette.accentDark },
+  actionText: { fontWeight: '600', color: palette.accentDark },
   remove: { color: palette.danger },
-  error: { fontSize: 13, color: palette.danger },
+  error: { color: palette.danger },
 });

@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon, type IconName } from '@/flow2/components/Icon';
 import { palette } from '@/flow2/constants/theme';
+import { useType } from '@/hooks/use-type';
 
 function TabIcon({ name, color, size }: { name: IconName; color: string; size: number }) {
   return <Icon name={name} color={color} size={Math.max(16, size - 2)} />;
@@ -11,6 +12,7 @@ function TabIcon({ name, color, size }: { name: IconName; color: string; size: n
 
 export default function CustomerTabsLayout() {
   const insets = useSafeAreaInsets();
+  const type = useType();
   const bottom = Math.max(insets.bottom, Platform.OS === 'ios' ? 4 : 8);
 
   return (
@@ -31,7 +33,7 @@ export default function CustomerTabsLayout() {
           shadowRadius: 0,
           shadowOffset: { width: 0, height: 0 },
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' as const },
+        tabBarLabelStyle: { fontSize: type.tab, fontWeight: '600' as const },
         tabBarItemStyle: { paddingHorizontal: 2 },
         tabBarButton: (props: any) => (
           <Pressable
@@ -66,7 +68,7 @@ export default function CustomerTabsLayout() {
               android_ripple={{ color: 'transparent' }}
               style={[props.style, styles.createTab]}>
               <View style={styles.createButton}><TabIcon name="plus" color="#FFFFFF" size={27} /></View>
-              <Text style={styles.createLabel}>New</Text>
+              <Text style={[styles.createLabel, { fontSize: type.micro, lineHeight: type.micro + 2 }]}>New</Text>
             </Pressable>
           ),
         }}
@@ -86,5 +88,5 @@ export default function CustomerTabsLayout() {
 const styles = StyleSheet.create({
   createTab: { flex: 0, width: 68, alignItems: 'center', justifyContent: 'center', marginTop: -17 },
   createButton: { width: 50, height: 50, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.accent, shadowColor: palette.accentDark, shadowOpacity: 0.22, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 5 },
-  createLabel: { marginTop: 3, fontSize: 10, lineHeight: 12, fontWeight: '700', color: palette.accentDark },
+  createLabel: { marginTop: 3, fontWeight: '700', color: palette.accentDark },
 });

@@ -3,11 +3,12 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
 import { palette } from '@/constants/theme';
-import { typography } from '@/constants/typography';
 import { useResponsive } from '@/hooks/use-responsive';
+import { leading, useType } from '@/hooks/use-type';
 
 export function Header({ title, subtitle, back, right }: { title: string; subtitle?: string; back?: boolean; right?: React.ReactNode }) {
   const { gutter } = useResponsive();
+  const type = useType();
   return (
     <View style={[styles.row, { paddingHorizontal: gutter }]}>
       {back ? (
@@ -16,11 +17,11 @@ export function Header({ title, subtitle, back, right }: { title: string; subtit
         </Pressable>
       ) : null}
       <View style={styles.titles}>
-        <Text style={styles.title} numberOfLines={1}>
+        <Text style={[styles.title, { fontSize: type.screenTitle, lineHeight: leading(type.screenTitle, 4) }]} numberOfLines={1}>
           {title}
         </Text>
         {subtitle ? (
-          <Text style={styles.subtitle} numberOfLines={2}>
+          <Text style={[styles.subtitle, { fontSize: type.caption, lineHeight: leading(type.caption, 5) }]} numberOfLines={2}>
             {subtitle}
           </Text>
         ) : null}
@@ -31,11 +32,11 @@ export function Header({ title, subtitle, back, right }: { title: string; subtit
 }
 
 export function PageTitle({ title, subtitle }: { title: string; subtitle?: string }) {
-  const { isCompact } = useResponsive();
+  const type = useType();
   return (
     <View style={styles.page}>
-      <Text style={[styles.pageTitle, isCompact && styles.pageTitleCompact]}>{title}</Text>
-      {subtitle ? <Text style={styles.pageSub}>{subtitle}</Text> : null}
+      <Text style={[styles.pageTitle, { fontSize: type.pageTitle, lineHeight: leading(type.pageTitle, 6) }]}>{title}</Text>
+      {subtitle ? <Text style={[styles.pageSub, { fontSize: type.secondary, lineHeight: leading(type.secondary, 6) }]}>{subtitle}</Text> : null}
     </View>
   );
 }
@@ -53,11 +54,10 @@ const styles = StyleSheet.create({
     borderColor: palette.line,
   },
   titles: { flex: 1, gap: 2, minWidth: 0 },
-  title: { fontSize: typography.screenTitle, fontWeight: '700', color: palette.ink },
-  subtitle: { fontSize: typography.caption, lineHeight: 18, color: palette.muted },
+  title: { fontWeight: '700', color: palette.ink },
+  subtitle: { color: palette.muted },
   right: { flexShrink: 1, alignItems: 'flex-end', maxWidth: '46%' },
   page: { gap: 2, paddingTop: 8 },
-  pageTitle: { fontSize: typography.pageTitle, lineHeight: 32, fontWeight: '700', color: palette.ink },
-  pageTitleCompact: { fontSize: typography.compactPageTitle, lineHeight: 28 },
-  pageSub: { fontSize: typography.secondary, lineHeight: 20, color: palette.muted },
+  pageTitle: { fontWeight: '700', color: palette.ink },
+  pageSub: { color: palette.muted },
 });

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { palette } from '@/constants/theme';
+import { useType } from '@/hooks/use-type';
 
 type Country = { name: string; code: string; flag: string };
 
@@ -29,8 +30,10 @@ const COUNTRIES: Country[] = [
 ];
 
 export function CountryCodePicker({ value, countryName, onChange }: { value: string; countryName: string; onChange: (code: string, name: string) => void }) {
+  const type = useType();
   const [visible, setVisible] = useState(false);
   const [query, setQuery] = useState('');
+  const [searching, setSearching] = useState(false);
   const selected = COUNTRIES.find((country) => country.name === countryName) ?? COUNTRIES.find((country) => country.code === value) ?? COUNTRIES[0];
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase().replace(/^\+/, '');
@@ -40,30 +43,30 @@ export function CountryCodePicker({ value, countryName, onChange }: { value: str
 
   return (
     <>
-      <Pressable accessibilityRole="button" accessibilityLabel={`Country code +${selected.code}`} onPress={() => { setQuery(''); setVisible(true); }} style={styles.trigger}>
-        <Text style={styles.flag}>{selected.flag}</Text>
-        <Text style={styles.code}>+{selected.code}</Text>
-        <Text style={styles.chevron}>⌄</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel={`Country code +${selected.code}`} onPress={() => { setQuery(''); setSearching(false); setVisible(true); }} style={styles.trigger}>
+        <Text style={[styles.flag, { fontSize: type.screenTitle }]}>{selected.flag}</Text>
+        <Text style={[styles.code, { fontSize: type.body }]}>+{selected.code}</Text>
+        <Text style={[styles.chevron, { fontSize: type.body }]}>⌄</Text>
       </Pressable>
-      <Modal visible={visible} transparent animationType="slide" onRequestClose={() => setVisible(false)}>
+      <Modal visible={visible} transparent animationType="slide" onRequestClose={() => { setSearching(false); setVisible(false); }}>
         <View style={styles.backdrop}>
-          <View style={styles.sheet}>
+          <View style={[styles.sheet, searching && styles.sheetSearching]}>
             <View style={styles.heading}>
-              <Text style={styles.title}>Choose country</Text>
-              <Pressable accessibilityRole="button" accessibilityLabel="Close country picker" onPress={() => setVisible(false)} hitSlop={12}>
-                <Text style={styles.close}>✕</Text>
+              <Text style={[styles.title, { fontSize: type.screenTitle }]}>Choose country</Text>
+              <Pressable accessibilityRole="button" accessibilityLabel="Close country picker" onPress={() => { setSearching(false); setVisible(false); }} hitSlop={12}>
+                <Text style={[styles.close, { fontSize: type.sectionTitle }]}>✕</Text>
               </Pressable>
             </View>
-            <TextInput value={query} onChangeText={setQuery} placeholder="Search country or code" placeholderTextColor={palette.muted} style={styles.search} autoCorrect={false} />
+            <TextInput value={query} onChangeText={setQuery} onFocus={() => setSearching(true)} onBlur={() => setSearching(false)} placeholder="Search country or code" placeholderTextColor={palette.muted} style={[styles.search, { fontSize: type.input }]} autoCorrect={false} />
             <ScrollView keyboardShouldPersistTaps="handled">
               {filtered.map((country) => (
                 <Pressable key={`${country.name}-${country.code}`} onPress={() => { onChange(country.code, country.name); setVisible(false); }} style={styles.option}>
-                  <Text style={styles.optionFlag}>{country.flag}</Text>
-                  <Text style={styles.countryName}>{country.name}</Text>
-                  <Text style={styles.optionCode}>+{country.code}</Text>
+                  <Text style={[styles.optionFlag, { fontSize: type.screenTitle }]}>{country.flag}</Text>
+                  <Text style={[styles.countryName, { fontSize: type.cardTitle }]}>{country.name}</Text>
+                  <Text style={[styles.optionCode, { fontSize: type.body }]}>+{country.code}</Text>
                 </Pressable>
               ))}
-              {filtered.length === 0 ? <Text style={styles.empty}>No countries found.</Text> : null}
+              {filtered.length === 0 ? <Text style={[styles.empty, { fontSize: type.secondary }]}>No countries found.</Text> : null}
             </ScrollView>
           </View>
         </View>
@@ -74,11 +77,12 @@ export function CountryCodePicker({ value, countryName, onChange }: { value: str
 
 const styles = StyleSheet.create({
   trigger: { height: 48, minWidth: 100, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1, borderColor: palette.line, borderRadius: 12, backgroundColor: palette.surface },
-  flag: { fontSize: 19 }, code: { fontSize: 15, fontWeight: '700', color: palette.ink }, chevron: { fontSize: 15, color: palette.muted, marginTop: -4 },
+  flag: {}, code: { fontWeight: '700', color: palette.ink }, chevron: { color: palette.muted, marginTop: -4 },
   backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(20, 18, 28, 0.42)' },
   sheet: { maxHeight: '82%', minHeight: '55%', paddingTop: 20, paddingHorizontal: 20, paddingBottom: 24, borderTopLeftRadius: 24, borderTopRightRadius: 24, backgroundColor: palette.surface },
-  heading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }, title: { fontSize: 20, fontWeight: '700', color: palette.ink }, close: { fontSize: 18, color: palette.muted, padding: 4 },
-  search: { height: 46, marginBottom: 10, paddingHorizontal: 14, borderWidth: 1, borderColor: palette.line, borderRadius: 12, color: palette.ink, fontSize: 16 },
+  sheetSearching: { maxHeight: '100%', minHeight: '92%' },
+  heading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }, title: { fontWeight: '700', color: palette.ink }, close: { color: palette.muted, padding: 4 },
+  search: { height: 46, marginBottom: 10, paddingHorizontal: 14, borderWidth: 1, borderColor: palette.line, borderRadius: 12, color: palette.ink },
   option: { minHeight: 52, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: palette.line },
-  optionFlag: { width: 28, fontSize: 20 }, countryName: { flex: 1, fontSize: 16, color: palette.ink }, optionCode: { fontSize: 15, color: palette.muted }, empty: { paddingVertical: 24, textAlign: 'center', color: palette.muted },
+  optionFlag: { width: 28 }, countryName: { flex: 1, color: palette.ink }, optionCode: { color: palette.muted }, empty: { paddingVertical: 24, textAlign: 'center', color: palette.muted },
 });

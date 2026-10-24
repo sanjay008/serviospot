@@ -11,6 +11,7 @@ import { Notice } from '@/flow2/components/Notice';
 import { Screen } from '@/flow2/components/Screen';
 import { palette } from '@/flow2/constants/theme';
 import { useApp } from '@/flow2/state/app';
+import { leading, useType } from '@/hooks/use-type';
 
 export default function ContinueScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -18,6 +19,7 @@ export default function ContinueScreen() {
   const proposal = requests.flatMap((request) => proposalsFor(request.id)).find((item) => item.id === id);
   const [consent, setConsent] = useState(false);
   const [done, setDone] = useState(false);
+  const type = useType();
 
   if (!proposal) {
     return (
@@ -46,9 +48,9 @@ export default function ContinueScreen() {
             <View style={styles.doneIcon}>
               <Icon name="verified" color={palette.mintDark} size={22} />
             </View>
-            <Text style={styles.doneTitle}>Contacts shared</Text>
+            <Text style={[styles.doneTitle, { fontSize: type.sectionTitle }]}>Contacts shared</Text>
           </View>
-          <Text style={styles.doneText}>
+          <Text style={[styles.doneText, { fontSize: type.secondary, lineHeight: leading(type.secondary, 7) }]}>
             Customer: klant@example.com · +31 6 0000 0000{'\n'}
             Provider: {proposal.providerId}@example.com · +31 6 0000 0001
           </Text>
@@ -59,7 +61,7 @@ export default function ContinueScreen() {
         <Card>
           <Pressable style={styles.checkRow} onPress={() => setConsent((value) => !value)} accessibilityRole="checkbox" accessibilityState={{ checked: consent }}>
             <View style={[styles.checkbox, consent && styles.checkboxOn]}>{consent ? <Icon name="check" color="#fff" size={14} /> : null}</View>
-            <Text style={styles.checkText}>I consent and understand this is not a booking or final decision.</Text>
+            <Text style={[styles.checkText, { fontSize: type.secondary, lineHeight: leading(type.secondary, 6) }]}>I consent and understand this is not a booking or final decision.</Text>
           </Pressable>
           <Button label={'Request contact'} disabled={!consent} onPress={confirm} />
           <Button label={'Cancel'} variant="secondary" onPress={() => router.back()} />
@@ -73,9 +75,9 @@ const styles = StyleSheet.create({
   checkRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
   checkbox: { width: 24, height: 24, borderRadius: 7, borderWidth: 1.5, borderColor: palette.line, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.surface },
   checkboxOn: { backgroundColor: palette.accent, borderColor: palette.accent },
-  checkText: { flex: 1, fontSize: 14, lineHeight: 20, color: palette.ink },
+  checkText: { flex: 1, color: palette.ink },
   doneHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   doneIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: palette.mint, alignItems: 'center', justifyContent: 'center' },
-  doneTitle: { fontSize: 18, fontWeight: '800', color: palette.ink },
-  doneText: { fontSize: 14, lineHeight: 21, color: palette.ink },
+  doneTitle: { fontWeight: '800', color: palette.ink },
+  doneText: { color: palette.ink },
 });

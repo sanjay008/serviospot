@@ -7,12 +7,14 @@ import { dateLong, money, pluralGuests } from '@/flow2/data/format';
 import { b, COUNT_FIELDS, CUISINES, CUISINE_STYLES, FORMATS, OCCASIONS, SETTINGS, TASKS, WARE, labelOf, totalDishes } from '@/flow2/data/options';
 import type { RequestDraft } from '@/flow2/data/types';
 import { useApp } from '@/flow2/state/app';
+import { useType } from '@/hooks/use-type';
 
 function Row({ label, value }: { label: string; value: string }) {
+  const type = useType();
   return (
     <View style={styles.row}>
-      <Text style={styles.label}>{label}</Text>
-      <Text style={styles.value}>{value}</Text>
+      <Text style={[styles.label, { fontSize: type.secondary }]}>{label}</Text>
+      <Text style={[styles.value, { fontSize: type.secondary }]}>{value}</Text>
     </View>
   );
 }
@@ -27,6 +29,7 @@ export function RequestSummary({ request }: { request: RequestDraft }) {
     <View style={styles.wrap}>
       <Card>
         <SectionTitle title={t(b('Evenement en locatie', 'Event and location'))} />
+        <Row label={t(b('Evenementnaam', 'Event name'))} value={request.eventName || '—'} />
         <Row label={t(b('Aantal personen', 'Guests'))} value={pluralGuests(request.guests, lang)} />
         <Row label={t(b('Datum', 'Date'))} value={dateLong(request.date, lang)} />
         <Row label={t(b('Stad', 'City'))} value={`${request.city} ${request.postcode}`} />
@@ -80,6 +83,6 @@ export function RequestSummary({ request }: { request: RequestDraft }) {
 const styles = StyleSheet.create({
   wrap: { gap: 12 },
   row: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, paddingVertical: 4 },
-  label: { flex: 1, fontSize: 14, color: palette.muted },
-  value: { flex: 1, fontSize: 14, fontWeight: '600', color: palette.ink, textAlign: 'right' },
+  label: { flex: 1, color: palette.muted },
+  value: { flex: 1, fontWeight: '600', color: palette.ink, textAlign: 'right' },
 });

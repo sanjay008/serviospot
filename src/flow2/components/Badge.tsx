@@ -1,18 +1,20 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { palette } from '@/flow2/constants/theme';
+import { useType } from '@/hooks/use-type';
 
 export function Badge({ label, tone = 'neutral' }: { label: string; tone?: 'neutral' | 'good' | 'warn' | 'bad' | 'gold' | 'accent' }) {
+  const type = useType();
   return (
     <View style={[styles.badge, styles[tone]]}>
-      <Text style={[styles.text, styles[`${tone}Text`]]}>{label}</Text>
+      <Text style={[styles.text, styles[`${tone}Text`], { fontSize: type.small }]}>{label}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   badge: { alignSelf: 'flex-start', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
-  text: { fontSize: 12, fontWeight: '600' },
+  text: { fontWeight: '600' },
   neutral: { backgroundColor: palette.well },
   good: { backgroundColor: palette.mint },
   warn: { backgroundColor: palette.warningSoft },

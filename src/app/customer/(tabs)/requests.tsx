@@ -9,10 +9,12 @@ import { ProposalCard } from '@/flow2/components/ProposalCard';
 import { Screen } from '@/flow2/components/Screen';
 import { palette } from '@/flow2/constants/theme';
 import { b } from '@/flow2/data/options';
+import { useType } from '@/hooks/use-type';
 import { useApp } from '@/flow2/state/app';
 
 export default function RequestsScreen() {
   const { t, requests, proposalsFor } = useApp();
+  const type = useType();
   const customerRequests = requests.filter((request) => request.status !== 'draft');
   const selectedRequest = customerRequests[0];
   const selectedProposalCount = selectedRequest ? proposalsFor(selectedRequest.id).length : 0;
@@ -54,7 +56,7 @@ export default function RequestsScreen() {
               {proposals.length ? proposals.map((proposal) => (
                 <ProposalCard key={proposal.id} proposal={proposal} onPress={() => router.push(`/customer/proposal/${proposal.id}` as any)} />
               )) : (
-                <Text style={styles.noProposals}>{t(b('Nog geen cateraars hebben gereageerd.', 'No caterers have responded yet.'))}</Text>
+                <Text style={[styles.noProposals, { fontSize: type.caption }]}>{t(b('Nog geen cateraars hebben gereageerd.', 'No caterers have responded yet.'))}</Text>
               )}
             </View>
           );
@@ -70,5 +72,5 @@ const styles = StyleSheet.create({
   iconButton: { width: 38, height: 38, borderRadius: 12, borderWidth: 1, borderColor: palette.line, backgroundColor: palette.surface, alignItems: 'center', justifyContent: 'center' },
   iconButtonDisabled: { backgroundColor: palette.well },
   actionImage: { width: 20, height: 20 },
-  noProposals: { paddingHorizontal: 4, paddingVertical: 2, color: palette.muted, fontSize: 13 },
+  noProposals: { paddingHorizontal: 4, paddingVertical: 2, color: palette.muted },
 });

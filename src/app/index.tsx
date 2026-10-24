@@ -5,11 +5,13 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/flow2/components/Button';
 import { useApp } from '@/flow2/state/app';
+import { useType } from '@/hooks/use-type';
 import { homeFor, useApp as useSessionApp } from '@/state/store';
 
 export default function RoleSelectionScreen() {
   const { setRole } = useApp();
   const { session, restored } = useSessionApp();
+  const type = useType();
 
   if (!restored) return null;
   if (session.signedIn) return <Redirect href={homeFor(session) as any} />;
@@ -36,11 +38,11 @@ export default function RoleSelectionScreen() {
 
       <View style={styles.content}>
         <View style={styles.copy}>
-          <Text style={styles.brand}>
+          <Text style={[styles.brand, { fontSize: type.display }]}>
             <Text style={styles.brandErp}>ERP </Text>
             <Text style={styles.brandName}>SERVIOSPOT.NL</Text>
           </Text>
-          <Text style={styles.tagline}>Find. Compare. Connect.</Text>
+          <Text style={[styles.tagline, { fontSize: type.secondary }]}>Find. Compare. Connect.</Text>
         </View>
         <View style={styles.buttons}>
           <Button label="Customer" onPress={openCustomer} style={[styles.button, styles.customerButton]} />
@@ -55,10 +57,10 @@ const styles = StyleSheet.create({
   screen: { flex: 1, justifyContent: 'flex-end', backgroundColor: '#241A14' },
   content: { width: '100%', maxWidth: 640, alignSelf: 'center', paddingHorizontal: 16, paddingBottom: 32, gap: 16 },
   copy: { gap: 6 },
-  brand: { fontSize: 23, fontWeight: '800', letterSpacing: -0.2 },
+  brand: { fontWeight: '800', letterSpacing: -0.2 },
   brandErp: { color: '#FFFFFF' },
   brandName: { color: '#8057FF' },
-  tagline: { color: 'rgba(255, 255, 255, 0.9)', fontSize: 14 },
+  tagline: { color: 'rgba(255, 255, 255, 0.9)' },
   buttons: { flexDirection: 'row', gap: 12 },
   button: { flex: 1, minHeight: 44, borderRadius: 5, paddingVertical: 8 },
   customerButton: { backgroundColor: '#8057FF' },

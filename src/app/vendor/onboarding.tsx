@@ -17,6 +17,7 @@ import { palette } from '@/flow2/constants/theme';
 import { CAPABILITIES, CUISINES, CUISINE_STYLES } from '@/flow2/data/options';
 import { COMPANY_LOGIN, useGetOnboardingOptionsMutation, useSaveVendorOnboardingMutation, type OnboardingOption, type VendorOnboardingOptions } from '@/api';
 import { useApp } from '@/flow2/state/app';
+import { leading, useType } from '@/hooks/use-type';
 import { useApp as useSessionApp } from '@/state/store';
 
 const FALLBACK_ONBOARDING_OPTIONS: VendorOnboardingOptions = {
@@ -64,6 +65,7 @@ function apiMessage(error: unknown, fallback: string) {
 export default function VendorOnboardingScreen() {
   const { onboarding, patchOnboarding, submitOnboarding, lang } = useApp();
   const { hydrate, session } = useSessionApp();
+  const type = useType();
   const [step, setStep] = useState(0);
   const [error, setError] = useState('');
   const [errorStep, setErrorStep] = useState<number | null>(null);
@@ -189,7 +191,7 @@ export default function VendorOnboardingScreen() {
         return;
       }
       if (typeof saved.email === 'string') patchOnboarding({ email: saved.email, emailRequired: false });
-      hydrate({ session: { ...(typeof saved.email === 'string' ? { email: saved.email } : {}), hasProviderProfile: true } });
+      hydrate({ session: { ...(typeof saved.email === 'string' ? { email: saved.email } : {}), hasProviderProfile: true, vendorProfileComplete: 1 } });
       submitOnboarding();
       router.replace('/vendor' as any);
     } catch (failure) {
@@ -208,7 +210,7 @@ export default function VendorOnboardingScreen() {
         </View>
       }>
       <ProgressSteps steps={steps} current={step} onPress={(index) => { setError(''); setErrorStep(null); setStep(index); }} />
-      <Text style={styles.stepTitle}>{steps[step]}</Text>
+      <Text style={[styles.stepTitle, { fontSize: type.screenTitle }]}>{steps[step]}</Text>
       {error && errorStep === step ? <Notice tone="error" body={error} /> : null}
 
       {step === 0 ? (
@@ -314,7 +316,7 @@ export default function VendorOnboardingScreen() {
       {step === 6 ? (
         <Card>
           <SectionTitle title={'Full plan · 6 months free'} subtitle={'For all new providers, private and business.'} />
-          <Text style={styles.paragraph}>{'Starts on admin approval. No billing details needed. After expiry you explicitly choose paid or Free. Without an active plan new leads stop.'}</Text>
+          <Text style={[styles.paragraph, { fontSize: type.secondary, lineHeight: leading(type.secondary, 7) }]}>{'Starts on admin approval. No billing details needed. After expiry you explicitly choose paid or Free. Without an active plan new leads stop.'}</Text>
           <CheckRow checked={onboarding.trialConsent} onPress={() => patchOnboarding({ trialConsent: !onboarding.trialConsent })} label={'I understand the free period and the plan choice after.'} />
         </Card>
       ) : null}
@@ -340,19 +342,21 @@ export default function VendorOnboardingScreen() {
 }
 
 function Row({ label, value }: { label: string; value: string }) {
+  const type = useType();
   return (
     <View style={styles.row}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={styles.rowValue}>{value}</Text>
+      <Text style={[styles.rowLabel, { fontSize: type.secondary }]}>{label}</Text>
+      <Text style={[styles.rowValue, { fontSize: type.secondary }]}>{value}</Text>
     </View>
   );
 }
 
 function CheckRow({ checked, onPress, label }: { checked: boolean; onPress: () => void; label: string }) {
+  const type = useType();
   return (
     <View style={styles.checkRow}>
-      <View style={[styles.checkbox, checked && styles.checkboxOn]}>{checked ? <Text style={styles.checkmark}>✓</Text> : null}</View>
-      <Text style={styles.checkText} onPress={onPress}>
+      <View style={[styles.checkbox, checked && styles.checkboxOn]}>{checked ? <Text style={[styles.checkmark, { fontSize: type.body, lineHeight: leading(type.body, 3) }]}>✓</Text> : null}</View>
+      <Text style={[styles.checkText, { fontSize: type.secondary, lineHeight: leading(type.secondary, 6) }]} onPress={onPress}>
         {label}
       </Text>
     </View>
@@ -363,14 +367,14 @@ const styles = StyleSheet.create({
   accountFields: { gap: 14 },
   footerRow: { flexDirection: 'row', gap: 10 },
   footerBtn: { flex: 1 },
-  stepTitle: { fontSize: 20, fontWeight: '700', color: palette.ink },
-  paragraph: { fontSize: 14, lineHeight: 21, color: palette.ink },
+  stepTitle: { fontWeight: '700', color: palette.ink },
+  paragraph: { color: palette.ink },
   row: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, paddingVertical: 4 },
-  rowLabel: { flex: 1, fontSize: 14, color: palette.muted },
-  rowValue: { flex: 1, fontSize: 14, fontWeight: '600', color: palette.ink, textAlign: 'right' },
+  rowLabel: { flex: 1, color: palette.muted },
+  rowValue: { flex: 1, fontWeight: '600', color: palette.ink, textAlign: 'right' },
   checkRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
   checkbox: { width: 24, height: 24, borderRadius: 7, borderWidth: 1.5, borderColor: palette.line, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.surface },
   checkboxOn: { backgroundColor: palette.accent, borderColor: palette.accent },
-  checkmark: { color: '#fff', fontSize: 15, fontWeight: '800', lineHeight: 18 },
-  checkText: { flex: 1, fontSize: 14, lineHeight: 20, color: palette.ink },
+  checkmark: { color: '#fff', fontWeight: '800' },
+  checkText: { flex: 1, color: palette.ink },
 });

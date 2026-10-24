@@ -17,7 +17,7 @@
       "versionCode": 2,
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#7C5BFF",
         "foregroundImage": "./assets/images/icon.png",
         "monochromeImage": "./assets/images/icon-monochrome.png"
       },
@@ -32,9 +32,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#7C5BFF",
           "image": "./assets/images/splash-logo.png",
-          "imageWidth": 280,
+          "imageWidth": 220,
           "resizeMode": "contain"
         }
       ],
@@ -49,7 +49,7 @@
       [
         "expo-notifications",
         {
-          "color": "#7C5CFF",
+          "color": "#7C5BFF",
           "defaultChannel": "default"
         }
       ],

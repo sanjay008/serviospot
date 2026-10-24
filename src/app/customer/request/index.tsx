@@ -15,6 +15,7 @@ import { Screen } from '@/flow2/components/Screen';
 import { SectionTitle } from '@/flow2/components/SectionTitle';
 import { Stepper } from '@/flow2/components/Stepper';
 import { palette } from '@/flow2/constants/theme';
+import { leading, useType } from '@/hooks/use-type';
 import { b, COUNT_FIELDS, CUISINES, CUISINE_STYLES, DRINK_TYPES, FORMATS, FULFILMENTS, OCCASIONS, SETTINGS, TASKS, VENUE_TYPES, WARE, YES_NO, totalDishes } from '@/flow2/data/options';
 import type { Bilingual, RequestDraft } from '@/flow2/data/types';
 import { useApp } from '@/flow2/state/app';
@@ -33,6 +34,7 @@ function Choice({ label, options, value, onChange, hint }: { label: string; opti
 export default function RequestWizardScreen() {
   const params = useLocalSearchParams<{ providerId?: string }>();
   const { t, draft, patchDraft, patchCount, patchTask, submitDraft, providers } = useApp();
+  const type = useType();
   const [step, setStep] = useState(0);
   const [error, setError] = useState('');
   const provider = providers.find((item) => item.id === params.providerId);
@@ -45,6 +47,7 @@ export default function RequestWizardScreen() {
 
   const validate = (index: number): string => {
     if (index === 0) {
+      if (!draft.eventName.trim()) return t(b('Vul een evenementnaam in.', 'Enter an event name.'));
       if (draft.guests < 1) return t(b('Vul minimaal 1 gast in.', 'Enter at least 1 guest.'));
       if (!draft.date) return t(b('Kies een evenementdatum.', 'Choose an event date.'));
       if (!draft.city.trim()) return t(b('Vul een stad in.', 'Enter a city.'));
@@ -118,12 +121,13 @@ export default function RequestWizardScreen() {
         </View>
       }>
       <ProgressSteps steps={steps} current={step} onPress={(index) => setStep(index)} />
-      <Text style={styles.stepTitle}>{steps[step]}</Text>
+      <Text style={[styles.stepTitle, { fontSize: type.screenTitle }]}>{steps[step]}</Text>
       {error ? <Notice tone="error" body={error} /> : null}
 
       {step === 0 ? (
         <Card>
-          <Stepper label={t(b('Aantal personen', 'Number of guests'))} value={draft.guests} onChange={(value) => patchDraft({ guests: value })} min={1} max={500} />
+          <Input label={t(b('Evenementnaam', 'Event name'))} value={draft.eventName} onChangeText={(value) => patchDraft({ eventName: value })} placeholder={t(b('bijv. Verjaardag van Asha', 'e.g. Asha’s birthday'))} autoCapitalize="words" />
+          <Stepper label={t(b('Aantal personen', 'Number of guests'))} value={draft.guests} onChange={(value) => patchDraft({ guests: value })} min={1} max={9999} />
           <Input label={t(b('Evenementdatum', 'Event date'))} value={draft.date} onChangeText={(value) => patchDraft({ date: value })} placeholder="2026-11-14" autoCapitalize="none" hint={t(b('Formaat: JJJJ-MM-DD', 'Format: YYYY-MM-DD'))} />
           <Input label={t(b('Evenementstad', 'Event city'))} value={draft.city} onChangeText={(value) => patchDraft({ city: value })} autoCapitalize="words" />
           <Input label={t(b('Postcode', 'Postcode'))} value={draft.postcode} onChangeText={(value) => patchDraft({ postcode: value })} autoCapitalize="characters" />
@@ -238,10 +242,11 @@ export default function RequestWizardScreen() {
 }
 
 function PressableRow({ checked, onPress, label }: { checked: boolean; onPress: () => void; label: string }) {
+  const type = useType();
   return (
     <View style={styles.consentRow}>
-      <View style={[styles.checkbox, checked && styles.checkboxOn]}>{checked ? <Text style={styles.checkmark}>✓</Text> : null}</View>
-      <Text style={styles.consentText}>{label}</Text>
+      <View style={[styles.checkbox, checked && styles.checkboxOn]}>{checked ? <Text style={[styles.checkmark, { fontSize: type.body, lineHeight: leading(type.body, 3) }]}>✓</Text> : null}</View>
+      <Text style={[styles.consentText, { fontSize: type.secondary, lineHeight: leading(type.secondary, 6) }]}>{label}</Text>
     </View>
   );
 }
@@ -249,11 +254,11 @@ function PressableRow({ checked, onPress, label }: { checked: boolean; onPress: 
 const styles = StyleSheet.create({
   footerRow: { flexDirection: 'row', gap: 10 },
   footerBtn: { flex: 1 },
-  stepTitle: { fontSize: 20, fontWeight: '700', color: palette.ink },
+  stepTitle: { fontWeight: '700', color: palette.ink },
   countsCard: { paddingVertical: 10 },
   consentRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
   checkbox: { width: 24, height: 24, borderRadius: 7, borderWidth: 1.5, borderColor: palette.line, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.surface },
   checkboxOn: { backgroundColor: palette.accent, borderColor: palette.accent },
-  checkmark: { color: '#fff', fontSize: 15, fontWeight: '800', lineHeight: 18 },
-  consentText: { flex: 1, fontSize: 14, lineHeight: 20, color: palette.ink },
+  checkmark: { color: '#fff', fontWeight: '800' },
+  consentText: { flex: 1, color: palette.ink },
 });

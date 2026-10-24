@@ -7,11 +7,13 @@ import { Input } from '@/components/Input';
 import { PhotoPicker } from '@/components/PhotoPicker';
 import { Screen } from '@/components/Screen';
 import { palette } from '@/constants/theme';
+import { leading, useType } from '@/hooks/use-type';
 import { useMeSync } from '@/state/apiSync';
 import { useApp } from '@/state/store';
 
 export default function AccountEditScreen() {
   const { session } = useApp();
+  const type = useType();
   useMeSync();
   const [name, setName] = useState(session.name);
   const [email, setEmail] = useState(session.email);
@@ -41,7 +43,7 @@ export default function AccountEditScreen() {
         keyboardType="phone-pad"
         hint={session.phoneVerified ? 'Verified' : 'Not verified yet'}
       />
-      <Text style={styles.note}>
+      <Text style={[styles.note, { fontSize: type.caption, lineHeight: leading(type.caption, 5) }]}>
         These details come from your account. The server has no call to save a photo, name, email, or phone change, so nothing is sent from this screen.
       </Text>
     </Screen>
@@ -49,5 +51,5 @@ export default function AccountEditScreen() {
 }
 
 const styles = StyleSheet.create({
-  note: { fontSize: 13, lineHeight: 18, color: palette.muted },
+  note: { color: palette.muted },
 });

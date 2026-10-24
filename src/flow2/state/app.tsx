@@ -1,6 +1,9 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
+import { VENDOR_PACKAGES, type VendorPackage } from '@/flow2/data/packages';
 import { buildProposals, initialDraft, initialOnboarding, PROVIDERS, SAMPLE_REQUEST } from '@/flow2/data/seed';
+import { useApp as useSession } from '@/state/store';
 import type {
   Bilingual,
   FlowChatMessage,
@@ -33,6 +36,8 @@ interface AppValue {
   providers: Provider[];
   menuItems: MenuItem[];
   addMenuItem: (item: Omit<MenuItem, 'id' | 'active'>) => void;
+  packages: VendorPackage[];
+  addPackage: (item: Omit<VendorPackage, 'id'>) => void;
   toggleMenuItem: (id: string) => void;
   chatMessages: Record<string, FlowChatMessage[]>;
   addChatMessage: (conversationId: string, message: FlowChatMessage) => void;
@@ -65,6 +70,13 @@ interface AppValue {
 }
 
 const AppContext = createContext<AppValue | null>(null);
+const PROFILE_KEY = 'flow2Profile';
+let profileWrite = 0;
+
+function storedImage(uri: string | undefined) {
+  if (!uri || uri.startsWith('data:')) return undefined;
+  return uri;
+}
 
 const seedLeads = (): Lead[] => [
   { id: 'LEAD-royal', providerId: 'royal', reference: 'DEMO-001', request: SAMPLE_REQUEST, status: 'invited', deadlineHours: 24, quality: 92 },
@@ -73,6 +85,7 @@ const seedLeads = (): Lead[] => [
 ];
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const { session, restored: sessionRestored } = useSession();
   const [lang, setLang] = useState<Lang>('en');
   const [role, setRole] = useState<'customer' | 'vendor'>('customer');
   const [customerAccount, setCustomerAccount] = useState<CustomerAccount | null>(null);
@@ -82,11 +95,60 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [proposalMap, setProposalMap] = useState<Record<string, Proposal[]>>(() => ({ [SAMPLE_REQUEST.id]: buildProposals(SAMPLE_REQUEST) }));
   const [onboarding, setOnboarding] = useState<OnboardingDraft>(() => ({ ...initialOnboarding }));
   const [leads, setLeads] = useState<Lead[]>(seedLeads);
+  const [packages, setPackages] = useState<VendorPackage[]>(VENDOR_PACKAGES);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([
     { id: 'menu-1', name: 'Surinamese buffet', description: 'Rice, chicken, vegetables and sides. Customisable for your event.', price: 28, active: true },
     { id: 'menu-2', name: 'Vegetarian buffet', description: 'A generous selection of warm vegetarian dishes.', price: 24, active: true },
   ]);
   const [chatMessages, setChatMessages] = useState<Record<string, FlowChatMessage[]>>({});
+  const [profileReady, setProfileReady] = useState(false);
+  const wasSignedIn = useRef(false);
+
+  useEffect(() => {
+    let alive = true;
+    void AsyncStorage.getItem(PROFILE_KEY).then((raw) => {
+      if (!alive) return;
+      if (raw) {
+        try {
+          const saved = JSON.parse(raw) as { role?: 'customer' | 'vendor'; customerAccount?: CustomerAccount | null; onboarding?: Partial<OnboardingDraft> };
+          if (saved.role === 'customer' || saved.role === 'vendor') setRole(saved.role);
+          if (saved.customerAccount) setCustomerAccount(saved.customerAccount);
+          if (saved.onboarding) setOnboarding((current) => ({ ...current, ...saved.onboarding, password: '' }));
+        } catch {
+          // A broken profile just starts from the current login.
+        }
+      }
+      setProfileReady(true);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!sessionRestored || !profileReady) return;
+    if (session.signedIn) {
+      wasSignedIn.current = true;
+      setRole(session.mode === 'provider' ? 'vendor' : 'customer');
+      setCustomerAccount((current) => current ?? (session.name || session.email || session.phone ? { name: session.name, email: session.email, phone: session.phone } : null));
+      return;
+    }
+    if (!wasSignedIn.current) return;
+    wasSignedIn.current = false;
+    profileWrite += 1;
+    setRole('customer');
+    setCustomerAccount(null);
+    setOnboarding({ ...initialOnboarding });
+  }, [sessionRestored, profileReady, session.signedIn, session.mode, session.name, session.email, session.phone]);
+
+  useEffect(() => {
+    if (!profileReady || !sessionRestored || !session.signedIn) return;
+    const write = ++profileWrite;
+    const savedOnboarding = { ...onboarding, password: '', profileImageUri: storedImage(onboarding.profileImageUri) };
+    void AsyncStorage.setItem(PROFILE_KEY, JSON.stringify({ role, customerAccount, onboarding: savedOnboarding })).then(() => {
+      if (write !== profileWrite) void AsyncStorage.removeItem(PROFILE_KEY);
+    });
+  }, [profileReady, sessionRestored, session.signedIn, role, customerAccount, onboarding]);
 
   const customerProviders = useMemo(() => {
     if (onboarding.status !== 'approved' || !onboarding.profileName.trim()) return PROVIDERS;
@@ -190,6 +252,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const setLeadStatus = useCallback((leadId: string, status: Lead['status']) => {
     setLeads((current) => current.map((lead) => (lead.id === leadId ? { ...lead, status } : lead)));
   }, []);
+  const addPackage = useCallback((item: Omit<VendorPackage, 'id'>) => {
+    setPackages((current) => [{ ...item, id: `pkg-${Date.now()}` }, ...current]);
+  }, []);
   const addMenuItem = useCallback((item: Omit<MenuItem, 'id' | 'active'>) => {
     setMenuItems((current) => [{ ...item, id: `menu-${Date.now()}`, active: true }, ...current]);
   }, []);
@@ -257,6 +322,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       providers: customerProviders,
       menuItems,
       addMenuItem,
+      packages,
+      addPackage,
       toggleMenuItem,
       chatMessages,
       addChatMessage,
@@ -307,6 +374,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       customerProviders,
       menuItems,
       addMenuItem,
+      packages,
+      addPackage,
       toggleMenuItem,
       chatMessages,
       addChatMessage,

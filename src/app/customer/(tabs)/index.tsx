@@ -11,9 +11,11 @@ import { palette } from '@/flow2/constants/theme';
 import { b, CUISINES } from '@/flow2/data/options';
 import type { Provider } from '@/flow2/data/types';
 import { useApp } from '@/flow2/state/app';
+import { useType } from '@/hooks/use-type';
 
 export default function CustomerHomeScreen() {
   const { t, providers } = useApp();
+  const type = useType();
   const [query, setQuery] = useState('');
   const [cuisine, setCuisine] = useState('all');
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -47,7 +49,7 @@ export default function CustomerHomeScreen() {
             onChangeText={setQuery}
             placeholder={t(b('Zoek cateraar, keuken of stad', 'Search caterer, cuisine or city'))}
             placeholderTextColor={palette.muted}
-            style={styles.searchInput}
+            style={[styles.searchInput, { fontSize: type.secondary }]}
             returnKeyType="search"
             autoCorrect={false}
           />
@@ -61,8 +63,8 @@ export default function CustomerHomeScreen() {
       {filtersOpen ? (
         <View style={styles.filterPanel}>
           <View style={styles.filterTitleRow}>
-            <Text style={styles.filterTitle}>{t(b('Filter op keuken', 'Filter by cuisine'))}</Text>
-            {cuisine !== 'all' ? <Pressable onPress={() => setCuisine('all')}><Text style={styles.clearText}>{t(b('Wissen', 'Clear'))}</Text></Pressable> : null}
+            <Text style={[styles.filterTitle, { fontSize: type.secondary }]}>{t(b('Filter op keuken', 'Filter by cuisine'))}</Text>
+            {cuisine !== 'all' ? <Pressable onPress={() => setCuisine('all')}><Text style={[styles.clearText, { fontSize: type.small }]}>{t(b('Wissen', 'Clear'))}</Text></Pressable> : null}
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChips}>
             <CuisineChip label={t(b('Alles', 'All'))} selected={cuisine === 'all'} onPress={() => setCuisine('all')} />
@@ -72,8 +74,8 @@ export default function CustomerHomeScreen() {
       ) : null}
 
       <View style={styles.resultsHeading}>
-        <Text style={styles.resultsTitle}>{t(b('Catering bij jou in de buurt', 'Caterers for your event'))}</Text>
-        <Text style={styles.count}>{filtered.length}</Text>
+        <Text style={[styles.resultsTitle, { fontSize: type.sectionTitle }]}>{t(b('Catering bij jou in de buurt', 'Caterers for your event'))}</Text>
+        <Text style={[styles.count, { fontSize: type.small }]}>{filtered.length}</Text>
       </View>
 
       {filtered.length === 0 ? (
@@ -88,15 +90,17 @@ export default function CustomerHomeScreen() {
 }
 
 function CuisineChip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+  const type = useType();
   return (
     <Pressable accessibilityRole="button" accessibilityState={{ selected }} onPress={onPress} style={[styles.chip, selected && styles.chipSelected]}>
-      <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
+      <Text style={[styles.chipText, { fontSize: type.small }, selected && styles.chipTextSelected]}>{label}</Text>
     </Pressable>
   );
 }
 
 function CatererCard({ provider, onPress }: { provider: Provider; onPress: () => void }) {
   const { t } = useApp();
+  const type = useType();
   const coverImage = CATERER_COVER_IMAGES[provider.id] ?? CATERER_COVER_IMAGES.default;
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}>
@@ -105,24 +109,24 @@ function CatererCard({ provider, onPress }: { provider: Provider; onPress: () =>
         <View style={styles.coverShade} />
         <View style={styles.ratingPill}>
           <Icon name="star" color={palette.gold} size={14} filled />
-          <Text style={styles.rating}>{provider.rating.toFixed(1)}</Text>
-          <Text style={styles.reviewCount}>({provider.reviews})</Text>
+          <Text style={[styles.rating, { fontSize: type.small }]}>{provider.rating.toFixed(1)}</Text>
+          <Text style={[styles.reviewCount, { fontSize: type.micro }]}>({provider.reviews})</Text>
         </View>
       </View>
       <View style={styles.cardBody}>
         <View style={styles.nameRow}>
           <View style={styles.nameWrap}>
-            <Text style={styles.name} numberOfLines={1}>{provider.name}</Text>
-            <Text style={styles.cuisine} numberOfLines={1}>{t(provider.cuisine)}</Text>
+            <Text style={[styles.name, { fontSize: type.cardTitle }]} numberOfLines={1}>{provider.name}</Text>
+            <Text style={[styles.cuisine, { fontSize: type.caption }]} numberOfLines={1}>{t(provider.cuisine)}</Text>
           </View>
           <Icon name="chevron" color={palette.accent} size={18} />
         </View>
         <View style={styles.metaRow}>
           <View style={styles.location}>
             <Icon name="pin" color={palette.muted} size={14} />
-            <Text style={styles.metaText}>{provider.city} · {provider.radiusKm} km</Text>
+            <Text style={[styles.metaText, { fontSize: type.small }]}>{provider.city} · {provider.radiusKm} km</Text>
           </View>
-          <Text style={styles.price}>{t(b('Vanaf', 'From'))} €{provider.fromPrice} <Text style={styles.perPerson}>{t(b('p.p.', 'p.p.'))}</Text></Text>
+          <Text style={[styles.price, { fontSize: type.caption }]}>{t(b('Vanaf', 'From'))} €{provider.fromPrice} <Text style={[styles.perPerson, { fontSize: type.micro }]}>{t(b('p.p.', 'p.p.'))}</Text></Text>
         </View>
       </View>
     </Pressable>
@@ -140,37 +144,37 @@ const CATERER_COVER_IMAGES: Record<string, string> = {
 const styles = StyleSheet.create({
   searchRow: { flexDirection: 'row', gap: 9 },
   searchBox: { height: 50, flex: 1, flexDirection: 'row', alignItems: 'center', gap: 9, paddingHorizontal: 13, borderRadius: 15, backgroundColor: palette.surface, borderWidth: 1, borderColor: palette.line },
-  searchInput: { flex: 1, minWidth: 0, padding: 0, color: palette.ink, fontSize: 14 },
+  searchInput: { flex: 1, minWidth: 0, padding: 0, color: palette.ink },
   filterButton: { width: 50, height: 50, alignItems: 'center', justifyContent: 'center', borderRadius: 15, backgroundColor: palette.accentSoft, borderWidth: 1, borderColor: '#E6DEFF' },
   filterButtonActive: { backgroundColor: palette.accent, borderColor: palette.accent },
   filterPanel: { gap: 11, backgroundColor: palette.surface, padding: 14, borderRadius: 16, borderWidth: 1, borderColor: palette.line },
   filterTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  filterTitle: { color: palette.ink, fontSize: 14, fontWeight: '800' },
-  clearText: { color: palette.accentDark, fontSize: 12, fontWeight: '700' },
+  filterTitle: { color: palette.ink, fontWeight: '800' },
+  clearText: { color: palette.accentDark, fontWeight: '700' },
   filterChips: { gap: 8, paddingRight: 4 },
   chip: { minHeight: 36, paddingHorizontal: 13, borderRadius: 18, justifyContent: 'center', backgroundColor: palette.well, borderWidth: 1, borderColor: palette.line },
   chipSelected: { backgroundColor: palette.accent, borderColor: palette.accent },
-  chipText: { color: palette.muted, fontSize: 12, fontWeight: '700' },
+  chipText: { color: palette.muted, fontWeight: '700' },
   chipTextSelected: { color: '#FFFFFF' },
   resultsHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 },
-  resultsTitle: { color: palette.ink, fontSize: 17, fontWeight: '800' },
-  count: { color: palette.accentDark, fontSize: 12, fontWeight: '800', backgroundColor: palette.accentSoft, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, overflow: 'hidden' },
+  resultsTitle: { color: palette.ink, fontWeight: '800' },
+  count: { color: palette.accentDark, fontWeight: '800', backgroundColor: palette.accentSoft, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, overflow: 'hidden' },
   card: { overflow: 'hidden', backgroundColor: palette.surface, borderRadius: 18, borderWidth: 1, borderColor: palette.line },
   cardPressed: { opacity: 0.92 },
   cover: { height: 158, backgroundColor: palette.accentSoft },
   coverImage: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 },
   coverShade: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: '#17132612' },
   ratingPill: { position: 'absolute', top: 11, right: 11, height: 30, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 9, borderRadius: 15, backgroundColor: '#FFFFFFF2' },
-  rating: { color: palette.ink, fontSize: 12, fontWeight: '800' },
-  reviewCount: { color: palette.muted, fontSize: 11 },
+  rating: { color: palette.ink, fontWeight: '800' },
+  reviewCount: { color: palette.muted },
   cardBody: { padding: 14, gap: 10 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   nameWrap: { flex: 1, gap: 3 },
-  name: { color: palette.ink, fontSize: 16, fontWeight: '800' },
-  cuisine: { color: palette.muted, fontSize: 13 },
+  name: { color: palette.ink, fontWeight: '800' },
+  cuisine: { color: palette.muted },
   metaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
   location: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 5 },
-  metaText: { color: palette.muted, fontSize: 12 },
-  price: { color: palette.accentDark, fontSize: 13, fontWeight: '800' },
-  perPerson: { color: palette.muted, fontSize: 11, fontWeight: '500' },
+  metaText: { color: palette.muted },
+  price: { color: palette.accentDark, fontWeight: '800' },
+  perPerson: { color: palette.muted, fontWeight: '500' },
 });

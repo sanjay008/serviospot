@@ -11,6 +11,23 @@ export const API_AUTH_MODE = (process.env.EXPO_PUBLIC_API_AUTH_MODE ?? 'body') a
 export const COMPANY_LOGIN = (process.env.EXPO_PUBLIC_COMPANY_LOGIN ?? 'catering').trim() || 'catering';
 
 const TOKEN_KEY = 'authToken';
+/** Only the currently implemented OTP auth, vendor onboarding, and dashboard menu endpoints may reach the backend. */
+const ACTIVE_API_PATHS = new Set([
+  'api/company_login',
+  'api/login_new',
+  'api/verify_otp_new',
+  'api/resend_otp',
+  'company_login',
+  'login_new',
+  'verify_otp_new',
+  'resend_otp',
+  'api/serviospot/getOnboardingOptions',
+  'api/serviospot/saveVendorOnboarding',
+  'api/serviospot/getVendorOfferings',
+  'serviospot/getOnboardingOptions',
+  'serviospot/saveVendorOnboarding',
+  'serviospot/getVendorOfferings',
+]);
 const canUseStorage = () => Platform.OS !== 'web' || typeof window !== 'undefined';
 
 let authToken: string | null = null;
@@ -104,6 +121,9 @@ export async function apiRequest<T>(
   // Auth routes include `/api` for a host-only base URL. Existing app
   // configuration may already include that segment, so keep it only once.
   if (/\/api$/i.test(API_URL) && /^api\//i.test(normalizedPath)) normalizedPath = normalizedPath.slice(4);
+  if (!ACTIVE_API_PATHS.has(normalizedPath)) {
+    throw new ApiError(`This endpoint is outside the active API scope: ${normalizedPath}`, 0);
+  }
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(options.params ?? {})) {
     if (value !== undefined && value !== null) query.set(key, String(value));

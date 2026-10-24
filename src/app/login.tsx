@@ -10,6 +10,7 @@ import { Input } from '@/components/Input';
 import { Notice } from '@/components/Notice';
 import { palette } from '@/constants/theme';
 import { continueAfterLogin } from '@/hooks/use-login-gate';
+import { useType } from '@/hooks/use-type';
 import { homeFor, useApp } from '@/state/store';
 
 function textField(record: ApiRecord, ...keys: string[]) {
@@ -24,6 +25,7 @@ export default function LoginScreen() {
   const { role, from, next } = useLocalSearchParams<{ role?: string; from?: string; next?: string }>();
   const vendor = role === 'vendor';
   const { session, startSession, hydrate } = useApp();
+  const type = useType();
   const [signedInOnOpen] = useState(session.signedIn);
   const [login, { isLoading }] = useLoginMutation();
   const [email, setEmail] = useState('');
@@ -75,7 +77,7 @@ export default function LoginScreen() {
         onPress={submit}
       />
       <Pressable onPress={() => setResetNote(true)} style={styles.forgot}>
-        <Text style={styles.forgotText}>Forgot password?</Text>
+        <Text style={[styles.forgotText, { fontSize: type.secondary }]}>Forgot password?</Text>
       </Pressable>
       <AuthLink before="Don't have an account?" action="Register" onPress={() => router.push(`/register${from ? `?from=${encodeURIComponent(from as any)}&next=${encodeURIComponent(next ?? from)}` : ''}` as Href)} />
     </AuthScreen>
@@ -84,5 +86,5 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   forgot: { minHeight: 36, alignItems: 'center', justifyContent: 'center' },
-  forgotText: { color: palette.accentDark, fontSize: 14, fontWeight: '700' },
+  forgotText: { color: palette.accentDark, fontWeight: '700' },
 });

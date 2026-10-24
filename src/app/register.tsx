@@ -11,11 +11,13 @@ import { Input } from '@/components/Input';
 import { Notice } from '@/components/Notice';
 import { palette } from '@/constants/theme';
 import { continueAfterLogin } from '@/hooks/use-login-gate';
+import { useType } from '@/hooks/use-type';
 import { homeFor, useApp } from '@/state/store';
 
 export default function RegisterScreen() {
   const { from, next } = useLocalSearchParams<{ from?: string; next?: string }>();
   const { session, startSession, hydrate } = useApp();
+  const type = useType();
   const [signedInOnOpen] = useState(session.signedIn);
   const [registerUser, { isLoading }] = useRegisterMutation();
   const [name, setName] = useState('');
@@ -71,7 +73,7 @@ export default function RegisterScreen() {
       <Input label="Name" value={name} onChangeText={(value) => { setName(value); setFieldErrors((current) => ({ ...current, name: undefined })); setError(''); }} placeholder="Name" error={fieldErrors.name} />
       <Input label="Email" value={email} onChangeText={(value) => { setEmail(value); setFieldErrors((current) => ({ ...current, email: undefined })); setError(''); }} placeholder="Email" keyboardType="email-address" autoCapitalize="none" error={fieldErrors.email} />
       <View style={styles.phoneField}>
-        <Text style={styles.phoneLabel}>Phone</Text>
+        <Text style={[styles.phoneLabel, { fontSize: type.label }]}>Phone</Text>
         <View style={styles.phoneRow}>
           <CountryCodePicker value={countryCode} countryName={countryName} onChange={(code, country) => { setCountryCode(code); setCountryName(country); setFieldErrors((current) => ({ ...current, phone: undefined })); }} />
           <View style={styles.phoneInput}><Input value={phone} onChangeText={(value) => { setPhone(value); setFieldErrors((current) => ({ ...current, phone: undefined })); setError(''); }} placeholder="Phone number" keyboardType="phone-pad" error={fieldErrors.phone} /></View>
@@ -86,7 +88,7 @@ export default function RegisterScreen() {
 
 const styles = StyleSheet.create({
   phoneField: { gap: 6 },
-  phoneLabel: { fontSize: 15, fontWeight: '700', color: palette.ink },
+  phoneLabel: { fontWeight: '700', color: palette.ink },
   phoneRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   phoneInput: { flex: 1 },
 });

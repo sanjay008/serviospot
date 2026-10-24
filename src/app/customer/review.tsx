@@ -13,6 +13,7 @@ import { Notice } from '@/flow2/components/Notice';
 import { Screen } from '@/flow2/components/Screen';
 import { palette } from '@/flow2/constants/theme';
 import { useApp } from '@/flow2/state/app';
+import { leading, useType } from '@/hooks/use-type';
 
 const APP_LOADED_AT = Date.now();
 
@@ -39,6 +40,7 @@ export default function CustomerReviewScreen() {
   const [confirmEvent, setConfirmEvent] = useState(false);
   const [saveOutcome] = useSaveOutcomeMutation();
   const [saveReview] = useSaveReviewMutation();
+  const type = useType();
 
   const eligibleRequests = useMemo(() => requests.filter((request) =>
     new Date(request.date).getTime() < APP_LOADED_AT &&
@@ -105,20 +107,20 @@ export default function CustomerReviewScreen() {
       <Notice tone="info" body="Your review is linked to an event you confirmed with this caterer." />
       {eligibleRequests.length > 1 ? (
         <Card>
-          <Text style={styles.sectionTitle}>Choose the event</Text>
+          <Text style={[styles.sectionTitle, { fontSize: type.cardTitle }]}>Choose the event</Text>
           {eligibleRequests.map((request) => (
             <Pressable key={request.id} accessibilityRole="radio" accessibilityState={{ selected: selectedRequest?.id === request.id }} onPress={() => setSelectedRequestId(request.id)} style={styles.requestChoice}>
               <View style={[styles.radio, selectedRequest?.id === request.id && styles.radioSelected]} />
-              <Text style={styles.requestLabel}>{request.occasion} · {request.date}</Text>
+              <Text style={[styles.requestLabel, { fontSize: type.secondary }]}>{request.occasion} · {request.date}</Text>
             </Pressable>
           ))}
         </Card>
       ) : null}
       <Card style={styles.ratingsCard}>
-        <Text style={styles.sectionTitle}>Rate your experience</Text>
+        <Text style={[styles.sectionTitle, { fontSize: type.cardTitle }]}>Rate your experience</Text>
         {RATING_FIELDS.map((field) => (
           <View key={field.key} style={styles.ratingRow}>
-            <Text style={styles.ratingLabel}>{field.label}</Text>
+            <Text style={[styles.ratingLabel, { fontSize: type.secondary }]}>{field.label}</Text>
             <View style={styles.stars}>
               {[1, 2, 3, 4, 5].map((value) => (
                 <Pressable key={value} accessibilityRole="button" accessibilityLabel={`${field.label}: ${value} stars`} accessibilityState={{ selected: ratings[field.key] === value }} onPress={() => setRatings((current) => ({ ...current, [field.key]: value }))} hitSlop={4}>
@@ -134,7 +136,7 @@ export default function CustomerReviewScreen() {
       </Card>
       <Pressable style={styles.confirmRow} onPress={() => setConfirmEvent((value) => !value)} accessibilityRole="checkbox" accessibilityState={{ checked: confirmEvent }}>
         <View style={[styles.checkbox, confirmEvent && styles.checkboxSelected]}>{confirmEvent ? <Icon name="check" color="#fff" size={14} /> : null}</View>
-        <Text style={styles.confirmText}>I confirm the event happened and this caterer provided the service.</Text>
+        <Text style={[styles.confirmText, { fontSize: type.secondary, lineHeight: leading(type.secondary, 6) }]}>I confirm the event happened and this caterer provided the service.</Text>
       </Pressable>
       {error ? <Notice tone="error" body={error} /> : null}
       <Button label="Submit review" loading={submitting} onPress={() => void sendReview()} />
@@ -144,16 +146,16 @@ export default function CustomerReviewScreen() {
 
 const styles = StyleSheet.create({
   ratingsCard: { gap: 16 },
-  sectionTitle: { color: palette.ink, fontSize: 16, fontWeight: '800' },
+  sectionTitle: { color: palette.ink, fontWeight: '800' },
   ratingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
-  ratingLabel: { flex: 1, color: palette.ink, fontSize: 14, fontWeight: '600' },
+  ratingLabel: { flex: 1, color: palette.ink, fontWeight: '600' },
   stars: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   requestChoice: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 7 },
   radio: { width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: palette.line },
   radioSelected: { borderColor: palette.accent, backgroundColor: palette.accent },
-  requestLabel: { flex: 1, color: palette.ink, fontSize: 14 },
+  requestLabel: { flex: 1, color: palette.ink },
   confirmRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   checkbox: { width: 22, height: 22, borderWidth: 1.5, borderColor: palette.line, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
   checkboxSelected: { backgroundColor: palette.accent, borderColor: palette.accent },
-  confirmText: { flex: 1, color: palette.ink, fontSize: 14, lineHeight: 20 },
+  confirmText: { flex: 1, color: palette.ink },
 });

@@ -9,6 +9,7 @@ import { Notice } from '@/flow2/components/Notice';
 import { Screen } from '@/flow2/components/Screen';
 import { SectionTitle } from '@/flow2/components/SectionTitle';
 import { palette } from '@/flow2/constants/theme';
+import { leading, useType } from '@/hooks/use-type';
 import { dateLong, money } from '@/flow2/data/format';
 import { b } from '@/flow2/data/options';
 import { useApp } from '@/flow2/state/app';
@@ -16,6 +17,7 @@ import { useApp } from '@/flow2/state/app';
 export default function ProposalDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t, lang, requests, proposalsFor, setProposalStatus } = useApp();
+  const type = useType();
   const proposal = requests.flatMap((request) => proposalsFor(request.id)).find((item) => item.id === id);
 
   if (!proposal) {
@@ -38,37 +40,37 @@ export default function ProposalDetailScreen() {
     <Screen header={<Header title={proposal.providerName} subtitle={t(b('Indicatief all-invoorstel', 'Indicative all-in proposal'))} back />}>
       <View style={styles.top}>
         <Badge label={t(statusLabel[proposal.status])} tone={proposal.status === 'rejected' ? 'bad' : proposal.status === 'contact' ? 'good' : 'accent'} />
-        <Text style={styles.score}>
+        <Text style={[styles.score, { fontSize: type.secondary }]}>
           {t(b('Matchscore', 'Match score'))} {proposal.matchScore}%
         </Text>
       </View>
-      <Text style={styles.price}>
-        {money(proposal.total, lang)} <Text style={styles.perGuest}>· {money(proposal.perGuest, lang)} {t(b('per persoon', 'per guest'))}</Text>
+      <Text style={[styles.price, { fontSize: type.pageTitle }]}>
+        {money(proposal.total, lang)} <Text style={[styles.perGuest, { fontSize: type.secondary }]}>· {money(proposal.perGuest, lang)} {t(b('per persoon', 'per guest'))}</Text>
       </Text>
-      <Text style={styles.paragraph}>{t(proposal.description)}</Text>
-      <Text style={styles.paragraph}>{t(proposal.notes)}</Text>
+      <Text style={[styles.paragraph, { fontSize: type.secondary, lineHeight: leading(type.secondary, 7) }]}>{t(proposal.description)}</Text>
+      <Text style={[styles.paragraph, { fontSize: type.secondary, lineHeight: leading(type.secondary, 7) }]}>{t(proposal.notes)}</Text>
 
       <SectionTitle title={t(b('Klant vraagt vs aanbieder biedt', 'Customer asks vs provider offers'))} />
       {proposal.lines.map((line) => (
         <View key={line.label.en} style={styles.lineRow}>
-          <Text style={styles.lineLabel}>{t(line.label)}</Text>
-          <Text style={styles.lineRequested}>{line.requested}</Text>
-          <Text style={[styles.lineOffered, line.differs && styles.differs]}>{line.offered}</Text>
+          <Text style={[styles.lineLabel, { fontSize: type.caption }]}>{t(line.label)}</Text>
+          <Text style={[styles.lineRequested, { fontSize: type.caption }]}>{line.requested}</Text>
+          <Text style={[styles.lineOffered, { fontSize: type.caption }, line.differs && styles.differs]}>{line.offered}</Text>
         </View>
       ))}
 
       <View style={styles.priceLines}>
         <View style={styles.priceRow}>
-          <Text style={styles.priceLabel}>{t(b('Prijs incl. toepasselijke btw', 'Price incl. applicable VAT'))}</Text>
-          <Text style={styles.priceValue}>{money(proposal.total, lang)}</Text>
+          <Text style={[styles.priceLabel, { fontSize: type.secondary }]}>{t(b('Prijs incl. toepasselijke btw', 'Price incl. applicable VAT'))}</Text>
+          <Text style={[styles.priceValue, { fontSize: type.body }]}>{money(proposal.total, lang)}</Text>
         </View>
         <View style={styles.priceRow}>
-          <Text style={styles.priceLabel}>{t(b('Terugbetaalbare borg (apart)', 'Refundable deposit (separate)'))}</Text>
-          <Text style={styles.priceValue}>{money(proposal.deposit, lang)}</Text>
+          <Text style={[styles.priceLabel, { fontSize: type.secondary }]}>{t(b('Terugbetaalbare borg (apart)', 'Refundable deposit (separate)'))}</Text>
+          <Text style={[styles.priceValue, { fontSize: type.body }]}>{money(proposal.deposit, lang)}</Text>
         </View>
         <View style={styles.priceRow}>
-          <Text style={styles.priceLabel}>{t(b('Geldig tot', 'Valid until'))}</Text>
-          <Text style={styles.priceValue}>{dateLong(proposal.validUntil, lang)}</Text>
+          <Text style={[styles.priceLabel, { fontSize: type.secondary }]}>{t(b('Geldig tot', 'Valid until'))}</Text>
+          <Text style={[styles.priceValue, { fontSize: type.body }]}>{dateLong(proposal.validUntil, lang)}</Text>
         </View>
       </View>
 
@@ -92,18 +94,18 @@ export default function ProposalDetailScreen() {
 
 const styles = StyleSheet.create({
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  score: { fontSize: 14, color: palette.muted },
-  price: { fontSize: 26, fontWeight: '800', color: palette.ink },
-  perGuest: { fontSize: 14, fontWeight: '500', color: palette.muted },
-  paragraph: { fontSize: 14, lineHeight: 21, color: palette.ink },
+  score: { color: palette.muted },
+  price: { fontWeight: '800', color: palette.ink },
+  perGuest: { fontWeight: '500', color: palette.muted },
+  paragraph: { color: palette.ink },
   lineRow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: palette.surface, borderRadius: 12, borderWidth: 1, borderColor: palette.line, padding: 12 },
-  lineLabel: { flex: 1, fontSize: 13, color: palette.muted },
-  lineRequested: { flex: 1, fontSize: 13, color: palette.ink, textAlign: 'right' },
-  lineOffered: { flex: 1, fontSize: 13, fontWeight: '700', color: palette.ink, textAlign: 'right' },
+  lineLabel: { flex: 1, color: palette.muted },
+  lineRequested: { flex: 1, color: palette.ink, textAlign: 'right' },
+  lineOffered: { flex: 1, fontWeight: '700', color: palette.ink, textAlign: 'right' },
   differs: { color: palette.warning },
   priceLines: { backgroundColor: palette.surface, borderRadius: 16, borderWidth: 1, borderColor: palette.line, padding: 14, gap: 10 },
   priceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  priceLabel: { fontSize: 14, color: palette.muted },
-  priceValue: { fontSize: 15, fontWeight: '700', color: palette.ink },
+  priceLabel: { color: palette.muted },
+  priceValue: { fontWeight: '700', color: palette.ink },
   decisions: { gap: 10 },
 });

@@ -68,6 +68,7 @@ export interface RequestDraft {
   status: RequestStatus;
   providerId?: string;
 
+  eventName: string;
   guests: number;
   date: string;
   city: string;

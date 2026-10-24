@@ -11,6 +11,7 @@ import { Notice } from '@/flow2/components/Notice';
 import { Screen } from '@/flow2/components/Screen';
 import { palette } from '@/flow2/constants/theme';
 import { useApp } from '@/flow2/state/app';
+import { leading, useType } from '@/hooks/use-type';
 import { useApp as useSessionApp } from '@/state/store';
 
 export default function CustomerProfileEditScreen() {
@@ -18,6 +19,7 @@ export default function CustomerProfileEditScreen() {
   const requiredProfile = required === '1';
   const { customerAccount, setCustomerAccount, t } = useApp();
   const { hydrate } = useSessionApp();
+  const type = useType();
   const [name, setName] = useState(customerAccount?.name === 'Guest' ? '' : customerAccount?.name ?? '');
   const [email, setEmail] = useState(customerAccount?.email ?? '');
   const [phone, setPhone] = useState(customerAccount?.phone ?? '');
@@ -61,11 +63,11 @@ export default function CustomerProfileEditScreen() {
           value={photo}
           onChange={setPhoto}
         />
-        <Text style={styles.photoHint}>{t({ en: 'Choose a clear photo so providers can recognise you.', nl: 'Kies een duidelijke foto zodat providers je kunnen herkennen.' })}</Text>
+        <Text style={[styles.photoHint, { fontSize: type.small, lineHeight: leading(type.small, 6) }]}>{t({ en: 'Choose a clear photo so providers can recognise you.', nl: 'Kies een duidelijke foto zodat providers je kunnen herkennen.' })}</Text>
       </Card>
 
       <Card style={styles.form}>
-        <Text style={styles.sectionTitle}>{t({ en: 'Personal details', nl: 'Persoonlijke gegevens' })}</Text>
+        <Text style={[styles.sectionTitle, { fontSize: type.sectionTitle }]}>{t({ en: 'Personal details', nl: 'Persoonlijke gegevens' })}</Text>
         <Input label={t({ en: 'Full name', nl: 'Volledige naam' })} value={name} onChangeText={setName} placeholder={t({ en: 'Your name', nl: 'Je naam' })} autoCapitalize="words" />
         <Input label={t({ en: emailRequired ? 'Email address (required)' : 'Email address', nl: emailRequired ? 'E-mailadres (verplicht)' : 'E-mailadres' })} value={email} onChangeText={(value) => { setEmail(value); setError(''); }} placeholder="you@example.com" keyboardType="email-address" autoCapitalize="none" />
         <Input label={t({ en: 'Phone number', nl: 'Telefoonnummer' })} value={phone} onChangeText={setPhone} placeholder="+31 6 1234 5678" keyboardType="phone-pad" />
@@ -79,8 +81,8 @@ export default function CustomerProfileEditScreen() {
 
 const styles = StyleSheet.create({
   photoCard: { alignItems: 'center', paddingVertical: 18 },
-  photoHint: { color: palette.muted, fontSize: 12, lineHeight: 18, textAlign: 'center', maxWidth: 270 },
+  photoHint: { color: palette.muted, textAlign: 'center', maxWidth: 270 },
   form: { gap: 13 },
-  sectionTitle: { color: palette.ink, fontSize: 17, fontWeight: '800', marginBottom: 2 },
+  sectionTitle: { color: palette.ink, fontWeight: '800', marginBottom: 2 },
   save: { minHeight: 54, marginTop: 2 },
 });

@@ -4,6 +4,7 @@ import { Button } from '@/components/Button';
 import { Icon, type IconName } from '@/components/Icon';
 import { palette } from '@/constants/theme';
 import { useResponsive } from '@/hooks/use-responsive';
+import { leading, useType } from '@/hooks/use-type';
 
 export function ConfirmModal({
   visible,
@@ -29,6 +30,7 @@ export function ConfirmModal({
   onClose: () => void;
 }) {
   const { isTablet } = useResponsive();
+  const type = useType();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={loading ? undefined : onClose}>
       <View style={styles.modal}>
@@ -37,8 +39,8 @@ export function ConfirmModal({
           <View style={[styles.icon, danger && styles.iconDanger]}>
             <Icon name={icon} color={danger ? palette.danger : palette.accent} size={20} />
           </View>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.body}>{body}</Text>
+          <Text style={[styles.title, { fontSize: type.screenTitle }]}>{title}</Text>
+          <Text style={[styles.body, { fontSize: type.body, lineHeight: leading(type.body, 7) }]}>{body}</Text>
           <Button label={confirmLabel} variant={danger ? 'danger' : 'primary'} loading={loading} onPress={onConfirm} />
           <Button label={cancelLabel} variant="secondary" disabled={loading} onPress={onClose} />
         </View>
@@ -54,6 +56,6 @@ const styles = StyleSheet.create({
   cardWide: { maxWidth: 400 },
   icon: { width: 48, height: 48, borderRadius: 16, backgroundColor: palette.accentSoft, alignItems: 'center', justifyContent: 'center' },
   iconDanger: { backgroundColor: palette.dangerSoft },
-  title: { fontSize: 20, fontWeight: '700', color: palette.ink },
-  body: { fontSize: 15, lineHeight: 22, color: palette.muted, marginBottom: 4 },
+  title: { fontWeight: '700', color: palette.ink },
+  body: { color: palette.muted, marginBottom: 4 },
 });

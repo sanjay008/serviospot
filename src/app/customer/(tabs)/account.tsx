@@ -9,9 +9,13 @@ import { ProfileSettings } from '@/flow2/components/ProfileSettings';
 import { Screen } from '@/flow2/components/Screen';
 import { palette } from '@/flow2/constants/theme';
 import { useApp } from '@/flow2/state/app';
+import { useType } from '@/hooks/use-type';
+import { useApp as useSession } from '@/state/store';
 
 export default function CustomerAccountTab() {
-  const { t, customerAccount, setCustomerAccount, setRole } = useApp();
+  const { t, customerAccount } = useApp();
+  const { signOut } = useSession();
+  const type = useType();
   const name = customerAccount?.name || 'Guest';
   const email = customerAccount?.email || '';
   const phone = customerAccount?.phone || '';
@@ -35,20 +39,20 @@ export default function CustomerAccountTab() {
           {customerAccount?.photo ? (
             <Image source={{ uri: customerAccount.photo }} style={styles.avatarPhoto} contentFit="cover" />
           ) : (
-            <Text style={styles.avatarText}>{isGuest ? 'G' : name.charAt(0).toUpperCase()}</Text>
+            <Text style={[styles.avatarText, { fontSize: type.hero }]}>{isGuest ? 'G' : name.charAt(0).toUpperCase()}</Text>
           )}
         </View>
         <View style={styles.heroCopy}>
-          <Text style={styles.eyebrow}>{isGuest ? t({ en: 'GUEST ACCOUNT', nl: 'GASTACCOUNT' }) : t({ en: 'CUSTOMER ACCOUNT', nl: 'KLANTACCOUNT' })}</Text>
-          <Text style={styles.name}>{name}</Text>
-          <Text style={styles.subtitle}>{isGuest ? t({ en: 'Browsing as a guest', nl: 'Je bekijkt de app als gast' }) : email}</Text>
+          <Text style={[styles.eyebrow, { fontSize: type.micro }]}>{isGuest ? t({ en: 'GUEST ACCOUNT', nl: 'GASTACCOUNT' }) : t({ en: 'CUSTOMER ACCOUNT', nl: 'KLANTACCOUNT' })}</Text>
+          <Text style={[styles.name, { fontSize: type.screenTitle }]}>{name}</Text>
+          <Text style={[styles.subtitle, { fontSize: type.small }]}>{isGuest ? t({ en: 'Browsing as a guest', nl: 'Je bekijkt de app als gast' }) : email}</Text>
         </View>
-        <View style={styles.badge}><Text style={styles.badgeText}>{isGuest ? t({ en: 'Guest', nl: 'Gast' }) : t({ en: 'Customer', nl: 'Klant' })}</Text></View>
+        <View style={styles.badge}><Text style={[styles.badgeText, { fontSize: type.micro }]}>{isGuest ? t({ en: 'Guest', nl: 'Gast' }) : t({ en: 'Customer', nl: 'Klant' })}</Text></View>
       </View>
 
       <View style={styles.sectionHeading}>
-        <Text style={styles.sectionTitle}>{t({ en: 'Personal details', nl: 'Persoonlijke gegevens' })}</Text>
-        <Text style={styles.sectionHint}>{t({ en: 'Visible only to you', nl: 'Alleen zichtbaar voor jou' })}</Text>
+        <Text style={[styles.sectionTitle, { fontSize: type.sectionTitle }]}>{t({ en: 'Personal details', nl: 'Persoonlijke gegevens' })}</Text>
+        <Text style={[styles.sectionHint, { fontSize: type.micro }]}>{t({ en: 'Visible only to you', nl: 'Alleen zichtbaar voor jou' })}</Text>
       </View>
       <View style={styles.detailsCard}>
         <DetailRow label={t({ en: 'Full name', nl: 'Volledige naam' })} value={name} />
@@ -63,18 +67,19 @@ export default function CustomerAccountTab() {
       ) : null}
 
       <ProfileSettings
-        onLogout={() => { setCustomerAccount(null); setRole('customer'); router.replace('/'); }}
-        onDeleteAccount={() => { setCustomerAccount(null); setRole('customer'); router.replace('/'); }}
+        onLogout={() => { signOut(); router.replace('/'); }}
+        onDeleteAccount={() => { signOut(); router.replace('/'); }}
       />
     </Screen>
   );
 }
 
 function DetailRow({ label, value }: { label: string; value: string }) {
+  const type = useType();
   return (
     <View style={styles.detailRow}>
-      <Text style={styles.detailLabel}>{label}</Text>
-      <Text style={styles.detailValue} numberOfLines={1}>{value}</Text>
+      <Text style={[styles.detailLabel, { fontSize: type.micro }]}>{label}</Text>
+      <Text style={[styles.detailValue, { fontSize: type.secondary }]} numberOfLines={1}>{value}</Text>
     </View>
   );
 }
@@ -84,19 +89,19 @@ const styles = StyleSheet.create({
   hero: { minHeight: 126, padding: 16, borderRadius: 20, backgroundColor: palette.accentDark, flexDirection: 'row', alignItems: 'center', gap: 13 },
   avatarShell: { width: 68, height: 68, borderRadius: 23, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   avatarPhoto: { width: 68, height: 68 },
-  avatarText: { color: palette.accentDark, fontSize: 30, fontWeight: '800' },
+  avatarText: { color: palette.accentDark, fontWeight: '800' },
   heroCopy: { flex: 1, gap: 4, minWidth: 0 },
-  eyebrow: { color: '#DCD5FF', fontSize: 10, fontWeight: '800', letterSpacing: 1 },
-  name: { color: '#FFFFFF', fontSize: 21, fontWeight: '800' },
-  subtitle: { color: '#EAE6FF', fontSize: 12 },
+  eyebrow: { color: '#DCD5FF', fontWeight: '800', letterSpacing: 1 },
+  name: { color: '#FFFFFF', fontWeight: '800' },
+  subtitle: { color: '#EAE6FF' },
   badge: { position: 'absolute', right: 14, top: 12, paddingHorizontal: 9, paddingVertical: 5, borderRadius: 12, backgroundColor: '#FFFFFF24' },
-  badgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800' },
+  badgeText: { color: '#FFFFFF', fontWeight: '800' },
   sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 3 },
-  sectionTitle: { color: palette.ink, fontSize: 17, fontWeight: '800' },
-  sectionHint: { color: palette.muted, fontSize: 11 },
+  sectionTitle: { color: palette.ink, fontWeight: '800' },
+  sectionHint: { color: palette.muted },
   detailsCard: { borderRadius: 16, backgroundColor: palette.surface, borderWidth: 1, borderColor: palette.line, paddingHorizontal: 15 },
   detailRow: { minHeight: 57, justifyContent: 'center', gap: 3 },
-  detailLabel: { color: palette.muted, fontSize: 11, fontWeight: '600' },
-  detailValue: { color: palette.ink, fontSize: 14, fontWeight: '700' },
+  detailLabel: { color: palette.muted, fontWeight: '600' },
+  detailValue: { color: palette.ink, fontWeight: '700' },
   divider: { height: 1, backgroundColor: palette.line },
 });

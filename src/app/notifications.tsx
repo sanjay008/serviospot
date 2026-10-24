@@ -7,11 +7,13 @@ import { Header } from '@/components/Header';
 import { Screen } from '@/components/Screen';
 import { palette } from '@/constants/theme';
 import { formatDate } from '@/data/format';
+import { leading, useType } from '@/hooks/use-type';
 import { useNotificationsSync } from '@/state/apiSync';
 import { useApp } from '@/state/store';
 
 export default function NotificationsScreen() {
   const { notifications, session, markRead, markAllRead } = useApp();
+  const type = useType();
   const audience = session.mode === 'provider' ? 'provider' : 'customer';
   useNotificationsSync(audience);
   const rows = notifications.filter((item) => item.audience === audience);
@@ -29,9 +31,9 @@ export default function NotificationsScreen() {
           }}
           style={[styles.row, !item.read && styles.unread]}>
           <View style={styles.text}>
-            <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.body}>{item.body}</Text>
-            <Text style={styles.time}>{formatDate(item.at)}</Text>
+            <Text style={[styles.title, { fontSize: type.cardTitle }]}>{item.title}</Text>
+            <Text style={[styles.body, { fontSize: type.secondary, lineHeight: leading(type.secondary, 6) }]}>{item.body}</Text>
+            <Text style={[styles.time, { fontSize: type.small }]}>{formatDate(item.at)}</Text>
           </View>
         </Pressable>
       ))}
@@ -43,7 +45,7 @@ const styles = StyleSheet.create({
   row: { backgroundColor: palette.surface, borderRadius: 16, borderWidth: 1, borderColor: palette.line, padding: 14 },
   unread: { borderColor: palette.accent },
   text: { gap: 4 },
-  title: { fontSize: 16, fontWeight: '700', color: palette.ink },
-  body: { fontSize: 14, lineHeight: 20, color: palette.ink },
-  time: { fontSize: 12, color: palette.muted },
+  title: { fontWeight: '700', color: palette.ink },
+  body: { color: palette.ink },
+  time: { color: palette.muted },
 });

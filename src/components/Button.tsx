@@ -1,6 +1,7 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from 'react-native';
 
 import { palette } from '@/constants/theme';
+import { leading, useType } from '@/hooks/use-type';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
@@ -20,6 +21,7 @@ export function Button({
   style?: StyleProp<ViewStyle>;
 }) {
   const busy = disabled || loading;
+  const type = useType();
   return (
     <Pressable
       accessibilityRole="button"
@@ -27,7 +29,7 @@ export function Button({
       disabled={busy}
       onPress={onPress}
       style={({ pressed }) => [styles.base, styles[variant], busy && styles.disabled, pressed && !busy && styles.pressed, style]}>
-      {loading ? <ActivityIndicator color={variant === 'primary' || variant === 'danger' ? '#fff' : palette.accentDark} /> : <Text style={[styles.label, styles[`${variant}Label`]]} numberOfLines={2}>{label}</Text>}
+      {loading ? <ActivityIndicator color={variant === 'primary' || variant === 'danger' ? '#fff' : palette.accentDark} /> : <Text style={[styles.label, styles[`${variant}Label`], { fontSize: type.button, lineHeight: leading(type.button, 4) }]} numberOfLines={2}>{label}</Text>}
     </Pressable>
   );
 }
@@ -40,7 +42,7 @@ const styles = StyleSheet.create({
   danger: { backgroundColor: palette.danger },
   disabled: { opacity: 0.45 },
   pressed: { opacity: 0.88 },
-  label: { fontSize: 16, fontWeight: '600', textAlign: 'center' },
+  label: { fontWeight: '600', textAlign: 'center' },
   primaryLabel: { color: '#fff' },
   secondaryLabel: { color: palette.ink },
   ghostLabel: { color: palette.accent },

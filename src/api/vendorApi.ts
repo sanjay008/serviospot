@@ -43,6 +43,15 @@ export type VendorOnboardingBody = ApiRecord & {
   trial_consent: boolean;
   terms: boolean;
 };
+export type VendorOffering = {
+  id: string | number;
+  title?: string | null;
+  description?: string | null;
+  image?: string | null;
+  price_cents?: number | string | null;
+  is_active?: boolean | null;
+};
+export type VendorOfferingsReply = { offerings?: VendorOffering[]; limit?: number } & ApiRecord;
 
 export const vendorApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -93,8 +102,8 @@ export const vendorApi = api.injectEndpoints({
       query: (proposal_id) => ({ path: 'serviospot/withdrawProposal', body: { proposal_id } }),
       invalidatesTags: ['Lead', 'Dashboard'],
     }),
-    getVendorOfferings: build.query<ApiList, void>({
-      query: () => ({ path: 'serviospot/getVendorOfferings' }),
+    getVendorOfferings: build.query<VendorOfferingsReply, void>({
+      query: () => ({ path: 'api/serviospot/getVendorOfferings' }),
       providesTags: ['VendorOffering'],
     }),
     saveOffering: build.mutation<ApiRecord, OfferingBody>({

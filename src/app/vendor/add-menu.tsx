@@ -1,3 +1,4 @@
+// Menu item creation is paused. Vendor packages use dummy data for now.
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text } from 'react-native';
@@ -12,9 +13,11 @@ import { Screen } from '@/flow2/components/Screen';
 import { SectionTitle } from '@/flow2/components/SectionTitle';
 import { palette } from '@/flow2/constants/theme';
 import { useApp } from '@/flow2/state/app';
+import { useType } from '@/hooks/use-type';
 
 export default function AddMenuScreen() {
   const { addMenuItem } = useApp();
+  const type = useType();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
@@ -58,7 +61,7 @@ export default function AddMenuScreen() {
         <Input label="Dish or package name" value={name} onChangeText={setName} placeholder="e.g. Surinamese chicken curry" autoCapitalize="words" />
         <Input label="Description and included items" value={description} onChangeText={setDescription} placeholder="Describe portions, sides and what is included" multiline />
         <Input label="Starting price per guest (€)" value={price} onChangeText={setPrice} placeholder="25.00" keyboardType="decimal-pad" />
-        <Text style={styles.priceHint}>Customers will see this as a starting price.</Text>
+        <Text style={[styles.priceHint, { fontSize: type.small }]}>Customers will see this as a starting price.</Text>
         {error ? <Notice tone="error" body={error} /> : null}
       </Card>
     </Screen>
@@ -68,6 +71,6 @@ export default function AddMenuScreen() {
 const styles = StyleSheet.create({
   photoCard: { gap: 14 },
   formCard: { gap: 13 },
-  priceHint: { color: palette.muted, fontSize: 12, marginTop: -5 },
+  priceHint: { color: palette.muted, marginTop: -5 },
   saveButton: { minHeight: 52 },
 });

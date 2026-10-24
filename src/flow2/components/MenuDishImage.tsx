@@ -6,13 +6,13 @@ import { Icon } from '@/flow2/components/Icon';
 import { palette } from '@/flow2/constants/theme';
 import { menuImageFor } from '@/flow2/data/menu-images';
 
-export function MenuDishImage({ name, description, imageUri, style }: { name: string; description: string; imageUri?: string; style?: StyleProp<ViewStyle> }) {
+export function MenuDishImage({ name, description, imageUri, style, fallbackToCatalog = true }: { name: string; description: string; imageUri?: string; style?: StyleProp<ViewStyle>; fallbackToCatalog?: boolean }) {
   const [failed, setFailed] = useState(false);
-  const source = imageUri || menuImageFor(name, name, description);
+  const source = imageUri || (fallbackToCatalog ? menuImageFor(name, name, description) : undefined);
 
   return (
     <View style={[styles.frame, style]}>
-      {failed ? (
+      {!source || failed ? (
         <View style={styles.fallback}><Icon name="food" color={palette.accentDark} size={26} /></View>
       ) : (
         <Image

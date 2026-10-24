@@ -402,6 +402,8 @@ export type Session = {
   hasProviderProfile: boolean;
   /** Original successful OTP verification reply, kept with the restored auth session. */
   authResponse?: Record<string, unknown>;
+  /** Normalized vendor_profile_complete value from auth/onboarding replies. */
+  vendorProfileComplete?: 0 | 1;
   planId: PlanId;
   billing: 'monthly' | 'annual';
   aiUsed: number;

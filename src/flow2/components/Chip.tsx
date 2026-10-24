@@ -1,14 +1,16 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { palette } from '@/flow2/constants/theme';
+import { useType } from '@/hooks/use-type';
 
 type LabelOf<T extends string> = (option: T) => string;
 const same = <T extends string>(option: T): string => option;
 
 export function Chip({ label, selected, onPress }: { label: string; selected?: boolean; onPress?: () => void }) {
+  const type = useType();
   return (
     <Pressable accessibilityRole="button" accessibilityState={{ selected: !!selected }} onPress={onPress} style={[styles.chip, selected && styles.on]}>
-      <Text style={[styles.text, selected && styles.onText]}>{label}</Text>
+      <Text style={[styles.text, selected && styles.onText, { fontSize: type.body }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -37,6 +39,6 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { minHeight: 40, maxWidth: '100%', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.well, borderWidth: 1, borderColor: palette.line },
   on: { backgroundColor: palette.accent, borderColor: palette.accent },
-  text: { color: palette.ink, fontSize: 15, fontWeight: '600', textAlign: 'center' },
+  text: { color: palette.ink, fontWeight: '600', textAlign: 'center' },
   onText: { color: '#fff' },
 });

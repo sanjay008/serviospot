@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View, type KeyboardTypeOptions } from 'react-native';
 
 import { palette } from '@/flow2/constants/theme';
+import { leading, useType } from '@/hooks/use-type';
 
 export function Input({
   label,
@@ -31,14 +32,15 @@ export function Input({
   rightAction?: { label: string; onPress: () => void; disabled?: boolean };
 }) {
   const [focused, setFocused] = useState(false);
+  const type = useType();
   return (
     <View style={styles.wrap}>
       {label || rightAction ? (
         <View style={styles.labelRow}>
-          {label ? <Text style={styles.label}>{label}</Text> : <View />}
+          {label ? <Text style={[styles.label, { fontSize: type.label, lineHeight: leading(type.label, 4) }]}>{label}</Text> : <View />}
           {rightAction ? (
             <Pressable accessibilityRole="button" disabled={rightAction.disabled} onPress={rightAction.onPress} hitSlop={8}>
-              <Text style={[styles.actionText, rightAction.disabled && styles.actionDisabled]}>{rightAction.label}</Text>
+              <Text style={[styles.actionText, { fontSize: type.secondary }, rightAction.disabled && styles.actionDisabled]}>{rightAction.label}</Text>
             </Pressable>
           ) : null}
         </View>
@@ -56,10 +58,10 @@ export function Input({
         autoCorrect={autoCapitalize === 'none' ? false : undefined}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        style={[styles.input, multiline && styles.multi, focused && styles.focused, error ? styles.bad : null]}
+        style={[styles.input, { fontSize: type.input }, multiline && styles.multi, focused && styles.focused, error ? styles.bad : null]}
         textAlignVertical={multiline ? 'top' : 'center'}
       />
-      {error ? <Text style={styles.error}>{error}</Text> : hint ? <Text style={styles.hint}>{hint}</Text> : null}
+      {error ? <Text style={[styles.error, { fontSize: type.caption, lineHeight: leading(type.caption, 5) }]}>{error}</Text> : hint ? <Text style={[styles.hint, { fontSize: type.caption, lineHeight: leading(type.caption, 5) }]}>{hint}</Text> : null}
     </View>
   );
 }
@@ -67,7 +69,7 @@ export function Input({
 const styles = StyleSheet.create({
   wrap: { gap: 6 },
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 20 },
-  label: { fontSize: 15, fontWeight: '700', color: palette.ink },
+  label: { fontWeight: '700', color: palette.ink },
   input: {
     minHeight: 48,
     borderRadius: 12,
@@ -75,14 +77,13 @@ const styles = StyleSheet.create({
     borderColor: palette.line,
     backgroundColor: palette.surface,
     paddingHorizontal: 14,
-    fontSize: 16,
     color: palette.ink,
   },
-  actionText: { color: palette.accentDark, fontSize: 14, fontWeight: '700' },
+  actionText: { color: palette.accentDark, fontWeight: '700' },
   actionDisabled: { color: palette.muted },
   focused: { borderColor: palette.accent },
   multi: { minHeight: 110, paddingTop: 12 },
   bad: { borderColor: palette.danger },
-  error: { color: palette.danger, fontSize: 13, lineHeight: 18 },
-  hint: { color: palette.muted, fontSize: 13, lineHeight: 18 },
+  error: { color: palette.danger },
+  hint: { color: palette.muted },
 });

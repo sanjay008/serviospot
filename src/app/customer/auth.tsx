@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View, type TextInputProps } from 'react-native';
 import { CodeField, Cursor, useBlurOnFulfill, useClearByFocusCell } from 'react-native-confirmation-code-field';
@@ -12,7 +12,8 @@ import { Notice } from '@/flow2/components/Notice';
 import { Screen } from '@/flow2/components/Screen';
 import { palette } from '@/flow2/constants/theme';
 import { useApp as useFlowApp } from '@/flow2/state/app';
-import { useApp as useSessionApp } from '@/state/store';
+import { homeFor, useApp as useSessionApp } from '@/state/store';
+import { leading, useType } from '@/hooks/use-type';
 
 type AuthRole = 'customer' | 'vendor';
 type IdentityMethod = 'whatsapp' | 'email';
@@ -47,9 +48,10 @@ function flag(value: unknown): boolean | undefined {
 
 export default function CustomerAuthScreen() {
   const params = useLocalSearchParams<{ role?: string }>();
+  const type = useType();
   const { role: selectedRole, setRole, setCustomerAccount, patchOnboarding } = useFlowApp();
   const role: AuthRole = params.role === 'vendor' ? 'vendor' : params.role === 'customer' ? 'customer' : selectedRole;
-  const { startSession, hydrate } = useSessionApp();
+  const { session, restored, startSession } = useSessionApp();
   const [method, setMethod] = useState<IdentityMethod>('whatsapp');
   const [countryCode, setCountryCode] = useState('31');
   const [countryName, setCountryName] = useState('Netherlands');
@@ -68,14 +70,17 @@ export default function CustomerAuthScreen() {
   const [verifyOtp, { isLoading: verifying }] = useVerifyOtpNewMutation();
   const [resendOtp, { isLoading: resending }] = useResendOtpMutation();
 
+  const phoneDigits = useMemo(() => phone.replace(/\D/g, '').replace(/^0(?=\d)/, ''), [phone]);
+
   useEffect(() => {
     if (secondsLeft <= 0) return;
     const timer = setTimeout(() => setSecondsLeft((remaining) => remaining - 1), 1000);
     return () => clearTimeout(timer);
   }, [secondsLeft]);
 
+  if (restored && session.signedIn) return <Redirect href={homeFor(session) as never} />;
+
   const roleTitle = role === 'vendor' ? 'Vendor' : 'Customer';
-  const phoneDigits = useMemo(() => phone.replace(/\D/g, '').replace(/^0(?=\d)/, ''), [phone]);
 
   const start = async () => {
     setError('');
@@ -140,7 +145,7 @@ export default function CustomerAuthScreen() {
       const user = userRecord(reply);
       const verifiedRole = user.role === 'vendor' ? 'vendor' : user.role === 'customer' ? 'customer' : pending.role;
       if (verifiedRole !== pending.role) throw new Error('The account role did not match the selected button. Please use the correct role.');
-      const sessionToken = typeof user.verify_token === 'string' ? user.verify_token : '';
+      const sessionToken = [user.verify_token, reply.token, user.token].find((value) => typeof value === 'string' && value.trim()) as string | undefined;
       if (!sessionToken) throw new Error('The server reply was missing a session token. Please try again.');
       await setAuthToken(sessionToken);
 
@@ -162,8 +167,9 @@ export default function CustomerAuthScreen() {
         phone: accountPhone,
         mode: verifiedRole === 'vendor' ? 'provider' : 'customer',
         hasProviderProfile: verifiedRole === 'vendor' && vendorProfileComplete,
+        vendorProfileComplete: vendorProfileComplete ? 1 : 0,
+        authResponse: reply as Record<string, unknown>,
       });
-      hydrate({ session: { authResponse: reply as Record<string, unknown> } });
       if (verifiedRole === 'vendor') {
         if (!vendorProfileComplete) {
           patchOnboarding({
@@ -213,15 +219,15 @@ export default function CustomerAuthScreen() {
   return (
     <Screen>
       <View style={styles.intro}>
-        <Text style={styles.title}>{pending ? 'Enter your code' : `Login / Register as ${roleTitle}`}</Text>
-        <Text style={styles.subtitle}>{pending ? `We sent a code to ${pending.identity}.` : 'Use WhatsApp or email. We’ll send a code to log in or create your account.'}</Text>
+        <Text style={[styles.title, { fontSize: type.pageTitle }]}>{pending ? 'Enter your code' : `Login / Register as ${roleTitle}`}</Text>
+        <Text style={[styles.subtitle, { fontSize: type.secondary, lineHeight: leading(type.secondary, 6) }]}>{pending ? `We sent a code to ${pending.identity}.` : 'Use WhatsApp or email. We’ll send a code to log in or create your account.'}</Text>
       </View>
 
       <Card style={styles.form}>
         {pending ? (
           <>
             <View style={styles.otpField}>
-              <Text style={styles.fieldLabel}>6-digit code</Text>
+              <Text style={[styles.fieldLabel, { fontSize: type.label }]}>6-digit code</Text>
               <CodeField
                 ref={otpRef}
                 {...otpFieldProps}
@@ -234,7 +240,7 @@ export default function CustomerAuthScreen() {
                 autoComplete={OTP_AUTOCOMPLETE}
                 autoFocus
                 renderCell={({ index, symbol, isFocused }) => (
-                  <Text key={index} onLayout={getCellOnLayoutHandler(index)} style={[styles.otpCell, isFocused && styles.otpCellFocused]}>
+                  <Text key={index} onLayout={getCellOnLayoutHandler(index)} style={[styles.otpCell, { fontSize: type.prominentTitle }, isFocused && styles.otpCellFocused]}>
                     {symbol || (isFocused ? <Cursor /> : null)}
                   </Text>
                 )}
@@ -244,18 +250,18 @@ export default function CustomerAuthScreen() {
             {error ? <Notice tone="error" body={error} /> : null}
             <Button label="Verify code" onPress={verify} loading={verifying} style={styles.submit} />
             <View style={styles.resendRow}>
-              <Text style={styles.switchText}>{secondsLeft > 0 ? `Resend available in ${secondsLeft}s` : resends >= 3 ? 'Resend limit reached. Try again later.' : "Didn't receive a code?"}</Text>
-              {secondsLeft === 0 && resends < 3 ? <Pressable accessibilityRole="button" disabled={resending} onPress={() => void resend()}><Text style={styles.switchAction}>{resending ? 'Sending…' : 'Resend code'}</Text></Pressable> : null}
+              <Text style={[styles.switchText, { fontSize: type.secondary }]}>{secondsLeft > 0 ? `Resend available in ${secondsLeft}s` : resends >= 3 ? 'Resend limit reached. Try again later.' : "Didn't receive a code?"}</Text>
+              {secondsLeft === 0 && resends < 3 ? <Pressable accessibilityRole="button" disabled={resending} onPress={() => void resend()}><Text style={[styles.switchAction, { fontSize: type.secondary }]}>{resending ? 'Sending…' : 'Resend code'}</Text></Pressable> : null}
             </View>
             <Pressable accessibilityRole="button" onPress={() => { setPending(null); setNotice(''); setError(''); setOtp(''); }} style={styles.backLink}>
-              <Text style={styles.switchAction}>Change login details</Text>
+              <Text style={[styles.switchAction, { fontSize: type.secondary }]}>Change login details</Text>
             </Pressable>
           </>
         ) : (
           <>
             {method === 'whatsapp' ? (
               <View style={styles.phoneField}>
-                <Text style={styles.fieldLabel}>WhatsApp number</Text>
+                <Text style={[styles.fieldLabel, { fontSize: type.label }]}>WhatsApp number</Text>
                 <View style={styles.phoneRow}>
                   <CountryCodePicker value={countryCode} countryName={countryName} onChange={(code, name) => { setCountryCode(code); setCountryName(name); setError(''); }} />
                   <View style={styles.phoneInput}>
@@ -269,9 +275,9 @@ export default function CustomerAuthScreen() {
             {error ? <Notice tone="error" body={error} /> : null}
             <Button label="Send code" onPress={() => void start()} loading={connecting || starting} style={styles.submit} />
             <View style={styles.switchRow}>
-              <Text style={styles.switchText}>{method === 'whatsapp' ? 'Prefer email?' : 'Prefer WhatsApp?'}</Text>
+              <Text style={[styles.switchText, { fontSize: type.secondary }]}>{method === 'whatsapp' ? 'Prefer email?' : 'Prefer WhatsApp?'}</Text>
               <Pressable accessibilityRole="button" onPress={() => changeMethod(method === 'whatsapp' ? 'email' : 'whatsapp')}>
-                <Text style={styles.switchAction}>{method === 'whatsapp' ? 'Login with email' : 'Login with WhatsApp'}</Text>
+                <Text style={[styles.switchAction, { fontSize: type.secondary }]}>{method === 'whatsapp' ? 'Login with email' : 'Login with WhatsApp'}</Text>
               </Pressable>
             </View>
           </>
@@ -283,21 +289,21 @@ export default function CustomerAuthScreen() {
 
 const styles = StyleSheet.create({
   intro: { gap: 7, marginTop: 22, marginBottom: 8, alignItems: 'center' },
-  title: { color: palette.ink, fontSize: 25, fontWeight: '800', textAlign: 'center' },
-  subtitle: { color: palette.muted, fontSize: 14, lineHeight: 20, textAlign: 'center', maxWidth: 360 },
+  title: { color: palette.ink, fontWeight: '800', textAlign: 'center' },
+  subtitle: { color: palette.muted, textAlign: 'center', maxWidth: 360 },
   form: { gap: 14, padding: 18 },
   otpField: { gap: 8 },
   otpCells: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', gap: 7 },
-  otpCell: { flex: 1, minWidth: 0, maxWidth: 48, height: 54, borderRadius: 11, borderWidth: 1, borderColor: palette.line, backgroundColor: palette.surface, color: palette.ink, fontSize: 22, fontWeight: '700', lineHeight: 52, textAlign: 'center', overflow: 'hidden' },
+  otpCell: { flex: 1, minWidth: 0, maxWidth: 48, height: 54, borderRadius: 11, borderWidth: 1, borderColor: palette.line, backgroundColor: palette.surface, color: palette.ink, fontWeight: '700', lineHeight: 52, textAlign: 'center', overflow: 'hidden' },
   otpCellFocused: { borderColor: palette.accent, borderWidth: 2 },
   phoneField: { gap: 6 },
-  fieldLabel: { color: palette.ink, fontSize: 15, fontWeight: '700' },
+  fieldLabel: { color: palette.ink, fontWeight: '700' },
   phoneRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   phoneInput: { flex: 1 },
   submit: { marginTop: 2, minHeight: 52 },
   switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 5, flexWrap: 'wrap' },
   resendRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 5, flexWrap: 'wrap' },
-  switchText: { color: palette.muted, fontSize: 14, textAlign: 'center' },
-  switchAction: { color: palette.accentDark, fontSize: 14, fontWeight: '800' },
+  switchText: { color: palette.muted, textAlign: 'center' },
+  switchAction: { color: palette.accentDark, fontWeight: '800' },
   backLink: { alignSelf: 'center', padding: 6 },
 });
