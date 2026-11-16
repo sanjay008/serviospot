@@ -15,10 +15,14 @@ export default function NotificationsScreen() {
   const { notifications, session, markRead, markAllRead } = useApp();
   const type = useType();
   const audience = session.mode === 'provider' ? 'provider' : 'customer';
-  useNotificationsSync(audience);
+  const notificationsQuery = useNotificationsSync(audience);
   const rows = notifications.filter((item) => item.audience === audience);
   return (
-    <Screen refresh header={<Header title="Notifications" back />}>
+    <Screen
+      loading={notificationsQuery.isLoading}
+      refreshing={notificationsQuery.isFetching && !notificationsQuery.isLoading}
+      onRefresh={() => { void notificationsQuery.refetch(); }}
+      header={<Header title="Notifications" back />}>
       {rows.length ? <Button label="Mark all read" variant="ghost" onPress={() => markAllRead(audience)} /> : null}
       {rows.length === 0 ? <EmptyState icon="bell" title="No notifications" body="Proposals, messages and outcome reminders will land here." /> : null}
       {rows.map((item) => (

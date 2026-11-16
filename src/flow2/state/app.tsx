@@ -1,15 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
-import { VENDOR_PACKAGES, type VendorPackage } from '@/flow2/data/packages';
 import { buildProposals, initialDraft, initialOnboarding, PROVIDERS, SAMPLE_REQUEST } from '@/flow2/data/seed';
 import { useApp as useSession } from '@/state/store';
 import type {
   Bilingual,
   FlowChatMessage,
   Lang,
-  Lead,
-  MenuItem,
   OnboardingDraft,
   Proposal,
   ProposalStatus,
@@ -34,11 +31,6 @@ interface AppValue {
   setNotificationsEnabled: (enabled: boolean) => void;
 
   providers: Provider[];
-  menuItems: MenuItem[];
-  addMenuItem: (item: Omit<MenuItem, 'id' | 'active'>) => void;
-  packages: VendorPackage[];
-  addPackage: (item: Omit<VendorPackage, 'id'>) => void;
-  toggleMenuItem: (id: string) => void;
   chatMessages: Record<string, FlowChatMessage[]>;
   addChatMessage: (conversationId: string, message: FlowChatMessage) => void;
 
@@ -61,12 +53,6 @@ interface AppValue {
   approveOnboarding: () => void;
   rejectOnboarding: (reason: string) => void;
 
-  leads: Lead[];
-  sendVendorProposal: (
-    leadId: string,
-    data: { availability: Proposal['availability']; total: number; perGuest: number; deposit: number; validUntil: string },
-  ) => void;
-  setLeadStatus: (leadId: string, status: Lead['status']) => void;
 }
 
 const AppContext = createContext<AppValue | null>(null);
@@ -78,12 +64,6 @@ function storedImage(uri: string | undefined) {
   return uri;
 }
 
-const seedLeads = (): Lead[] => [
-  { id: 'LEAD-royal', providerId: 'royal', reference: 'DEMO-001', request: SAMPLE_REQUEST, status: 'invited', deadlineHours: 24, quality: 92 },
-  { id: 'LEAD-tasty', providerId: 'tasty', reference: 'DEMO-001', request: SAMPLE_REQUEST, status: 'opened', deadlineHours: 24, quality: 78 },
-  { id: 'LEAD-hospitality', providerId: 'hospitality', reference: 'DEMO-001', request: SAMPLE_REQUEST, status: 'invited', deadlineHours: 24, quality: 85 },
-];
-
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const { session, restored: sessionRestored } = useSession();
   const [lang, setLang] = useState<Lang>('en');
@@ -94,12 +74,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [requests, setRequests] = useState<RequestDraft[]>(() => [{ ...SAMPLE_REQUEST }]);
   const [proposalMap, setProposalMap] = useState<Record<string, Proposal[]>>(() => ({ [SAMPLE_REQUEST.id]: buildProposals(SAMPLE_REQUEST) }));
   const [onboarding, setOnboarding] = useState<OnboardingDraft>(() => ({ ...initialOnboarding }));
-  const [leads, setLeads] = useState<Lead[]>(seedLeads);
-  const [packages, setPackages] = useState<VendorPackage[]>(VENDOR_PACKAGES);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([
-    { id: 'menu-1', name: 'Surinamese buffet', description: 'Rice, chicken, vegetables and sides. Customisable for your event.', price: 28, active: true },
-    { id: 'menu-2', name: 'Vegetarian buffet', description: 'A generous selection of warm vegetarian dishes.', price: 24, active: true },
-  ]);
   const [chatMessages, setChatMessages] = useState<Record<string, FlowChatMessage[]>>({});
   const [profileReady, setProfileReady] = useState(false);
   const wasSignedIn = useRef(false);
@@ -198,24 +172,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
     setRequests((current) => [submitted, ...current]);
     setProposalMap((current) => ({ ...current, [submitted.id]: buildProposals(submitted) }));
-    const recipients = submitted.providerId
-      ? customerProviders.filter((provider) => provider.id === submitted.providerId)
-      : customerProviders;
-    setLeads((current) => [
-      ...recipients.map((provider, index) => ({
-        id: `LEAD-${submitted.id}-${provider.id}`,
-        providerId: provider.id,
-        reference: submitted.reference,
-        request: submitted,
-        status: 'invited' as const,
-        deadlineHours: 24,
-        quality: Math.max(65, 94 - index * 4),
-      })),
-      ...current,
-    ]);
     setDraft({ ...initialDraft() });
     return submitted;
-  }, [draft, customerProviders]);
+  }, [draft]);
 
   const proposalsFor = useCallback((requestId: string) => proposalMap[requestId] ?? [], [proposalMap]);
 
@@ -249,18 +208,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const approveOnboarding = useCallback(() => setOnboarding((current) => ({ ...current, status: 'approved' })), []);
   const rejectOnboarding = useCallback((reason: string) => setOnboarding((current) => ({ ...current, status: 'rejected', adminReason: reason })), []);
 
-  const setLeadStatus = useCallback((leadId: string, status: Lead['status']) => {
-    setLeads((current) => current.map((lead) => (lead.id === leadId ? { ...lead, status } : lead)));
-  }, []);
-  const addPackage = useCallback((item: Omit<VendorPackage, 'id'>) => {
-    setPackages((current) => [{ ...item, id: `pkg-${Date.now()}` }, ...current]);
-  }, []);
-  const addMenuItem = useCallback((item: Omit<MenuItem, 'id' | 'active'>) => {
-    setMenuItems((current) => [{ ...item, id: `menu-${Date.now()}`, active: true }, ...current]);
-  }, []);
-  const toggleMenuItem = useCallback((id: string) => {
-    setMenuItems((current) => current.map((item) => item.id === id ? { ...item, active: !item.active } : item));
-  }, []);
   const addChatMessage = useCallback((conversationId: string, message: FlowChatMessage) => {
     setChatMessages((current) => {
       const messages = current[conversationId] ?? [];
@@ -269,43 +216,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const sendVendorProposal = useCallback<AppValue['sendVendorProposal']>((leadId, data) => {
-    const lead = leads.find((item) => item.id === leadId);
-    if (lead) {
-      const template = buildProposals(lead.request).find((proposal) => proposal.providerId === lead.providerId) ?? buildProposals(lead.request)[0];
-      const proposal: Proposal = {
-        ...template,
-        id: `PROP-${lead.request.id}-${lead.providerId}`,
-        availability: data.availability,
-        total: data.total,
-        perGuest: data.perGuest,
-        deposit: data.deposit,
-        validUntil: data.validUntil,
-        status: 'sent',
-      };
-      setProposalMap((current) => ({
-        ...current,
-        [lead.request.id]: [...(current[lead.request.id] ?? []).filter((item) => item.providerId !== lead.providerId), proposal],
-      }));
-    }
-    setLeads((current) =>
-      current.map((lead) => {
-        if (lead.id !== leadId) return lead;
-        const template = buildProposals(lead.request).find((proposal) => proposal.providerId === lead.providerId) ?? buildProposals(lead.request)[0];
-        const proposal: Proposal = {
-          ...template,
-          id: `PROP-${lead.providerId}`,
-          availability: data.availability,
-          total: data.total,
-          perGuest: data.perGuest,
-          deposit: data.deposit,
-          validUntil: data.validUntil,
-          status: 'sent',
-        };
-        return { ...lead, status: 'proposal', proposal };
-      }),
-    );
-  }, [leads]);
 
   const value = useMemo<AppValue>(
     () => ({
@@ -320,11 +230,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       notificationsEnabled,
       setNotificationsEnabled,
       providers: customerProviders,
-      menuItems,
-      addMenuItem,
-      packages,
-      addPackage,
-      toggleMenuItem,
       chatMessages,
       addChatMessage,
       draft,
@@ -343,9 +248,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       submitOnboarding,
       approveOnboarding,
       rejectOnboarding,
-      leads,
-      sendVendorProposal,
-      setLeadStatus,
     }),
     [
       lang,
@@ -370,17 +272,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       submitOnboarding,
       approveOnboarding,
       rejectOnboarding,
-      leads,
       customerProviders,
-      menuItems,
-      addMenuItem,
-      packages,
-      addPackage,
-      toggleMenuItem,
       chatMessages,
       addChatMessage,
-      sendVendorProposal,
-      setLeadStatus,
     ],
   );
 

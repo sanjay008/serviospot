@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Icon } from '@/flow2/components/Icon';
@@ -8,22 +8,22 @@ import { useType } from '@/hooks/use-type';
 export function Stepper({ label, value, onChange, min = 0, max = 999 }: { label?: string; value: number; onChange: (value: number) => void; min?: number; max?: number }) {
   const clamp = (next: number) => Math.max(min, Math.min(max, next));
   const type = useType();
-  const [text, setText] = useState(String(value));
-
-  useEffect(() => {
-    setText(String(value));
-  }, [value]);
+  const [text, setText] = useState('');
+  const [editing, setEditing] = useState(false);
+  const displayValue = editing ? text : String(value);
 
   const apply = (raw: string) => {
     const digits = raw.replace(/\D/g, '');
     if (!digits) {
       onChange(min);
-      setText(String(min));
+      setText('');
+      setEditing(false);
       return;
     }
     const next = clamp(Number(digits));
     onChange(next);
-    setText(String(next));
+    setText('');
+    setEditing(false);
   };
 
   return (
@@ -33,15 +33,16 @@ export function Stepper({ label, value, onChange, min = 0, max = 999 }: { label?
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Decrease"
-          onPress={() => onChange(clamp(value - 1))}
+          onPress={() => { setEditing(false); onChange(clamp(value - 1)); }}
           disabled={value <= min}
           style={[styles.btn, value <= min && styles.disabled]}>
           <Icon name="minus" color={palette.accent} size={16} />
         </Pressable>
         <TextInput
           accessibilityLabel={label ? `${label} value` : 'Value'}
-          value={text}
+          value={displayValue}
           onChangeText={(next) => {
+            setEditing(true);
             const digits = next.replace(/\D/g, '').slice(0, String(max).length);
             setText(digits);
             if (digits) onChange(clamp(Number(digits)));
@@ -54,7 +55,7 @@ export function Stepper({ label, value, onChange, min = 0, max = 999 }: { label?
           maxLength={String(max).length}
           style={[styles.value, { fontSize: type.cardTitle }]}
         />
-        <Pressable accessibilityRole="button" accessibilityLabel="Increase" onPress={() => onChange(clamp(value + 1))} disabled={value >= max} style={[styles.btn, value >= max && styles.disabled]}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Increase" onPress={() => { setEditing(false); onChange(clamp(value + 1)); }} disabled={value >= max} style={[styles.btn, value >= max && styles.disabled]}>
           <Icon name="plus" color={palette.accent} size={16} />
         </Pressable>
       </View>
@@ -64,7 +65,7 @@ export function Stepper({ label, value, onChange, min = 0, max = 999 }: { label?
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, minHeight: 44 },
-  label: { flex: 1, color: palette.ink },
+  label: { flex: 1, color: '#5C5772', fontWeight: '600' },
   controls: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: palette.well, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: palette.line },
   btn: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.surface, borderWidth: 1, borderColor: palette.line },
   disabled: { opacity: 0.4 },

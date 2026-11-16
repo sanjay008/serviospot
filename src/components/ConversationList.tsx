@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Image } from 'expo-image';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Header } from '@/flow2/components/Header';
 import { Icon } from '@/flow2/components/Icon';
@@ -29,7 +29,21 @@ function getConversationTime(item: ConversationItem) {
   return typeof timestamp === 'number' ? formatMessageTime(timestamp) : '';
 }
 
-export function ConversationList<T extends ConversationItem>({ items, onOpen }: { items: T[]; onOpen: (item: T) => void }) {
+export function ConversationList<T extends ConversationItem>({
+  items,
+  onOpen,
+  loading = false,
+  refreshing = false,
+  onRefresh,
+  emptyMessage,
+}: {
+  items: T[];
+  onOpen: (item: T) => void;
+  loading?: boolean;
+  refreshing?: boolean;
+  onRefresh?: () => void;
+  emptyMessage?: string;
+}) {
   const [search, setSearch] = useState('');
   const type = useType();
   const visibleItems = useMemo(() => {
@@ -39,7 +53,7 @@ export function ConversationList<T extends ConversationItem>({ items, onOpen }: 
   }, [items, search]);
 
   return (
-    <Screen header={<Header title="Conversations" />}>
+    <Screen header={<Header title="Conversations" />} style={styles.content} refreshing={refreshing} onRefresh={onRefresh}>
       <View style={styles.searchBox}>
         <Icon name="search" color={palette.muted} size={17} />
         <TextInput
@@ -59,8 +73,14 @@ export function ConversationList<T extends ConversationItem>({ items, onOpen }: 
           </Pressable>
         ) : null}
       </View>
-      {visibleItems.length === 0 ? (
-        <Text style={[styles.emptyText, { fontSize: type.secondary }]}>{search ? 'No conversations match your search.' : 'Your conversations will appear here.'}</Text>
+      {loading ? (
+        <View style={styles.loadingState}>
+          <ActivityIndicator size="small" color={palette.accent} accessibilityLabel="Loading conversations" />
+        </View>
+      ) : visibleItems.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Text style={[styles.emptyText, { fontSize: type.secondary }]}>{search ? 'No conversations match your search.' : emptyMessage ?? 'No conversations available yet.'}</Text>
+        </View>
       ) : visibleItems.map((item, index) => (
         <Pressable
           key={item.id}
@@ -85,6 +105,9 @@ export function ConversationList<T extends ConversationItem>({ items, onOpen }: 
 }
 
 const styles = StyleSheet.create({
+  content: { flexGrow: 1 },
+  loadingState: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   searchBox: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 9, borderRadius: 14, borderWidth: 1, borderColor: palette.line, backgroundColor: palette.surface, paddingHorizontal: 12 },
   searchInput: { flex: 1, paddingVertical: 8, color: palette.ink },
   clearButton: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },

@@ -1,111 +1,32 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
-
-import { Badge } from '@/flow2/components/Badge';
+import { API_ENABLED, useGetProposalQuery, useSetProposalResponseMutation } from '@/api';
+import { recordOf } from '@/api/mappers';
+import { type ApiRecord } from '@/api/types';
 import { Button } from '@/flow2/components/Button';
 import { EmptyState } from '@/flow2/components/EmptyState';
 import { Header } from '@/flow2/components/Header';
-import { Notice } from '@/flow2/components/Notice';
 import { Screen } from '@/flow2/components/Screen';
-import { SectionTitle } from '@/flow2/components/SectionTitle';
 import { palette } from '@/flow2/constants/theme';
-import { leading, useType } from '@/hooks/use-type';
-import { dateLong, money } from '@/flow2/data/format';
-import { b } from '@/flow2/data/options';
 import { useApp } from '@/flow2/state/app';
 
 export default function ProposalDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const { t, lang, requests, proposalsFor, setProposalStatus } = useApp();
-  const type = useType();
-  const proposal = requests.flatMap((request) => proposalsFor(request.id)).find((item) => item.id === id);
-
-  if (!proposal) {
-    return (
-      <Screen header={<Header title={t(b('Voorstel', 'Proposal'))} back />}>
-        <EmptyState icon="doc" title={t(b('Niet gevonden', 'Not found'))} body={t(b('Dit voorstel bestaat niet.', 'This proposal does not exist.'))} action={t(b('Terug', 'Back'))} onAction={() => router.back()} />
-      </Screen>
-    );
-  }
-
-  const statusLabel: Record<string, { nl: string; en: string }> = {
-    new: b('Nieuw', 'New'),
-    interested: b('Interesse · nog geen keuze', 'Interested · no decision yet'),
-    contact: b('Contact aangevraagd', 'Contact requested'),
-    rejected: b('Afgewezen', 'Rejected'),
-    sent: b('Verzonden', 'Sent'),
-  };
-
-  return (
-    <Screen header={<Header title={proposal.providerName} subtitle={t(b('Indicatief all-invoorstel', 'Indicative all-in proposal'))} back />}>
-      <View style={styles.top}>
-        <Badge label={t(statusLabel[proposal.status])} tone={proposal.status === 'rejected' ? 'bad' : proposal.status === 'contact' ? 'good' : 'accent'} />
-        <Text style={[styles.score, { fontSize: type.secondary }]}>
-          {t(b('Matchscore', 'Match score'))} {proposal.matchScore}%
-        </Text>
-      </View>
-      <Text style={[styles.price, { fontSize: type.pageTitle }]}>
-        {money(proposal.total, lang)} <Text style={[styles.perGuest, { fontSize: type.secondary }]}>· {money(proposal.perGuest, lang)} {t(b('per persoon', 'per guest'))}</Text>
-      </Text>
-      <Text style={[styles.paragraph, { fontSize: type.secondary, lineHeight: leading(type.secondary, 7) }]}>{t(proposal.description)}</Text>
-      <Text style={[styles.paragraph, { fontSize: type.secondary, lineHeight: leading(type.secondary, 7) }]}>{t(proposal.notes)}</Text>
-
-      <SectionTitle title={t(b('Klant vraagt vs aanbieder biedt', 'Customer asks vs provider offers'))} />
-      {proposal.lines.map((line) => (
-        <View key={line.label.en} style={styles.lineRow}>
-          <Text style={[styles.lineLabel, { fontSize: type.caption }]}>{t(line.label)}</Text>
-          <Text style={[styles.lineRequested, { fontSize: type.caption }]}>{line.requested}</Text>
-          <Text style={[styles.lineOffered, { fontSize: type.caption }, line.differs && styles.differs]}>{line.offered}</Text>
-        </View>
-      ))}
-
-      <View style={styles.priceLines}>
-        <View style={styles.priceRow}>
-          <Text style={[styles.priceLabel, { fontSize: type.secondary }]}>{t(b('Prijs incl. toepasselijke btw', 'Price incl. applicable VAT'))}</Text>
-          <Text style={[styles.priceValue, { fontSize: type.body }]}>{money(proposal.total, lang)}</Text>
-        </View>
-        <View style={styles.priceRow}>
-          <Text style={[styles.priceLabel, { fontSize: type.secondary }]}>{t(b('Terugbetaalbare borg (apart)', 'Refundable deposit (separate)'))}</Text>
-          <Text style={[styles.priceValue, { fontSize: type.body }]}>{money(proposal.deposit, lang)}</Text>
-        </View>
-        <View style={styles.priceRow}>
-          <Text style={[styles.priceLabel, { fontSize: type.secondary }]}>{t(b('Geldig tot', 'Valid until'))}</Text>
-          <Text style={[styles.priceValue, { fontSize: type.body }]}>{dateLong(proposal.validUntil, lang)}</Text>
-        </View>
-      </View>
-
-      <Notice tone="info" body={t(b('Unknown of niet vermeld betekent niet inbegrepen. Vergelijk op dezelfde rijen.', 'Unknown or not stated does not mean included. Compare on identical rows.'))} />
-
-      {proposal.contactReleased ? (
-        <Notice tone="success" title={t(b('Contact gedeeld', 'Contacts shared'))} body={`klant@example.com  ·  +31 6 0000 0000\nroyal@example.com  ·  +31 6 0000 0001`} />
-      ) : (
-        <View style={styles.decisions}>
-          <Button label={t(b('1 · Afwijzen', '1 · Reject'))} variant="secondary" onPress={() => { setProposalStatus(proposal.id, 'rejected'); router.back(); }} />
-          <Button label={t(b('2 · Interesse, nog geen keuze', '2 · Interested, no decision'))} variant="secondary" onPress={() => { setProposalStatus(proposal.id, 'interested'); router.back(); }} />
-          <Button label={t(b('3 · Meer weten: contact opnemen', '3 · Learn more: request contact'))} onPress={() => router.push(`/customer/continue/${proposal.id}` as any)} />
-        </View>
-      )}
-
-      <Button label={t(b('Terug', 'Back'))} variant="ghost" onPress={() => router.back()} />
-      <Notice tone="accent" body={t(b('Contact aanvragen is geen boeking of definitieve gunning.', 'Requesting contact is not a booking or final award.'))} />
-    </Screen>
-  );
+  const { id = '' } = useLocalSearchParams<{ id: string }>();
+  const { t } = useApp();
+  const query = useGetProposalQuery(id, { skip: !API_ENABLED || !id });
+  const proposal = recordOf(query.data, 'proposal');
+  const [respond, responseState] = useSetProposalResponseMutation();
+  const proposalId = String(proposal?.proposal_id ?? proposal?.id ?? id);
+  const providerName = get(proposal, 'provider_name', 'business_name', 'name') || t({ nl: 'Voorstel', en: 'Proposal' });
+  if (!API_ENABLED) return <Screen header={<Header title={providerName} back />}><EmptyState title="API unavailable" body="Connect to the API to load this proposal." /></Screen>;
+  if (!query.isLoading && !proposal) return <Screen header={<Header title={providerName} back />}><EmptyState icon="doc" title="Not found" body="The server returned no proposal." action="Back" onAction={() => router.back()} /></Screen>;
+  return <Screen loading={query.isLoading} refreshing={query.isFetching && !query.isLoading} onRefresh={() => { void query.refetch(); }} header={<Header title={providerName} back />}>
+    <DataRows data={proposal} />
+    <Button label="Interested" variant="secondary" loading={responseState.isLoading} onPress={() => void respond({ proposal_id: proposalId, response: 'interested' }).unwrap()} />
+    <Button label="Reject proposal" variant="secondary" loading={responseState.isLoading} onPress={() => void respond({ proposal_id: proposalId, response: 'rejected' }).unwrap()} />
+    <Button label="Request contact" onPress={() => router.push(`/customer/continue/${proposalId}` as any)} />
+  </Screen>;
 }
-
-const styles = StyleSheet.create({
-  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  score: { color: palette.muted },
-  price: { fontWeight: '800', color: palette.ink },
-  perGuest: { fontWeight: '500', color: palette.muted },
-  paragraph: { color: palette.ink },
-  lineRow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: palette.surface, borderRadius: 12, borderWidth: 1, borderColor: palette.line, padding: 12 },
-  lineLabel: { flex: 1, color: palette.muted },
-  lineRequested: { flex: 1, color: palette.ink, textAlign: 'right' },
-  lineOffered: { flex: 1, fontWeight: '700', color: palette.ink, textAlign: 'right' },
-  differs: { color: palette.warning },
-  priceLines: { backgroundColor: palette.surface, borderRadius: 16, borderWidth: 1, borderColor: palette.line, padding: 14, gap: 10 },
-  priceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  priceLabel: { color: palette.muted },
-  priceValue: { fontWeight: '700', color: palette.ink },
-  decisions: { gap: 10 },
-});
+function get(row: ApiRecord | null, ...keys: string[]) { for (const key of keys) if (typeof row?.[key] === 'string' || typeof row?.[key] === 'number') return String(row[key]); return ''; }
+function DataRows({ data }: { data: ApiRecord | null }) { if (!data) return null; const entries = Object.entries(data).filter(([, value]) => value == null || ['string', 'number', 'boolean'].includes(typeof value)); return <View style={styles.box}>{entries.map(([key, value]) => <View style={styles.row} key={key}><Text style={styles.key}>{key.replaceAll('_', ' ')}</Text><Text style={styles.value}>{value == null ? '' : String(value)}</Text></View>)}</View>; }
+const styles = StyleSheet.create({ box: { padding: 14, borderRadius: 16, backgroundColor: palette.surface, borderWidth: 1, borderColor: palette.line, gap: 12 }, row: { gap: 3 }, key: { color: palette.muted, textTransform: 'capitalize' }, value: { color: palette.ink, fontWeight: '600' } });

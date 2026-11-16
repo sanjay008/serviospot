@@ -11,7 +11,7 @@ export const API_AUTH_MODE = (process.env.EXPO_PUBLIC_API_AUTH_MODE ?? 'body') a
 export const COMPANY_LOGIN = (process.env.EXPO_PUBLIC_COMPANY_LOGIN ?? 'catering').trim() || 'catering';
 
 const TOKEN_KEY = 'authToken';
-/** Only the currently implemented OTP auth, vendor onboarding, and dashboard menu endpoints may reach the backend. */
+/** Routes documented in the ServioSpot API contract. */
 const ACTIVE_API_PATHS = new Set([
   'api/company_login',
   'api/login_new',
@@ -24,9 +24,28 @@ const ACTIVE_API_PATHS = new Set([
   'api/serviospot/getOnboardingOptions',
   'api/serviospot/saveVendorOnboarding',
   'api/serviospot/getVendorOfferings',
+  'serviospot/getVendorDashboard',
   'serviospot/getOnboardingOptions',
   'serviospot/saveVendorOnboarding',
   'serviospot/getVendorOfferings',
+  ...[
+    'register', 'login', 'logout', 'me', 'verifyEmail', 'verifyPhone', 'savePushToken',
+    'getNotifications', 'getUnreadCount', 'markNotificationRead', 'markAllNotificationsRead',
+    'getNotificationSettings', 'updateNotificationSettings', 'getLegal', 'saveReport',
+    'exportAccount', 'deleteAccount', 'getConversations', 'getMessages', 'sendMessage',
+    'getCategories', 'getPlans', 'getProviders', 'searchProviders', 'getProviderDetails',
+    'getProviderOfferings', 'getProviderReviews', 'getOffering', 'getFavorites', 'saveFavorite',
+    'deleteFavorite', 'saveRequestDraft', 'submitRequest', 'getRequests', 'getRequestDetails',
+    'cancelRequest', 'updateRequest', 'duplicateRequest', 'closeRequest', 'getProposals',
+    'getProposal', 'getRequestProposalComparison', 'setProposalResponse', 'continueWithProvider',
+    'getReleasedContacts', 'saveOutcome', 'saveReview', 'getVendorDashboard', 'getLeads',
+    'getLead', 'saveAvailability', 'saveProposal', 'withdrawProposal', 'getContactReleases',
+    'getContactRelease', 'getVendorProfile', 'updateVendorProfile', 'saveVerification',
+    'saveVendorServices', 'saveOffering', 'updateOffering', 'setOfferingActive',
+    'getSubscription', 'saveSubscription', 'getInvoices', 'getPreferences', 'savePreferences',
+    'getCalendar', 'saveCalendar', 'getTemplates', 'saveTemplate', 'deleteTemplate',
+    'getAnalytics', 'getVendorReviews', 'saveReviewResponse',
+  ].map((route) => `serviospot/${route}`),
 ]);
 const canUseStorage = () => Platform.OS !== 'web' || typeof window !== 'undefined';
 

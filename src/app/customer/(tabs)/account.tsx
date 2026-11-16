@@ -14,7 +14,7 @@ import { useApp as useSession } from '@/state/store';
 
 export default function CustomerAccountTab() {
   const { t, customerAccount } = useApp();
-  const { signOut } = useSession();
+  const { signOut, deleteAccount } = useSession();
   const type = useType();
   const name = customerAccount?.name || 'Guest';
   const email = customerAccount?.email || '';
@@ -68,7 +68,7 @@ export default function CustomerAccountTab() {
 
       <ProfileSettings
         onLogout={() => { signOut(); router.replace('/'); }}
-        onDeleteAccount={() => { signOut(); router.replace('/'); }}
+        onDeleteAccount={async () => { const result = await deleteAccount(); if (result.ok) router.replace('/'); }}
       />
     </Screen>
   );

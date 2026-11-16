@@ -9,82 +9,73 @@ import { Icon } from '@/flow2/components/Icon';
 import { Screen } from '@/flow2/components/Screen';
 import { palette } from '@/flow2/constants/theme';
 import { leading, useType } from '@/hooks/use-type';
-import { dateLong, money } from '@/flow2/data/format';
-import { b, eventNameForOccasion, totalDishes } from '@/flow2/data/options';
-import type { LeadStatus } from '@/flow2/data/types';
+import { money } from '@/flow2/data/format';
+import { b } from '@/flow2/data/options';
+import { API_ENABLED, type ApiRecord, useGetLeadsQuery } from '@/api';
+import { useApp as useSession } from '@/state/store';
+import { rowsOf, textOf } from '@/api/mappers';
 import { useApp } from '@/flow2/state/app';
 
-const LEAD_LABELS: Record<LeadStatus, { nl: string; en: string }> = {
-  invited: b('Uitgenodigd', 'Invited'),
-  opened: b('Geopend', 'Opened'),
-  availability: b('Beschikbaarheid', 'Availability'),
-  proposal: b('Voorstel', 'Proposal'),
-  declined: b('Afgewezen', 'Declined'),
-};
-
 export default function VendorLeadsScreen() {
-  const { t, lang, leads, providers } = useApp();
+  const { t } = useApp();
+  const { session, restored } = useSession();
+  const enabled = API_ENABLED && restored && session.signedIn && session.mode === 'provider';
+  const query = useGetLeadsQuery(undefined, { skip: !enabled });
+  const leads = rowsOf(query.data);
   const type = useType();
   const { view: routeView } = useLocalSearchParams<{ view?: string | string[] }>();
   const requestedView = Array.isArray(routeView) ? routeView[0] : routeView;
   const view = requestedView === 'proposals' ? 'proposals' : 'requests';
-  const sent = leads.filter((lead) => lead.proposal);
+  const sent = leads.filter((lead) => !!(lead.proposal || lead.proposal_id || ['sent', 'proposal', 'submitted'].includes(String(lead.status ?? '').toLowerCase())));
+  const shown = view === 'proposals' ? sent : leads.filter((lead) => !sent.includes(lead));
 
   return (
-    <Screen header={<Header title={t(b('Requests', 'Requests'))} subtitle={t(b('Requests and your sent proposals', 'Requests and your sent proposals'))} />}>
+    <Screen
+      loading={enabled && query.isLoading}
+      refreshing={enabled && query.isFetching && !query.isLoading}
+      onRefresh={enabled ? () => { void query.refetch(); } : undefined}
+      header={<Header title={t(b('Requests', 'Requests'))} subtitle={t(b('Requests and your sent proposals', 'Requests and your sent proposals'))} />}>
       <View style={styles.switcher}>
         <Button label={`Incoming (${leads.length})`} variant={view === 'requests' ? 'primary' : 'secondary'} onPress={() => router.setParams({ view: 'requests' })} style={styles.switchButton} labelStyle={{ fontSize: type.caption, lineHeight: leading(type.caption, 4) }} />
         <Button label={`Proposals (${sent.length})`} variant={view === 'proposals' ? 'primary' : 'secondary'} onPress={() => router.setParams({ view: 'proposals' })} style={styles.switchButton} labelStyle={{ fontSize: type.caption, lineHeight: leading(type.caption, 4) }} />
       </View>
-      {view === 'proposals' ? <>
-        {sent.length === 0 ? <EmptyState icon="send" title="No proposals yet" body="Open an incoming request and send your first proposal." action="View requests" onAction={() => router.setParams({ view: 'requests' })} /> : sent.map((lead) => (
-          <View key={lead.id} style={styles.card}>
-            <View style={styles.head}><View style={styles.headText}><Text style={[styles.ref, { fontSize: type.cardTitle, lineHeight: leading(type.cardTitle, 4) }]} numberOfLines={2}>{providers.find((item) => item.id === lead.providerId)?.name ?? lead.providerId}</Text><Text style={[styles.provider, { fontSize: type.caption, lineHeight: leading(type.caption, 4) }]} numberOfLines={1}>{t(eventNameForOccasion(lead.request.occasion))}</Text></View><Badge label="Sent" tone="good" /></View>
-            <Text style={[styles.metaText, { fontSize: type.caption, lineHeight: leading(type.caption, 4) }]}>{money(lead.proposal?.total ?? 0, lang)} total · {money(lead.proposal?.perGuest ?? 0, lang)} per guest</Text>
-            <Button label="View request" variant="secondary" onPress={() => router.push(`/vendor/lead/${lead.id}` as any)} style={styles.action} labelStyle={{ fontSize: type.secondary, lineHeight: type.secondary + 2 }} />
-          </View>
-        ))}
-      </> : <>
-      {leads.length === 0 ? (
-        <EmptyState icon="inbox" title={t(b('Geen aanvragen', 'No requests'))} body={t(b('Nieuwe passende aanvragen verschijnen hier.', 'New matching requests appear here.'))} />
-      ) : (
-        leads.map((lead) => {
-          const provider = providers.find((item) => item.id === lead.providerId);
-          return (
-            <View key={lead.id} style={styles.card}>
-              <View style={styles.head}>
-                <View style={styles.headText}>
-                  <Text style={[styles.ref, { fontSize: type.cardTitle, lineHeight: leading(type.cardTitle, 4) }]} numberOfLines={2}>{provider?.name ?? lead.providerId}</Text>
-                  <Text style={[styles.provider, { fontSize: type.caption, lineHeight: leading(type.caption, 4) }]} numberOfLines={1}>{t(eventNameForOccasion(lead.request.occasion))}</Text>
-                </View>
-                <Badge label={t(LEAD_LABELS[lead.status])} tone={lead.status === 'proposal' ? 'good' : lead.status === 'declined' ? 'bad' : 'accent'} />
-              </View>
-              <View style={styles.metaRow}>
-                <Icon name="people" color={palette.muted} size={type.caption} />
-                <Text style={[styles.metaText, { fontSize: type.caption, lineHeight: leading(type.caption, 4) }]}>
-                  {lead.request.guests} {t(b('gasten', 'guests'))} · {lead.request.city}
-                </Text>
-              </View>
-              <View style={styles.metaRow}>
-                <Icon name="calendar" color={palette.muted} size={type.caption} />
-                <Text style={[styles.metaText, { fontSize: type.caption, lineHeight: leading(type.caption, 4) }]}>{dateLong(lead.request.date, lang)}</Text>
-              </View>
-              <View style={styles.metaRow}>
-                <Icon name="food" color={palette.muted} size={type.caption} />
-                <Text style={[styles.metaText, { fontSize: type.caption, lineHeight: leading(type.caption, 4) }]}>
-                  {totalDishes(lead.request.counts)} {t(b('gerechten', 'dishes'))}
-                </Text>
-              </View>
-              <Text style={[styles.deadline, { fontSize: type.small, lineHeight: leading(type.small, 4) }]}>
-                {t(b('Deadline over', 'Deadline in'))} {lead.deadlineHours} u
-              </Text>
-              <Button label={t(b('Beoordeel aanvraag', 'Review request'))} variant="secondary" onPress={() => router.push(`/vendor/lead/${lead.id}` as any)} style={styles.action} labelStyle={{ fontSize: type.secondary, lineHeight: type.secondary + 2 }} />
-            </View>
-          );
-        })
-      )}
-      </>}
+      {!enabled ? <EmptyState icon="inbox" title="Vendor API unavailable" body="Sign in as a vendor and enable the API to load server requests." /> : null}
+      {query.isLoading ? <Text>Loading requests…</Text> : null}
+      {query.isError ? <Text>Could not load requests from the server.</Text> : null}
+      {query.isSuccess && shown.length === 0 ? <EmptyState icon={view === 'proposals' ? 'send' : 'inbox'} title={view === 'proposals' ? 'No proposals returned' : t(b('Geen aanvragen', 'No requests'))} body={view === 'proposals' ? 'The server returned no sent proposals.' : t(b('De server heeft geen aanvragen teruggegeven.', 'The server returned no requests.'))} /> : null}
+      {query.isSuccess ? shown.map((lead) => <ApiLeadCard key={rowId(lead)} lead={lead} proposal={view === 'proposals'} />) : null}
     </Screen>
+  );
+}
+
+function rowId(row: ApiRecord) {
+  return String(row.lead_id ?? row.id ?? row.request_id ?? '');
+}
+
+function ApiLeadCard({ lead, proposal }: { lead: ApiRecord; proposal: boolean }) {
+  const id = rowId(lead);
+  const request = lead.request && typeof lead.request === 'object' ? lead.request as ApiRecord : lead;
+  const type = useType();
+  const title = textOf(lead, 'reference', 'request_reference') || textOf(request, 'event_type', 'occasion', 'title') || `Request ${id}`;
+  const status = textOf(lead, 'status', 'availability_status') || (proposal ? 'sent' : 'new');
+  const guests = Number(request.guest_count ?? request.guests ?? 0) || 0;
+  const date = textOf(request, 'event_date', 'date') || '';
+  const city = textOf(request, 'city') || '';
+  const amount = Number(lead.total_cents ?? lead.amount_cents ?? (lead.proposal as ApiRecord | undefined)?.total_cents ?? 0);
+  return (
+    <View style={styles.card}>
+      <View style={styles.head}>
+        <View style={styles.headText}>
+          <Text style={[styles.ref, { fontSize: type.cardTitle }]} numberOfLines={2}>{title}</Text>
+          <Text style={[styles.provider, { fontSize: type.caption }]} numberOfLines={1}>{textOf(request, 'event_type', 'occasion') || status}</Text>
+        </View>
+        <Badge label={status} tone={proposal ? 'good' : 'accent'} />
+      </View>
+      <View style={styles.metaRow}><Icon name="people" color={palette.muted} size={type.caption} /><Text style={[styles.metaText, { fontSize: type.caption }]}>{guests} guests · {city}</Text></View>
+      <View style={styles.metaRow}><Icon name="calendar" color={palette.muted} size={type.caption} /><Text style={[styles.metaText, { fontSize: type.caption }]}>{date}</Text></View>
+      {proposal && amount > 0 ? <Text style={[styles.metaText, { fontSize: type.caption }]}>{money(amount, 'en')} total</Text> : null}
+      <Button label={proposal ? 'View proposal' : 'Review request'} variant="secondary" onPress={() => router.push(`/vendor/lead/${id}` as any)} style={styles.action} />
+    </View>
   );
 }
 

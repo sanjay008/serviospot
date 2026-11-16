@@ -69,7 +69,7 @@ export function Input({
 const styles = StyleSheet.create({
   wrap: { gap: 6 },
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 20 },
-  label: { fontWeight: '700', color: palette.ink },
+  label: { fontWeight: '600', color: '#5C5772' },
   input: {
     minHeight: 48,
     borderRadius: 12,

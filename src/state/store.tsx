@@ -98,6 +98,7 @@ type Store = {
   verifyPhone: () => Promise<Result>;
   /** Clears the saved login on this phone. The app stays signed in until this runs. */
   signOut: () => void;
+  deleteAccount: () => Promise<Result>;
   setMode: (mode: 'customer' | 'provider') => void;
   setPlan: (planId: PlanId, billing: Session['billing']) => Promise<Result>;
   updateProvider: (patch: Partial<Provider>) => void;
@@ -348,6 +349,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return result;
       },
       signOut: () => {
+        // Revoke the backend session before clearing local credentials. A network failure must not trap the user here.
+        void apiActions.logout();
         sessionWrite += 1;
         setSession(guestSession);
         void setAuthToken(null);
@@ -358,6 +361,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setFavorites({ providers: [], offerings: [], rowIds: {} });
         setQuoteDraft(blankDraft());
         setDays({});
+      },
+      deleteAccount: async () => {
+        const result = await settled(await apiActions.deleteAccount());
+        if (!result.ok) return result;
+        sessionWrite += 1;
+        setSession(guestSession);
+        void setAuthToken(null);
+        void AsyncStorage.multiRemove([SESSION_KEY, 'flow2Profile']);
+        for (const setter of [setRequests, setProposals, setLeads, setConversations, setNotifications, setTemplates, setOutcomes] as Dispatch<SetStateAction<unknown[]>>[]) setter([]);
+        setProviders((list) => list.filter((item) => item.id !== ME));
+        setOfferings((list) => list.filter((item) => item.providerId !== ME));
+        setFavorites({ providers: [], offerings: [], rowIds: {} });
+        setQuoteDraft(blankDraft());
+        setDays({});
+        return { ok: true };
       },
       setMode: (mode) => setSession((current) => ({ ...current, mode })),
       setPlan: async (planId, billing) => {

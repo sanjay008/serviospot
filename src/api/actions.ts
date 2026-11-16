@@ -3,6 +3,7 @@ import type { ThunkAction, UnknownAction } from '@reduxjs/toolkit';
 import { accountApi } from '@/api/accountApi';
 import { chatApi } from '@/api/chatApi';
 import { customerApi } from '@/api/customerApi';
+import { authApi } from '@/api/authApi';
 import type { ApiRecord, AvailabilityBody, OfferingBody, RequestBody } from '@/api/types';
 import { vendorApi } from '@/api/vendorApi';
 import { parseEuro } from '@/data/format';
@@ -136,6 +137,7 @@ function offeringBody(offering: Offering): OfferingBody {
 const AVAILABILITY = ['available', 'partial', 'maybe', 'unavailable'] as const;
 
 export const apiActions = {
+  logout: () => call(authApi.endpoints.logout.initiate()),
   verifyEmail: () => call(accountApi.endpoints.verifyEmail.initiate()),
   verifyPhone: (phone: string) => call(accountApi.endpoints.verifyPhone.initiate({ phone })),
   savePushToken: (token: string) => call(accountApi.endpoints.savePushToken.initiate({ expo_token: token })),
@@ -166,8 +168,14 @@ export const apiActions = {
         : customerApi.endpoints.deleteFavorite.initiate(favoriteId || id),
     ),
   requestDraft: (draft: QuoteDraft) => call(customerApi.endpoints.saveRequestDraft.initiate(requestBody(draft))),
-  submitRequest: (draft: QuoteDraft) => call(customerApi.endpoints.submitRequest.initiate(requestBody(draft))),
+  // submitQuote is only reached after the customer confirms the consent step.
+  submitRequest: (draft: QuoteDraft) => call(customerApi.endpoints.submitRequest.initiate({ ...requestBody(draft), consent: true })),
   cancelRequest: (id: string, reason: string) => call(customerApi.endpoints.cancelRequest.initiate({ request_id: id, reason })),
+  updateRequest: (id: string, draft: QuoteDraft) => call(customerApi.endpoints.updateRequest.initiate({ ...requestBody(draft), request_id: id })),
+  duplicateRequest: (id: string) => call(customerApi.endpoints.duplicateRequest.initiate(id)),
+  closeRequest: (id: string) => call(customerApi.endpoints.closeRequest.initiate(id)),
+  setProposalResponse: (id: string, response: 'interested' | 'rejected', note?: string) =>
+    call(customerApi.endpoints.setProposalResponse.initiate({ proposal_id: id, response, note })),
   continueWith: (proposalId: string) => call(customerApi.endpoints.continueWithProvider.initiate(proposalId)),
   outcome: (outcome: Outcome) =>
     call(customerApi.endpoints.saveOutcome.initiate({ request_id: outcome.requestId, outcome: outcome.choice, provider_id: outcome.providerId })),

@@ -66,6 +66,8 @@ export type RequestBody = {
   details?: Record<string, unknown>;
 };
 
+export type ProposalResponseBody = { proposal_id: Id; response: 'interested' | 'rejected'; note?: string };
+
 export type OutcomeBody = { request_id: Id; outcome: string; provider_id?: Id };
 
 export type ReviewBody = {

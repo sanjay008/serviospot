@@ -28,27 +28,58 @@ type R = ApiRecord;
 
 const isRecord = (value: unknown): value is R => !!value && typeof value === 'object' && !Array.isArray(value);
 
-/** Finds the list in a reply: the data itself, or the first array inside it (data.items, data.providers, ...). */
-export function rowsOf(data: unknown): R[] {
+/** Finds response lists in common API envelopes such as `{ data: { providers: [...] } }`. */
+export function rowsOf(data: unknown, depth = 0): R[] {
+  if (depth > 5) return [];
   if (Array.isArray(data)) return data.filter(isRecord);
-  if (isRecord(data)) {
-    for (const value of Object.values(data)) {
-      if (Array.isArray(value) && value.some(isRecord)) return value.filter(isRecord);
+  if (!isRecord(data)) return [];
+  const preferred = ['items', 'providers', 'offerings', 'packages', 'reviews', 'requests', 'proposals', 'favorites', 'results', 'data'];
+  for (const key of preferred) {
+    const value = data[key];
+    if (Array.isArray(value)) return value.filter(isRecord);
+    if (isRecord(value)) {
+      const rows = rowsOf(value, depth + 1);
+      if (rows.length) return rows;
+    }
+  }
+  for (const value of Object.values(data)) {
+    if (Array.isArray(value)) {
+      const rows = value.filter(isRecord);
+      if (rows.length) return rows;
+    }
+    if (isRecord(value)) {
+      const rows = rowsOf(value, depth + 1);
+      if (rows.length) return rows;
     }
   }
   return [];
 }
 
 function nested(r: R, ...keys: string[]): R | null {
-  for (const key of keys) if (isRecord(r[key])) return r[key] as R;
+  for (const key of keys) {
+    if (isRecord(r[key])) return r[key] as R;
+    if (Array.isArray(r[key])) {
+      const first = r[key].find(isRecord);
+      if (first) return first;
+    }
+  }
   return null;
 }
 
 /** Finds the object in a reply, unwrapping `{ provider: {...} }` style wrappers when one of `keys` is present. */
 export function recordOf(data: unknown, ...keys: string[]): R | null {
-  const base = Array.isArray(data) ? data[0] : data;
+  const base = Array.isArray(data) ? data.find(isRecord) : data;
   if (!isRecord(base)) return null;
-  return nested(base, ...keys) ?? base;
+  const match = nested(base, ...keys);
+  if (match) return match;
+  for (const key of ['data', 'result', 'payload']) {
+    const value = base[key];
+    if (isRecord(value) || Array.isArray(value)) {
+      const unwrapped = recordOf(value, ...keys);
+      if (unwrapped) return unwrapped;
+    }
+  }
+  return base;
 }
 
 export function textOf(r: R | null, ...keys: string[]) {

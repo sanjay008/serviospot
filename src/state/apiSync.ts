@@ -104,6 +104,7 @@ export function useNotificationsSync(audience: 'customer' | 'provider') {
   useOnData(list.data, (data) =>
     fill('notifications', rowsOf(data).map((row) => toNotification(row, audience)).filter(hasId), (item) => item.audience === audience),
   );
+  return { isLoading: list.isLoading, isFetching: list.isFetching, refetch: list.refetch };
 }
 
 export function useNotifySettingsSync() {

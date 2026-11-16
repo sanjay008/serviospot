@@ -46,12 +46,15 @@ export type VendorOnboardingBody = ApiRecord & {
 export type VendorOffering = {
   id: string | number;
   title?: string | null;
+  category?: string | null;
   description?: string | null;
+  dishes?: string[] | string | null;
   image?: string | null;
   price_cents?: number | string | null;
   is_active?: boolean | null;
 };
 export type VendorOfferingsReply = { offerings?: VendorOffering[]; limit?: number } & ApiRecord;
+export type VendorContactRelease = ApiRecord & { id?: string | number; request_id?: string | number; reference?: string; contact_release_id?: string | number };
 
 export const vendorApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -101,6 +104,14 @@ export const vendorApi = api.injectEndpoints({
     withdrawProposal: build.mutation<ApiRecord, Id>({
       query: (proposal_id) => ({ path: 'serviospot/withdrawProposal', body: { proposal_id } }),
       invalidatesTags: ['Lead', 'Dashboard'],
+    }),
+    getContactReleases: build.query<ApiList, void>({
+      query: () => ({ path: 'serviospot/getContactReleases' }),
+      providesTags: ['Contact'],
+    }),
+    getContactRelease: build.mutation<ApiRecord, { contact_release_id?: Id; request_id?: Id }>({
+      query: (body) => ({ path: 'serviospot/getContactRelease', body }),
+      invalidatesTags: ['Contact'],
     }),
     getVendorOfferings: build.query<VendorOfferingsReply, void>({
       query: () => ({ path: 'api/serviospot/getVendorOfferings' }),
@@ -186,6 +197,8 @@ export const {
   useSaveAvailabilityMutation,
   useSaveProposalMutation,
   useWithdrawProposalMutation,
+  useGetContactReleasesQuery,
+  useGetContactReleaseMutation,
   useGetVendorOfferingsQuery,
   useSaveOfferingMutation,
   useUpdateOfferingMutation,

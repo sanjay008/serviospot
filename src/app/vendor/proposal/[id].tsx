@@ -16,26 +16,41 @@ import { SectionTitle } from '@/flow2/components/SectionTitle';
 import { palette } from '@/flow2/constants/theme';
 import { leading, useType } from '@/hooks/use-type';
 import { money } from '@/flow2/data/format';
-import { b, eventNameForOccasion } from '@/flow2/data/options';
+import { b } from '@/flow2/data/options';
 import type { Availability } from '@/flow2/data/types';
 import { useApp } from '@/flow2/state/app';
+import { API_ENABLED, useGetLeadQuery, useSaveAvailabilityMutation, useSaveProposalMutation, type ApiRecord } from '@/api';
+import { recordOf, textOf } from '@/api/mappers';
+import { useApp as useSession } from '@/state/store';
 
 export default function VendorProposalBuilderScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { t, lang, leads, sendVendorProposal } = useApp();
+  const { t, lang } = useApp();
+  const { session } = useSession();
+  const enabled = API_ENABLED && session.signedIn && session.mode === 'provider';
+  const leadQuery = useGetLeadQuery(id, { skip: !enabled || !id });
+  const [saveAvailability] = useSaveAvailabilityMutation();
+  const [saveProposal, saveProposalState] = useSaveProposalMutation();
   const type = useType();
-  const lead = leads.find((item) => item.id === id);
-
   const [availability, setAvailability] = useState<Availability>('full');
-  const [foodPrice, setFoodPrice] = useState('2200');
-  const [staffPrice, setStaffPrice] = useState('500');
-  const [materialPrice, setMaterialPrice] = useState('150');
-  const [travelPrice, setTravelPrice] = useState('125');
+  const [foodPrice, setFoodPrice] = useState('');
+  const [staffPrice, setStaffPrice] = useState('');
+  const [materialPrice, setMaterialPrice] = useState('');
+  const [travelPrice, setTravelPrice] = useState('');
   const [deposit, setDeposit] = useState('0');
-  const [validUntil, setValidUntil] = useState('2026-11-01');
+  const [validUntil, setValidUntil] = useState('');
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
+  const lead = recordOf(leadQuery.data, 'lead') as ApiRecord | null;
+  const request = lead?.request && typeof lead.request === 'object' ? lead.request as ApiRecord : lead;
+  const leadId = String(lead?.lead_id ?? lead?.id ?? id);
+  const guestCount = Number(request?.guest_count ?? request?.guests ?? 0) || 0;
 
-  if (!lead) {
+  if (!enabled) {
+    return <Screen header={<Header title={t(b('Voorstel', 'Proposal'))} back />}><EmptyState icon="inbox" title="Vendor API unavailable" body="Sign in as a vendor and enable the API to compose a server proposal." /></Screen>;
+  }
+  if (leadQuery.isLoading) return <Screen header={<Header title={t(b('Voorstel', 'Proposal'))} back />} loading />;
+  if (!lead || !request || leadQuery.isError) {
     return (
       <Screen header={<Header title={t(b('Voorstel', 'Proposal'))} back />}>
         <EmptyState icon="inbox" title={t(b('Niet gevonden', 'Not found'))} body={t(b('Deze aanvraag bestaat niet.', 'This request does not exist.'))} action={t(b('Terug', 'Back'))} onAction={() => router.back()} />
@@ -44,10 +59,35 @@ export default function VendorProposalBuilderScreen() {
   }
 
   const total = [foodPrice, staffPrice, materialPrice, travelPrice].reduce((sum, value) => sum + (Number(value) || 0), 0);
-  const perGuest = Math.round((total / (lead.request.guests || 1)) * 100) / 100;
+  const perGuest = guestCount ? Math.round((total / guestCount) * 100) / 100 : 0;
 
-  const send = () => {
-    sendVendorProposal(lead.id, { availability, total, perGuest, deposit: Number(deposit) || 0, validUntil });
+  const send = async () => {
+    setError('');
+    if (API_ENABLED && session.signedIn && session.mode === 'provider') {
+      const status = availability === 'full' ? 'available' : availability === 'partial' ? 'partial' : availability === 'conditional' ? 'maybe' : 'unavailable';
+      try {
+        await saveAvailability({ lead_id: leadId, status }).unwrap();
+        if (availability !== 'none') {
+          await saveProposal({
+            lead_id: leadId,
+            message: '',
+            guest_count: guestCount,
+            food_cents: Math.round((Number(foodPrice) || 0) * 100),
+            drinks_cents: 0,
+            staff_cents: Math.round((Number(staffPrice) || 0) * 100),
+            delivery_cents: Math.round((Number(travelPrice) || 0) * 100),
+            equipment_cents: Math.round((Number(materialPrice) || 0) * 100),
+            other_cents: 0,
+            discount_cents: 0,
+            expires_at: validUntil || undefined,
+            details: { deposit_cents: Math.round((Number(deposit) || 0) * 100), availability },
+          }).unwrap();
+        }
+      } catch {
+        setError('Could not save your proposal. Please review the details and try again.');
+        return;
+      }
+    }
     setSent(true);
   };
 
@@ -73,8 +113,10 @@ export default function VendorProposalBuilderScreen() {
 
   return (
     <Screen
-      header={<Header title={t(b('Voorstel maken', 'Compose proposal'))} subtitle={t(eventNameForOccasion(lead.request.occasion))} back />}
-      footer={<Button label={t(b('Voorstel versturen', 'Send proposal'))} onPress={send} />}>
+      refreshing={leadQuery.isFetching && !leadQuery.isLoading}
+      onRefresh={() => { void leadQuery.refetch(); }}
+      header={<Header title={t(b('Voorstel maken', 'Compose proposal'))} subtitle={textOf(request, 'event_type', 'occasion') || 'Customer request'} back />}
+      footer={<Button label={t(b('Voorstel versturen', 'Send proposal'))} loading={saveProposalState.isLoading} onPress={send} />}>
       <Card>
         <SectionTitle title={t(b('Beschikbaarheid', 'Availability'))} />
         <Field>
@@ -88,7 +130,7 @@ export default function VendorProposalBuilderScreen() {
       </Card>
 
       <Card>
-        <SectionTitle title={t(b('Positiebasering per gast', 'Portion basis per guest'))} subtitle={`${lead.request.guests} ${t(b('gasten', 'guests'))}`} />
+        <SectionTitle title={t(b('Positiebasering per gast', 'Portion basis per guest'))} subtitle={`${guestCount} ${t(b('gasten', 'guests'))}`} />
         <Notice tone="info" body={t(b('Vermeld of het aanbod voldoende is voor alle gasten of een selectie per gast.', 'State whether the offer is enough for all guests or a selection per guest.'))} />
       </Card>
 
@@ -114,6 +156,7 @@ export default function VendorProposalBuilderScreen() {
       </Card>
 
       <Notice tone="warning" body={t(b('Onopgeloste allergie- of veiligheidseis blokkeert doorgaan. Onbekend is geen garantie.', 'An unresolved allergy or safety requirement blocks continuing. Unknown is not a guarantee.'))} />
+      {error ? <Notice tone="error" body={error} /> : null}
     </Screen>
   );
 }

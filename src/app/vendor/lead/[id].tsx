@@ -1,61 +1,89 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
+import { API_ENABLED, type ApiRecord, useGetLeadQuery, useSaveAvailabilityMutation } from '@/api';
+import { recordOf, textOf } from '@/api/mappers';
+import { useApp as useSession } from '@/state/store';
 import { Button } from '@/flow2/components/Button';
-import { Card } from '@/flow2/components/Card';
-import { ChipSingle } from '@/flow2/components/Chip';
 import { EmptyState } from '@/flow2/components/EmptyState';
-import { Field } from '@/flow2/components/Field';
 import { Header } from '@/flow2/components/Header';
 import { Notice } from '@/flow2/components/Notice';
-import { RequestSummary } from '@/flow2/components/RequestSummary';
 import { Screen } from '@/flow2/components/Screen';
 import { SectionTitle } from '@/flow2/components/SectionTitle';
-import { b, eventNameForOccasion } from '@/flow2/data/options';
-import { useApp } from '@/flow2/state/app';
+import { Card } from '@/flow2/components/Card';
+import { ChipSingle } from '@/flow2/components/Chip';
+import { Field } from '@/flow2/components/Field';
 
 export default function VendorLeadDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { t, leads, providers, setLeadStatus } = useApp();
-  const lead = leads.find((item) => item.id === id);
-  const provider = lead ? providers.find((item) => item.id === lead.providerId) : undefined;
+  const { session, restored } = useSession();
+  const enabled = API_ENABLED && restored && session.signedIn && session.mode === 'provider';
+  const query = useGetLeadQuery(id, { skip: !enabled || !id });
+  const [saveAvailability, availabilityState] = useSaveAvailabilityMutation();
+  const [status, setStatus] = useState('available');
+  const [error, setError] = useState('');
+  const lead = recordOf(query.data, 'lead') as ApiRecord | null;
+  const request = lead?.request && typeof lead.request === 'object' ? lead.request as ApiRecord : lead;
 
-  if (!lead) {
-    return (
-      <Screen header={<Header title={t(b('Aanvraag', 'Request'))} back />}>
-        <EmptyState icon="inbox" title={t(b('Niet gevonden', 'Not found'))} body={t(b('Deze aanvraag bestaat niet.', 'This request does not exist.'))} action={t(b('Terug', 'Back'))} onAction={() => router.back()} />
-      </Screen>
-    );
-  }
+  if (!enabled) return <Screen header={<Header title="Request" back />}><EmptyState icon="inbox" title="Vendor API unavailable" body="Sign in as a vendor and enable the API to load this request." /></Screen>;
+  if (query.isLoading) return <Screen header={<Header title="Request" back />} loading />;
+  if (query.isError || !lead || !request) return <Screen header={<Header title="Request" back />}><EmptyState icon="inbox" title="Request unavailable" body="The server did not return this request." action="Back" onAction={() => router.back()} /></Screen>;
+
+  const leadId = String(lead.lead_id ?? lead.id ?? id);
+  const title = textOf(lead, 'reference', 'request_reference') || textOf(request, 'event_type', 'occasion') || 'Customer request';
+
+  const save = async (next: string) => {
+    const availability = next === 'available' || next === 'partial' || next === 'maybe' || next === 'unavailable' ? next : 'available';
+    setError('');
+    try {
+      await saveAvailability({ lead_id: leadId, status: availability }).unwrap();
+      setStatus(availability);
+    } catch {
+      setError('Could not save your availability. Please try again.');
+    }
+  };
 
   return (
-    <Screen header={<Header title={provider?.name ?? lead.providerId} subtitle={t(eventNameForOccasion(lead.request.occasion))} back />}>
-      <Notice tone="info" body={t(b('De aanbieder neemt de aanvraag als uitgangspunt en bevestigt elk onderdeel. Een losse prijs is onvoldoende.', 'The provider starts from the request and confirms every item. A bare price is insufficient.'))} />
-
+    <Screen
+      refreshing={query.isFetching}
+      onRefresh={() => { void query.refetch(); }}
+      header={<Header title={title} subtitle={textOf(request, 'city') || ''} back />}>
+      <Notice tone="info" body="Customer contact details stay hidden until the customer consents to contact release." />
       <Card>
-        <SectionTitle title={t(b('Je beschikbaarheid', 'Your availability'))} subtitle={t(b('Volledig, gedeeltelijk, onder voorbehoud of niet beschikbaar.', 'Full, partial, conditional or unavailable.'))} />
+        <SectionTitle title="Your availability" subtitle="Choose an answer and save it to the server." />
         <Field>
           <ChipSingle
-            options={['full', 'partial', 'conditional', 'none']}
-            value={lead.proposal?.availability ?? 'full'}
-            onChange={(value) => setLeadStatus(lead.id, value === 'none' ? 'declined' : 'availability')}
-            labelOf={(value) => (value === 'full' ? t(b('Volledig', 'Full')) : value === 'partial' ? t(b('Gedeeltelijk', 'Partial')) : value === 'conditional' ? t(b('Onder voorbehoud', 'Conditional')) : t(b('Niet beschikbaar', 'Unavailable')))}
+            options={['available', 'partial', 'maybe', 'unavailable']}
+            value={status}
+            onChange={(value) => { void save(value); }}
+            labelOf={(value) => value === 'available' ? 'Available' : value === 'partial' ? 'Partly available' : value === 'maybe' ? 'Need to check' : 'Unavailable'}
           />
         </Field>
-        <Notice tone="warning" body={t(b('Bij een harde eis die niet kan worden gehaald (datum, capaciteit, cateringtijden, verplichte dieet) stopt de flow.', 'A hard requirement that cannot be met (date, capacity, catering hours, required diet) stops the flow.'))} />
+        {availabilityState.isLoading ? <Text>Saving…</Text> : null}
+        {error ? <Notice tone="error" body={error} /> : null}
       </Card>
-
-      <View style={styles.actions}>
-        <Button label={t(b('Maak een voorstel', 'Compose proposal'))} onPress={() => router.push(`/vendor/proposal/${lead.id}` as any)} />
-        <Button label={t(b('Afwijzen en sluiten', 'Decline and close'))} variant="secondary" onPress={() => { setLeadStatus(lead.id, 'declined'); router.back(); }} />
+      <View style={styles.details}>
+        <SectionTitle title="Request details" />
+        <Detail label="Event" value={textOf(request, 'event_type', 'occasion')} />
+        <Detail label="Date" value={textOf(request, 'event_date', 'date')} />
+        <Detail label="Guests" value={textOf(request, 'guest_count', 'guests')} />
+        <Detail label="City" value={textOf(request, 'city')} />
+        <Detail label="Cuisine" value={textOf(request, 'cuisine', 'cuisines')} />
+        <Detail label="Services" value={textOf(request, 'services', 'needs')} />
+        <Detail label="Description" value={textOf(request, 'description', 'details')} />
       </View>
-
-      <SectionTitle title={t(b('Aanvraag van de klant', 'Customer request'))} subtitle={t(b('Zelfde structuur als de klant invulde.', 'Same structure the customer filled in.'))} />
-      <RequestSummary request={lead.request} />
+      <View style={styles.actions}>
+        <Button label="Compose proposal" onPress={() => router.push(`/vendor/proposal/${leadId}` as any)} />
+        <Button label="Back to requests" variant="secondary" onPress={() => router.back()} />
+      </View>
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  actions: { gap: 10 },
-});
+function Detail({ label, value }: { label: string; value?: string }) {
+  if (!value) return null;
+  return <Text>{label}: {value}</Text>;
+}
+
+const styles = StyleSheet.create({ details: { gap: 8 }, actions: { gap: 10 } });

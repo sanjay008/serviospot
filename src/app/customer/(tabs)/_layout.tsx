@@ -5,12 +5,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, type IconName } from '@/flow2/components/Icon';
 import { palette } from '@/flow2/constants/theme';
 import { useType } from '@/hooks/use-type';
+import { useApp } from '@/flow2/state/app';
 
 function TabIcon({ name, color, size }: { name: IconName; color: string; size: number }) {
   return <Icon name={name} color={color} size={Math.max(16, size - 2)} />;
 }
 
 export default function CustomerTabsLayout() {
+  const { resetDraft } = useApp();
   const insets = useSafeAreaInsets();
   const type = useType();
   const bottom = Math.max(insets.bottom, Platform.OS === 'ios' ? 4 : 8);
@@ -64,7 +66,7 @@ export default function CustomerTabsLayout() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Start a new request"
-              onPress={() => router.push('/customer/request' as any)}
+              onPress={() => { resetDraft(); router.push('/customer/request' as any); }}
               android_ripple={{ color: 'transparent' }}
               style={[props.style, styles.createTab]}>
               <View style={styles.createButton}><TabIcon name="plus" color="#FFFFFF" size={27} /></View>

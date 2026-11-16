@@ -13,6 +13,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: palette.line,
     padding: 14,
-    gap: 8,
+    gap: 14,
   },
 });

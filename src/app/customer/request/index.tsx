@@ -2,9 +2,11 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { API_ENABLED, useSubmitRequestMutation } from '@/api';
 import { Button } from '@/flow2/components/Button';
 import { Card } from '@/flow2/components/Card';
 import { ChipSingle } from '@/flow2/components/Chip';
+import { DateField } from '@/flow2/components/DateField';
 import { Field } from '@/flow2/components/Field';
 import { Header } from '@/flow2/components/Header';
 import { Input } from '@/flow2/components/Input';
@@ -15,10 +17,11 @@ import { Screen } from '@/flow2/components/Screen';
 import { SectionTitle } from '@/flow2/components/SectionTitle';
 import { Stepper } from '@/flow2/components/Stepper';
 import { palette } from '@/flow2/constants/theme';
-import { leading, useType } from '@/hooks/use-type';
 import { b, COUNT_FIELDS, CUISINES, CUISINE_STYLES, DRINK_TYPES, FORMATS, FULFILMENTS, OCCASIONS, SETTINGS, TASKS, VENUE_TYPES, WARE, YES_NO, totalDishes } from '@/flow2/data/options';
 import type { Bilingual, RequestDraft } from '@/flow2/data/types';
 import { useApp } from '@/flow2/state/app';
+import { leading, useType } from '@/hooks/use-type';
+import { useApp as useSession } from '@/state/store';
 
 type Option = { value: string; label: Bilingual };
 
@@ -32,56 +35,36 @@ function Choice({ label, options, value, onChange, hint }: { label: string; opti
 }
 
 export default function RequestWizardScreen() {
-  const params = useLocalSearchParams<{ providerId?: string }>();
-  const { t, draft, patchDraft, patchCount, patchTask, submitDraft, providers } = useApp();
-  const type = useType();
+  const params = useLocalSearchParams<{ providerId?: string; fresh?: string }>();
+  const { t, draft, patchDraft, patchCount, patchTask, resetDraft, providers } = useApp();
+  const { session } = useSession();
+  const [submitRequest, submitState] = useSubmitRequestMutation();
   const [step, setStep] = useState(0);
   const [error, setError] = useState('');
   const provider = providers.find((item) => item.id === params.providerId);
 
   useEffect(() => {
+    resetDraft();
     if (params.providerId) patchDraft({ providerId: params.providerId });
-  }, [params.providerId, patchDraft]);
+  }, [params.providerId, params.fresh, patchDraft, resetDraft]);
 
-  const steps = [t(b('Evenement', 'Event')), t(b('Keuken & gerechten', 'Cuisine & dishes')), t(b('Bediening & logistiek', 'Staff & logistics')), t(b('Extra wensen', 'Extra wishes')), t(b('Controleren', 'Review'))];
-
-  const validate = (index: number): string => {
-    if (index === 0) {
-      if (!draft.eventName.trim()) return t(b('Vul een evenementnaam in.', 'Enter an event name.'));
-      if (draft.guests < 1) return t(b('Vul minimaal 1 gast in.', 'Enter at least 1 guest.'));
-      if (!draft.date) return t(b('Kies een evenementdatum.', 'Choose an event date.'));
-      if (!draft.city.trim()) return t(b('Vul een stad in.', 'Enter a city.'));
-      if (!/^[1-9][0-9]{3}\s?[A-Za-z]{2}$/.test(draft.postcode)) return t(b('Vul een geldige Nederlandse postcode in.', 'Enter a valid Dutch postcode.'));
-      if (draft.venueType === 'venue' && !draft.venueName.trim()) return t(b('Vul de naam van de locatie in.', 'Enter the venue name.'));
-      const eventDate = new Date(`${draft.date}T23:59:59`);
-      if (Number.isNaN(eventDate.getTime()) || eventDate.getTime() < Date.now()) return t(b('Kies een toekomstige evenementdatum.', 'Choose a future event date.'));
-    }
-    if (index === 1) {
-      if (!draft.cuisine) return t(b('Kies een keuken.', 'Choose a cuisine.'));
-      if (draft.cuisine === 'surinamese' && !draft.cuisineStyle) return t(b('Kies een Surinaamse keukenstijl.', 'Choose a Surinamese cuisine style.'));
-      if (totalDishes(draft.counts) < 1) return t(b('Kies minimaal één gerecht.', 'Choose at least one dish.'));
-    }
-    if (index === 2) {
-      if (draft.staff === 'yes') {
-        const startsAt = new Date(`${draft.date}T${draft.start}`);
-        const endsAt = new Date(`${draft.endDate}T${draft.end}`);
-        if (!draft.start || !draft.end || !draft.endDate || Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime()) || endsAt <= startsAt) {
-          return t(b('Vul geldige cateringtijden en een eindtijd na de starttijd in.', 'Enter valid catering times with an end time after the start time.'));
-        }
-      } else if (!draft.handoverTime.trim()) {
-        return t(b('Vul de bezorg- of ophaaltijd in.', 'Enter the delivery or pickup time.'));
-      }
-    }
-    if (index === 4 && !draft.consent) return t(b('Bevestig de samenvatting en het indicatieve karakter.', 'Confirm the summary and the indicative nature.'));
-    return '';
-  };
+  const steps = [t(b('Event', 'Event')), t(b('Cuisine', 'Cuisine')), t(b('Staff', 'Staff')), t(b('Extras', 'Extras')), t(b('Review', 'Review'))];
+  const stepTitles = [
+    t(b('Evenement', 'Event details')),
+    t(b('Keuken & gerechten', 'Cuisine & dishes')),
+    t(b('Bediening & logistiek', 'Staff & logistics')),
+    t(b('Extra wensen', 'Extra wishes')),
+    t(b('Controleren', 'Review & submit')),
+  ];
+  const stepSubtitles = [
+    t(b('Vertel waar en wanneer het evenement plaatsvindt.', 'Tell us where and when the event takes place.')),
+    t(b('Kies keuken, dieet en gerechten.', 'Choose cuisine, diet and dishes.')),
+    t(b('Geef bediening, tijden en servies door.', 'Share staffing, timing and tableware.')),
+    t(b('Drank, dieetwensen en budget.', 'Drinks, dietary needs and budget.')),
+    t(b('Controleer alles voordat je verstuurt.', 'Check everything before you send.')),
+  ];
 
   const next = () => {
-    const message = validate(step);
-    if (message) {
-      setError(message);
-      return;
-    }
     setError('');
     setStep((current) => Math.min(steps.length - 1, current + 1));
   };
@@ -95,18 +78,54 @@ export default function RequestWizardScreen() {
     setStep((current) => current - 1);
   };
 
-  const onSubmit = () => {
-    for (let index = 0; index < steps.length; index += 1) {
-      const message = validate(index);
-      if (message) {
-        setStep(index);
+  const onSubmit = async () => {
+    setError('');
+    if (API_ENABLED && session.signedIn && session.mode === 'customer') {
+      try {
+        const services = Object.entries(draft.tasks).filter(([, value]) => value === 'yes').map(([key]) => key);
+        const reply = await submitRequest({
+          event_type: draft.occasion || draft.eventName,
+          event_date: draft.date,
+          start_time: draft.start || undefined,
+          end_time: draft.end || undefined,
+          city: draft.city,
+          postcode: draft.postcode,
+          location: draft.venueName || undefined,
+          indoor_outdoor: draft.setting,
+          guest_count: draft.guests,
+          needs: ['food'],
+          cuisines: [draft.cuisine, draft.cuisineStyle].filter(Boolean),
+          dietary: [draft.vegetarian !== 'no' ? `vegetarian:${draft.vegetarian}` : '', draft.halal === 'yes' ? 'halal' : '', draft.vegan === 'yes' ? 'vegan' : '', draft.dietNotes].filter(Boolean),
+          services,
+          budget_total_cents: draft.budget ? Math.round(draft.budget * 100) : undefined,
+          description: [draft.comments, draft.access, draft.allergies && `Allergies: ${draft.allergies}`, draft.forbidden && `Avoid: ${draft.forbidden}`].filter(Boolean).join('\n') || undefined,
+          consent: draft.consent,
+          details: {
+            venue_type: draft.venueType, occasion: draft.occasion, cuisine_style: draft.cuisineStyle,
+            counts: draft.counts, serving_format: draft.format, staff: draft.staff, warming: draft.warm,
+            fulfilment: draft.fulfilment, handover_time: draft.handoverTime, tableware: draft.ware,
+            plates: draft.plates, cutlery: draft.cutlery, glasses: draft.glasses, end_date: draft.endDate,
+            drinks: draft.drinks, drink_type: draft.drinkType, drink_quantity: draft.drinkQuantity,
+            halal: draft.halal, vegan: draft.vegan, diet_notes: draft.dietNotes,
+          },
+        }).unwrap();
+        const requestId = String(reply.request_id ?? reply.id ?? '');
+        if (!requestId) {
+          router.replace('/customer/(tabs)/requests' as any);
+          return;
+        }
+        router.replace(`/customer/request/${requestId}` as any);
+        return;
+      } catch (failure) {
+        const message =
+          failure && typeof failure === 'object' && 'message' in failure && typeof (failure as { message: unknown }).message === 'string'
+            ? (failure as { message: string }).message
+            : t(b('De aanvraag kon niet worden verstuurd. Probeer het opnieuw.', 'The request could not be submitted. Please try again.'));
         setError(message);
         return;
       }
     }
-    setError('');
-    const submitted = submitDraft();
-    router.replace(`/customer/request/${submitted.id}` as any);
+    setError(t(b('Log in as a customer and connect to the API before submitting.', 'Log in as a customer and connect to the API before submitting.')));
   };
 
   const animalHidden = draft.vegetarian === 'full';
@@ -117,18 +136,28 @@ export default function RequestWizardScreen() {
       footer={
         <View style={styles.footerRow}>
           <Button label={t(b('Vorige', 'Back'))} variant="secondary" onPress={back} style={styles.footerBtn} />
-          {step < steps.length - 1 ? <Button label={t(b('Volgende', 'Next'))} onPress={next} style={styles.footerBtn} /> : <Button label={t(b('Aanvraag versturen', 'Submit request'))} onPress={onSubmit} style={styles.footerBtn} />}
+          {step < steps.length - 1 ? <Button label={t(b('Volgende', 'Next'))} onPress={next} style={styles.footerBtn} /> : <Button label={t(b('Aanvraag versturen', 'Submit request'))} loading={submitState.isLoading} onPress={onSubmit} style={styles.footerBtn} />}
         </View>
       }>
-      <ProgressSteps steps={steps} current={step} onPress={(index) => setStep(index)} />
-      <Text style={[styles.stepTitle, { fontSize: type.screenTitle }]}>{steps[step]}</Text>
+      <ProgressSteps
+        steps={steps}
+        current={step}
+        onPress={(index) => setStep(index)}
+        title={stepTitles[step]}
+        subtitle={stepSubtitles[step]}
+      />
       {error ? <Notice tone="error" body={error} /> : null}
 
       {step === 0 ? (
         <Card>
           <Input label={t(b('Evenementnaam', 'Event name'))} value={draft.eventName} onChangeText={(value) => patchDraft({ eventName: value })} placeholder={t(b('bijv. Verjaardag van Asha', 'e.g. Asha’s birthday'))} autoCapitalize="words" />
           <Stepper label={t(b('Aantal personen', 'Number of guests'))} value={draft.guests} onChange={(value) => patchDraft({ guests: value })} min={1} max={9999} />
-          <Input label={t(b('Evenementdatum', 'Event date'))} value={draft.date} onChangeText={(value) => patchDraft({ date: value })} placeholder="2026-11-14" autoCapitalize="none" hint={t(b('Formaat: JJJJ-MM-DD', 'Format: YYYY-MM-DD'))} />
+          <DateField
+            label={t(b('Evenementdatum', 'Event date'))}
+            value={draft.date}
+            onChange={(value) => patchDraft({ date: value })}
+            placeholder={t(b('Nog geen datum', 'No date selected'))}
+          />
           <Input label={t(b('Evenementstad', 'Event city'))} value={draft.city} onChangeText={(value) => patchDraft({ city: value })} autoCapitalize="words" />
           <Input label={t(b('Postcode', 'Postcode'))} value={draft.postcode} onChangeText={(value) => patchDraft({ postcode: value })} autoCapitalize="characters" />
           <Choice label={t(b('Evenementlocatie', 'Event location'))} options={VENUE_TYPES} value={draft.venueType} onChange={(value) => patchDraft({ venueType: value as RequestDraft['venueType'] })} />
@@ -223,7 +252,7 @@ export default function RequestWizardScreen() {
             <Input label={t(b('Overige dieetwensen', 'Other dietary needs'))} value={draft.dietNotes} onChangeText={(value) => patchDraft({ dietNotes: value })} multiline />
           </Card>
           <Card>
-            <Input label={t(b('Budget totaal (€ incl. btw), 0 = onbekend', 'Total budget (€ incl. VAT), 0 = unknown'))} value={String(draft.budget)} onChangeText={(value) => patchDraft({ budget: Number(value.replace(/[^0-9.]/g, '')) || 0 })} keyboardType="numeric" />
+            <Input label={t(b('Budget totaal (€ incl. btw), 0 = onbekend', 'Total budget (€ incl. VAT), 0 = unknown'))} value={draft.budget ? String(draft.budget) : ''} onChangeText={(value) => patchDraft({ budget: Number(value.replace(/[^0-9.]/g, '')) || 0 })} keyboardType="numeric" />
             <Input label={t(b('Opmerkingen / persoonlijke wensen', 'Comments / personal wishes'))} value={draft.comments} onChangeText={(value) => patchDraft({ comments: value })} multiline hint={t(b('Hier mag je specifieke gerechten noemen.', 'You may name specific dishes here.'))} />
           </Card>
         </>
@@ -254,7 +283,6 @@ function PressableRow({ checked, onPress, label }: { checked: boolean; onPress: 
 const styles = StyleSheet.create({
   footerRow: { flexDirection: 'row', gap: 10 },
   footerBtn: { flex: 1 },
-  stepTitle: { fontWeight: '700', color: palette.ink },
   countsCard: { paddingVertical: 10 },
   consentRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
   checkbox: { width: 24, height: 24, borderRadius: 7, borderWidth: 1.5, borderColor: palette.line, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.surface },

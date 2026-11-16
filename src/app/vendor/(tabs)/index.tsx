@@ -1,12 +1,16 @@
 import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { API_ENABLED, type ApiRecord, type VendorOffering, useGetVendorDashboardQuery, useGetVendorOfferingsQuery } from '@/api';
+import { rowsOf } from '@/api/mappers';
+import { Notice } from '@/components/Notice';
+import { useApp as useSession } from '@/state/store';
 import { Button } from '@/flow2/components/Button';
 import { Card } from '@/flow2/components/Card';
 import { Header } from '@/flow2/components/Header';
 import { Icon } from '@/flow2/components/Icon';
-import { PackageCard } from '@/flow2/components/PackageCard';
 import { Screen } from '@/flow2/components/Screen';
+import { OfferingSummaryCard } from '@/flow2/components/OfferingSummaryCard';
 import { palette } from '@/flow2/constants/theme';
 import { b } from '@/flow2/data/options';
 import { useApp } from '@/flow2/state/app';
@@ -34,33 +38,88 @@ function useDashboardType(): DashboardType {
 }
 
 export default function VendorDashboardScreen() {
-  const { t, onboarding, leads, packages } = useApp();
+  const { t, onboarding } = useApp();
+  const { session, restored } = useSession();
+  const skipHomeQueries = !API_ENABLED || !restored || !session.signedIn || session.mode !== 'provider';
+  const dashboardQuery = useGetVendorDashboardQuery(undefined, { skip: skipHomeQueries });
+  const offeringsQuery = useGetVendorOfferingsQuery(undefined, { skip: skipHomeQueries });
   const type = useDashboardType();
-  const newLeads = leads.filter((lead) => lead.status === 'invited' || lead.status === 'opened').length;
-  const sentProposals = leads.filter((lead) => lead.proposal).length;
+  const dashboard = dashboardRecord(dashboardQuery.data);
+  const dashboardNewLeads = dashboardCount(dashboard, ['new_leads', 'newLeads', 'new_requests', 'newRequests', 'new_leads_count']);
+  const dashboardSentProposals = dashboardCount(dashboard, ['sent_proposals', 'sentProposals', 'proposals_sent', 'proposalsSent', 'sent_proposals_count']);
+  const newLeads = dashboardNewLeads ?? 0;
+  const sentProposals = dashboardSentProposals ?? 0;
+  const offerings = rowsOf(offeringsQuery.data) as VendorOffering[];
 
   return (
     <Screen
+      loading={!skipHomeQueries && (dashboardQuery.isLoading || offeringsQuery.isLoading)}
+      refreshing={!skipHomeQueries && (dashboardQuery.isFetching || offeringsQuery.isFetching) && !(dashboardQuery.isLoading || offeringsQuery.isLoading)}
+      onRefresh={!skipHomeQueries ? () => { void Promise.all([dashboardQuery.refetch(), offeringsQuery.refetch()]); } : undefined}
       header={(
         <Header
           title={onboarding.profileName || t(b('Vendor dashboard', 'Vendor dashboard'))}
           subtitle={t(b('Overview van aanvragen en je pakketten', 'A clear overview of requests and your packages'))}
         />
       )}>
+      {dashboardQuery.isError ? <Notice tone="error" title="Dashboard unavailable" body={queryErrorMessage(dashboardQuery.error)} /> : null}
+      {offeringsQuery.isError ? <Notice tone="error" title="Offerings unavailable" body={queryErrorMessage(offeringsQuery.error)} /> : null}
       <View style={styles.metrics}>
         <MetricCard label={t(b('Nieuwe aanvragen', 'New requests'))} value={newLeads} icon="inbox" type={type} onPress={() => router.push({ pathname: '/vendor/leads', params: { view: 'requests' } } as any)} />
         <MetricCard label={t(b('Verstuurde voorstellen', 'Proposals sent'))} value={sentProposals} icon="send" type={type} onPress={() => router.push({ pathname: '/vendor/leads', params: { view: 'proposals' } } as any)} />
       </View>
 
       <View style={styles.sectionHeading}>
-        <Text style={[styles.sectionTitle, { fontSize: type.sectionTitle, lineHeight: type.sectionTitle + 6 }]}>{t(b('Jouw pakketten', 'Your packages'))}</Text>
+        <View style={styles.sectionTitleRow}>
+          <Text style={[styles.sectionTitle, { fontSize: type.sectionTitle, lineHeight: type.sectionTitle + 6 }]}>{t(b('Jouw pakketten', 'Your packages'))}</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Add package"
+            onPress={() => router.push('/vendor/add-package')}
+            style={({ pressed }) => [styles.addPackageButton, pressed && styles.addPackageButtonPressed]}>
+            <Icon name="plus" color="#FFFFFF" size={21} />
+          </Pressable>
+        </View>
         <Text style={[styles.sectionSub, { fontSize: type.sectionSub, lineHeight: type.sectionSub + 5 }]}>{t(b('Gerechten die je kunt aanbieden, en voor hoeveel mensen.', 'Dishes you can offer, and for how many people.'))}</Text>
       </View>
-      <Button label="+ Add package" onPress={() => router.push('/vendor/add-package')} />
 
-      {packages.map((item) => <PackageCard key={item.id} item={item} />)}
+      {offeringsQuery.isLoading ? <Text style={styles.emptyText}>Loading offerings…</Text> : null}
+      {offeringsQuery.isSuccess
+        ? offerings?.length
+          ? offerings.map((item) => <OfferingSummaryCard key={item.id} item={item} />)
+          : <Text style={styles.emptyText}>No offering returned by the server.</Text>
+        : null}
     </Screen>
   );
+}
+
+function dashboardRecord(data: ApiRecord | undefined): ApiRecord | undefined {
+  if (!data) return undefined;
+  for (const key of ['dashboard', 'counts', 'summary']) {
+    const value = data[key];
+    if (isApiRecord(value)) return value;
+  }
+  return data;
+}
+
+function isApiRecord(value: unknown): value is ApiRecord {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function dashboardCount(data: ApiRecord | undefined, keys: string[]): number | undefined {
+  for (const key of keys) {
+    const value = data?.[key];
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value))) return Number(value);
+  }
+  return undefined;
+}
+
+function queryErrorMessage(error: unknown): string {
+  if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
+    return error.message;
+  }
+  return 'Please try again later.';
 }
 
 function MetricCard({ label, value, icon, type, onPress }: { label: string; value: number; icon: 'inbox' | 'send'; type: DashboardType; onPress: () => void }) {
@@ -85,6 +144,10 @@ const styles = StyleSheet.create({
   metricLabel: { color: palette.muted, fontWeight: '600' },
   metricAction: { minHeight: 32, alignSelf: 'flex-start', paddingHorizontal: 0 },
   sectionHeading: { gap: 2 },
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitle: { color: palette.ink, fontWeight: '700' },
   sectionSub: { color: palette.muted },
+  addPackageButton: { width: 40, height: 40, borderRadius: 20, borderWidth: 2, borderColor: palette.accentDark, backgroundColor: palette.accent, alignItems: 'center', justifyContent: 'center' },
+  addPackageButtonPressed: { opacity: 0.82, transform: [{ scale: 0.96 }] },
+  emptyText: { color: palette.muted, width: '100%', textAlign: 'center', paddingVertical: 24, alignSelf: 'center' },
 });

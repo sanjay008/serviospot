@@ -1,12 +1,13 @@
 import { useCallback, useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View, Alert, type ListRenderItem } from 'react-native';
-import { Image } from 'expo-image';
-import * as ImagePicker from 'expo-image-picker';
+import { FlatList, Pressable, StyleSheet, Text, TextInput, View, type ListRenderItem } from 'react-native';
 
 import { Icon } from '@/flow2/components/Icon';
 import { palette } from '@/flow2/constants/theme';
 import type { FlowChatMessage } from '@/flow2/data/types';
-import { useApp } from '@/flow2/state/app';
+
+import { API_ENABLED, useGetMessagesQuery, useSendMessageMutation } from '@/api';
+import { rowsOf, textOf } from '@/api/mappers';
+import { useApp as useSession } from '@/state/store';
 import { leading, useType } from '@/hooks/use-type';
 
 type Props = {
@@ -20,50 +21,25 @@ function validTimestamp(timestamp: number) {
 }
 
 export function RealtimeChat({ conversationId, role, recipient }: Props) {
-  const { chatMessages, addChatMessage } = useApp();
+  const { session, restored } = useSession();
+  const enabled = API_ENABLED && restored && session.signedIn;
+  const messagesQuery = useGetMessagesQuery(conversationId, { skip: !enabled || !conversationId });
+  const [sendApiMessage, sendState] = useSendMessageMutation();
   const type = useType();
   const [draft, setDraft] = useState('');
-  const messages = useMemo(
-    () => [...(chatMessages[conversationId] ?? [])].sort((a, b) => validTimestamp(b.createdAt) - validTimestamp(a.createdAt)),
-    [chatMessages, conversationId],
-  );
+  const messages = useMemo(() => {
+    if (enabled) return rowsOf(messagesQuery.data).map((row, index) => ({ id: textOf(row, 'message_id', 'id') || String(index), text: textOf(row, 'message', 'text', 'body') || '', createdAt: Date.parse(textOf(row, 'created_at', 'sent_at') || '') || 0, sender: (textOf(row, 'sender_role', 'role') === role ? role : role === 'customer' ? 'vendor' : 'customer') as FlowChatMessage['sender'] })).sort((a, b) => b.createdAt - a.createdAt);
+    return [];
+  }, [enabled, messagesQuery.data, role]);
 
-  // Socket subscriptions are temporarily disabled while investigating APK crashes.
 
   const sendMessage = useCallback(() => {
     const text = draft.trim();
-    if (!text) return;
-    const id = `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    const createdAt = Date.now();
-    addChatMessage(conversationId, { id, text, createdAt, sender: role });
-    // Keep the design interactive with local-only messages until chat networking is restored.
-    setDraft('');
-  }, [addChatMessage, conversationId, draft, role]);
+    if (!text || !enabled) return;
+    void sendApiMessage({ conversation_id: conversationId, message: text }).unwrap().then(() => { setDraft(''); }).catch(() => undefined);
+  }, [conversationId, draft, enabled, sendApiMessage]);
 
-  const sendPhoto = useCallback(async () => {
-    try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permission.granted) {
-        Alert.alert('Photo access needed', 'Allow photo access to share an image in this chat.');
-        return;
-      }
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        allowsEditing: false,
-        quality: 0.8,
-      });
-      if (result.canceled || !result.assets[0]) return;
-      addChatMessage(conversationId, {
-        id: `local-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        text: '',
-        imageUri: result.assets[0].uri,
-        createdAt: Date.now(),
-        sender: role,
-      });
-    } catch {
-      Alert.alert('Could not open photos', 'Please try again.');
-    }
-  }, [addChatMessage, conversationId, role]);
+
 
   const renderMessage: ListRenderItem<FlowChatMessage> = ({ item }) => {
     const mine = item.sender === role;
@@ -71,7 +47,6 @@ export function RealtimeChat({ conversationId, role, recipient }: Props) {
     return (
       <View style={[styles.messageRow, mine ? styles.mineRow : styles.theirsRow]}>
         <View style={[styles.bubble, mine ? styles.mineBubble : styles.theirsBubble]}>
-          {item.imageUri ? <Image source={{ uri: item.imageUri }} contentFit="cover" style={styles.messageImage} /> : null}
           {item.text ? <Text style={[styles.messageText, { fontSize: type.body, lineHeight: leading(type.body, 6) }]}>{item.text}</Text> : null}
           <Text style={[styles.time, { fontSize: type.micro }, mine ? styles.mineTime : styles.theirsTime]}>
             {date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
@@ -100,9 +75,6 @@ export function RealtimeChat({ conversationId, role, recipient }: Props) {
         )}
       />
       <View style={styles.toolbar}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Add a photo" onPress={() => void sendPhoto()} style={styles.photoButton}>
-          <Icon name="photo" color={palette.accent} size={21} />
-        </Pressable>
         <TextInput
           accessibilityLabel="Message"
           value={draft}
@@ -119,9 +91,9 @@ export function RealtimeChat({ conversationId, role, recipient }: Props) {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Send message"
-          disabled={!draft.trim()}
+          disabled={!draft.trim() || !enabled || sendState.isLoading}
           onPress={sendMessage}
-          style={[styles.sendButton, !draft.trim() && styles.sendDisabled]}>
+          style={[styles.sendButton, (!draft.trim() || !enabled) && styles.sendDisabled]}>
           <Icon name="send" color="#FFFFFF" size={18} />
         </Pressable>
       </View>
@@ -143,7 +115,6 @@ const styles = StyleSheet.create({
   bubble: { maxWidth: '84%', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 8 },
   mineBubble: { backgroundColor: palette.accentSoft, borderBottomRightRadius: 5 },
   theirsBubble: { backgroundColor: '#FFFFFF', borderBottomLeftRadius: 5 },
-  messageImage: { width: 220, height: 160, borderRadius: 10, marginBottom: 4 },
   messageText: { color: palette.ink },
   time: { alignSelf: 'flex-end', marginTop: 3 },
   mineTime: { color: palette.accentDark },

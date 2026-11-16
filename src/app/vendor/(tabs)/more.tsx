@@ -16,8 +16,8 @@ import { useApp as useSession } from '@/state/store';
 import { useType } from '@/hooks/use-type';
 
 export default function VendorMoreTab() {
-  const { onboarding, packages } = useFlow2();
-  const { signOut } = useSession();
+  const { onboarding } = useFlow2();
+  const { signOut, deleteAccount } = useSession();
   const type = useType();
   return (
     <Screen header={<Header title="Vendor profile" subtitle={onboarding.profileName || 'Your public profile'} right={(
@@ -35,12 +35,12 @@ export default function VendorMoreTab() {
       <SectionTitle title="Your business" />
       <Card style={styles.list}>
         <ListRow icon="verified" title="Onboarding" subtitle={onboarding.status === 'approved' ? 'Approved · profile is visible to customers' : onboarding.status} />
-        <ListRow icon="box" title="Packages" subtitle={`${packages.length} packages`} />
+        <ListRow icon="box" title="Packages" subtitle="Server offerings" />
         <ListRow icon="inbox" title="Service area" subtitle={`${onboarding.city || 'Set your city'} · ${onboarding.radius} km`} />
       </Card>
       <ProfileSettings
         onLogout={() => { signOut(); router.replace('/'); }}
-        onDeleteAccount={() => { signOut(); router.replace('/'); }}
+        onDeleteAccount={async () => { const result = await deleteAccount(); if (result.ok) router.replace('/'); }}
       />
     </Screen>
   );

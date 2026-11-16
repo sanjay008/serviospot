@@ -16,6 +16,6 @@ export function Field({ label, hint, children }: { label?: string; hint?: string
 
 const styles = StyleSheet.create({
   wrap: { gap: 8 },
-  label: { fontWeight: '700', color: palette.ink },
+  label: { fontWeight: '600', color: '#5C5772' },
   hint: { color: palette.muted },
 });

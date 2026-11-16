@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, RefreshControl, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, RefreshControl, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { palette } from '@/constants/theme';
@@ -13,16 +12,20 @@ export function Screen({
   tab,
   refresh,
   onRefresh,
+  loading = false,
+  refreshing = false,
   canvas,
   style,
 }: {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   header?: React.ReactNode;
   footer?: React.ReactNode;
   scroll?: boolean;
   tab?: boolean;
   refresh?: boolean;
   onRefresh?: () => void;
+  loading?: boolean;
+  refreshing?: boolean;
   canvas?: string;
   style?: StyleProp<ViewStyle>;
 }) {
@@ -31,21 +34,11 @@ export function Screen({
   const bottom = footer ? 20 : tab ? 24 : insets.bottom + 24;
   const frame = { width: '100%' as const, maxWidth, alignSelf: 'center' as const };
   const topSpace = width < 360 ? 12 : width >= 768 ? 20 : 16;
-  const [refreshing, setRefreshing] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => () => {
-    if (timer.current) clearTimeout(timer.current);
-  }, []);
-
-  const handleRefresh = useCallback(() => {
-    setRefreshing(true);
-    onRefresh?.();
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => setRefreshing(false), 700);
-  }, [onRefresh]);
-
-  const body = scroll ? (
+  const body = loading ? (
+    <View style={[styles.flex, styles.body, styles.loader, { paddingHorizontal: gutter }]}>
+      <ActivityIndicator size="large" color={palette.accent} accessibilityLabel="Loading" />
+    </View>
+  ) : scroll ? (
     <ScrollView
       style={[styles.flex, styles.body]}
       contentContainerStyle={{ paddingBottom: bottom, flexGrow: 1 }}
@@ -53,10 +46,10 @@ export function Screen({
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="interactive"
       showsVerticalScrollIndicator={false}
-      alwaysBounceVertical={!!refresh}
+      alwaysBounceVertical={!!(refresh || onRefresh)}
       refreshControl={
-        refresh ? (
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={palette.accent} colors={[palette.accent]} progressBackgroundColor={palette.surface} />
+        refresh || onRefresh ? (
+          <RefreshControl refreshing={refreshing} onRefresh={() => onRefresh?.()} tintColor={palette.accent} colors={[palette.accent]} progressBackgroundColor={palette.surface} />
         ) : undefined
       }>
       <View style={[styles.content, frame, { paddingHorizontal: gutter, paddingTop: topSpace }, style]}>{children}</View>
@@ -84,5 +77,6 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   body: { backgroundColor: palette.bg },
   content: { gap: 12 },
+  loader: { alignItems: 'center', justifyContent: 'center' },
   footer: { paddingTop: 12, backgroundColor: palette.surface, borderTopWidth: 1, borderTopColor: palette.line },
 });

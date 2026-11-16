@@ -209,8 +209,12 @@ export default function VendorOnboardingScreen() {
           {step < steps.length - 1 ? <Button label={step === 3 && !optionsReady ? 'Loading options…' : 'Next'} onPress={next} loading={step === 3 && !optionsReady} style={styles.footerBtn} /> : <Button label={saving ? 'Saving…' : 'Confirm & submit'} onPress={() => void submit()} loading={saving} style={styles.footerBtn} />}
         </View>
       }>
-      <ProgressSteps steps={steps} current={step} onPress={(index) => { setError(''); setErrorStep(null); setStep(index); }} />
-      <Text style={[styles.stepTitle, { fontSize: type.screenTitle }]}>{steps[step]}</Text>
+      <ProgressSteps
+        steps={steps}
+        current={step}
+        onPress={(index) => { setError(''); setErrorStep(null); setStep(index); }}
+        title={steps[step]}
+      />
       {error && errorStep === step ? <Notice tone="error" body={error} /> : null}
 
       {step === 0 ? (
@@ -367,7 +371,6 @@ const styles = StyleSheet.create({
   accountFields: { gap: 14 },
   footerRow: { flexDirection: 'row', gap: 10 },
   footerBtn: { flex: 1 },
-  stepTitle: { fontWeight: '700', color: palette.ink },
   paragraph: { color: palette.ink },
   row: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, paddingVertical: 4 },
   rowLabel: { flex: 1, color: palette.muted },
