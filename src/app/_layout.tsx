@@ -3,6 +3,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Provider } from 'react-redux';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { BrandSplash } from '@/components/BrandSplash';
 import { NotificationSetup } from '@/components/NotificationSetup';
@@ -31,16 +32,18 @@ export default function RootLayout() {
 
   return (
     <Provider store={store}>
-      <AppProvider>
-        <StatusBar style="dark" />
-        <BootGate>
-          <Flow2Provider>
-            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: palette.bg } }} />
-            <NotificationSetup />
-            <RequiredVendorOnboardingModal />
-          </Flow2Provider>
-        </BootGate>
-      </AppProvider>
+      <SafeAreaProvider>
+        <AppProvider>
+          <StatusBar style="dark" />
+          <BootGate>
+            <Flow2Provider>
+              <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: palette.bg } }} />
+              <NotificationSetup />
+              <RequiredVendorOnboardingModal />
+            </Flow2Provider>
+          </BootGate>
+        </AppProvider>
+      </SafeAreaProvider>
     </Provider>
   );
 }

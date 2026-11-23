@@ -93,12 +93,13 @@ type Store = {
   setMessages: (conversationId: string, messages: ChatMessage[]) => void;
   /** Adds one live chat message without replacing the thread. */
   receiveChat: (conversationId: string, raw: ApiRecord) => void;
-  startSession: (account: { name: string; email: string; phone: string; mode: 'customer' | 'provider'; hasProviderProfile: boolean; vendorProfileComplete?: 0 | 1; authResponse?: Record<string, unknown> }) => '/customer' | '/vendor';
+  startSession: (account: { name: string; email: string; phone: string; mode: 'customer' | 'provider'; hasProviderProfile: boolean; accountId?: string | number; vendorProfileComplete?: 0 | 1; authResponse?: Record<string, unknown> }) => '/customer' | '/vendor';
   verifyEmail: () => Promise<Result>;
   verifyPhone: () => Promise<Result>;
   /** Clears the saved login on this phone. The app stays signed in until this runs. */
   signOut: () => void;
   deleteAccount: () => Promise<Result>;
+  exportAccount: () => Promise<Result>;
   setMode: (mode: 'customer' | 'provider') => void;
   setPlan: (planId: PlanId, billing: Session['billing']) => Promise<Result>;
   updateProvider: (patch: Partial<Provider>) => void;
@@ -332,6 +333,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           phone: account.phone,
           mode: account.mode,
           hasProviderProfile: account.hasProviderProfile,
+          ...(account.accountId !== undefined ? { accountId: account.accountId } : {}),
           vendorProfileComplete: account.vendorProfileComplete ?? (account.hasProviderProfile ? 1 : 0),
           ...(account.authResponse ? { authResponse: account.authResponse } : {}),
           planId: account.hasProviderProfile ? 'gold' : 'free',
@@ -377,6 +379,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setDays({});
         return { ok: true };
       },
+      exportAccount: async () => settled(await apiActions.exportAccount()),
       setMode: (mode) => setSession((current) => ({ ...current, mode })),
       setPlan: async (planId, billing) => {
         const result = await settled(await apiActions.subscription(planId));

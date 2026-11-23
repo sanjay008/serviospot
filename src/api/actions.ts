@@ -193,12 +193,22 @@ export const apiActions = {
         body: review.text,
       }),
     ),
-  sendMessage: (conversationId: string, text: string) => call(chatApi.endpoints.sendMessage.initiate({ conversation_id: conversationId, message: text })),
+  sendMessage: (conversationId: string, text: string) => call(chatApi.endpoints.sendMessage.initiate({ conversation_id: conversationId, body: text, message: text })),
 
   subscription: (plan: PlanId) => call(vendorApi.endpoints.saveSubscription.initiate(plan)),
   vendorServices: (services: string[]) => call(vendorApi.endpoints.saveVendorServices.initiate(services)),
-  vendorProfile: (provider: Partial<Provider>) =>
-    call(vendorApi.endpoints.updateVendorProfile.initiate({ name: provider.name, city: provider.city, story: provider.description, logo: provider.photo })),
+  vendorProfile: (provider: Partial<Provider> & { businessName?: string; fromPrice?: string | number }) =>
+    call(
+      vendorApi.endpoints.updateVendorProfile.initiate({
+        name: provider.name,
+        city: provider.city,
+        story: provider.description,
+        logo: provider.photo,
+        photo: provider.photo,
+        business_name: provider.businessName,
+        from_price: provider.fromPrice,
+      }),
+    ),
   verification: (kvk: string, vat: string, legalName: string) =>
     call(vendorApi.endpoints.saveVerification.initiate({ kvk_number: kvk, vat_number: vat || undefined, legal_name: legalName })),
   availability: (leadId: string, status: Lead['status'], note: string) => {
@@ -234,7 +244,8 @@ export const apiActions = {
         ? vendorApi.endpoints.saveOffering.initiate(offeringBody(offering))
         : vendorApi.endpoints.updateOffering.initiate({ ...offeringBody(offering), offering_id: offering.id }),
     ),
-  offeringActive: (id: string, active: boolean) => call(vendorApi.endpoints.setOfferingActive.initiate({ offering_id: id, active })),
+  offeringActive: (id: string, active: boolean) =>
+    call(vendorApi.endpoints.setOfferingActive.initiate({ offering_id: id, is_active: active })),
   preferences: (prefs: LeadPreferences) =>
     call(
       vendorApi.endpoints.savePreferences.initiate({
@@ -245,6 +256,8 @@ export const apiActions = {
         radius_km: prefs.radiusKm,
       }),
     ),
+  updateMe: (body: { full_name?: string; email?: string; phone?: string; country_code?: string; photo?: string }) =>
+    call(accountApi.endpoints.updateMe.initiate(body)),
   calendar: (date: string, status: DayStatus) => call(vendorApi.endpoints.saveCalendar.initiate({ date, status })),
   template: (template: ProposalTemplate) => call(vendorApi.endpoints.saveTemplate.initiate({ name: template.name, body: { ...template, id: template.id || undefined } })),
   deleteTemplate: (id: string) => call(vendorApi.endpoints.deleteTemplate.initiate(id)),

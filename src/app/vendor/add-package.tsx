@@ -72,6 +72,8 @@ export default function AddPackageScreen() {
         category,
         description: `Serves ${people} people. Includes: ${dishes.join(', ')}`,
         price_cents: Math.round(amount * 100),
+        price_type: 'per_person',
+        is_active: true,
       }).unwrap();
       router.back();
     } catch (cause) {

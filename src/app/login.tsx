@@ -1,5 +1,5 @@
 import { Redirect, router, useLocalSearchParams, type Href } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { useLoginMutation, type ApiFailure, type ApiRecord } from '@/api';
@@ -34,6 +34,12 @@ export default function LoginScreen() {
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [resetNote, setResetNote] = useState(false);
 
+  useEffect(() => {
+    if (__DEV__ && signedInOnOpen && session.signedIn) {
+      console.log(`[AUTH FLOW] Password login skipped: saved session is active (role=${session.mode}).`);
+    }
+  }, [session.signedIn, session.mode, signedInOnOpen]);
+
   const submit = async () => {
     const cleanEmail = email.trim().toLowerCase();
     const nextErrors = {
@@ -44,6 +50,7 @@ export default function LoginScreen() {
     if (Object.values(nextErrors).some(Boolean)) return;
     setError('');
     try {
+      if (__DEV__) console.log(`[AUTH FLOW] Password login started (role=${vendor ? 'vendor' : 'customer'}).`);
       const reply = await login({ email: cleanEmail, password, role: vendor ? 'vendor' : 'customer' }).unwrap();
       const user = reply.user && typeof reply.user === 'object' ? (reply.user as ApiRecord) : reply;
       const destination = startSession({

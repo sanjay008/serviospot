@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     gap: 14,
     backgroundColor: palette.surface,
     borderWidth: 1,
-    borderColor: '#E4E0F0',
+    borderColor: palette.line,
     borderRadius: 18,
     paddingHorizontal: 12,
     paddingTop: 14,
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     top: 13,
     height: 2,
     borderRadius: 1,
-    backgroundColor: '#DDD9E8',
+    backgroundColor: palette.lineStrong,
   },
   completedTrack: {
     position: 'absolute',
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: palette.surface,
     borderWidth: 1.5,
-    borderColor: '#C9C4D8',
+    borderColor: palette.lineStrong,
   },
   circleDone: {
     backgroundColor: palette.accent,
@@ -178,10 +178,10 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   circleTextOn: {
-    color: '#FFFFFF',
+    color: palette.white,
   },
   stepLabel: {
-    color: '#9A95AB',
+    color: palette.mutedSoft,
     fontWeight: '600',
     textAlign: 'center',
     width: '100%',
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   header: {
     gap: 4,
     borderTopWidth: 1,
-    borderTopColor: '#EEEAF6',
+    borderTopColor: palette.line,
     paddingTop: 12,
   },
   meta: {

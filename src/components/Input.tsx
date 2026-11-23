@@ -45,7 +45,7 @@ export function Input({
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor="#8A847C"
+        placeholderTextColor={palette.mutedSoft}
         multiline={multiline}
         keyboardType={keyboardType}
         secureTextEntry={secure ? hidden : false}
@@ -54,7 +54,7 @@ export function Input({
         style={[styles.input, { fontSize: type.input }, multiline && styles.multi, error ? styles.bad : null]}
         textAlignVertical={multiline ? 'top' : 'center'}
       />
-      {error ? <Text style={[styles.error, { fontSize: type.caption, lineHeight: leading(type.caption, 5) }]}>{error}</Text> : hint ? <Text style={[styles.hint, { fontSize: type.caption, lineHeight: leading(type.caption, 5) }]}>{hint}</Text> : null}
+      {error ? <Text style={[styles.error, { fontSize: type.helper, lineHeight: leading(type.helper, 4) }]}>{error}</Text> : hint ? <Text style={[styles.hint, { fontSize: type.helper, lineHeight: leading(type.helper, 4) }]}>{hint}</Text> : null}
     </View>
   );
 }
@@ -62,19 +62,19 @@ export function Input({
 const styles = StyleSheet.create({
   wrap: { gap: 6 },
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  label: { fontWeight: '700', color: palette.ink },
-  toggle: { fontWeight: '600', color: palette.accentDark },
+  label: { fontWeight: '600', color: palette.inkSecondary },
+  toggle: { fontWeight: '700', color: palette.accentDark },
   input: {
-    minHeight: 48,
+    minHeight: 52,
     borderRadius: 12,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: palette.line,
     backgroundColor: palette.surface,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     color: palette.ink,
   },
-  multi: { minHeight: 110, paddingTop: 12 },
-  bad: { borderColor: palette.danger },
-  error: { color: palette.danger },
+  multi: { minHeight: 112, paddingTop: 14 },
+  bad: { borderColor: palette.danger, backgroundColor: '#FFF8F8' },
+  error: { color: palette.danger, fontWeight: '600' },
   hint: { color: palette.muted },
 });

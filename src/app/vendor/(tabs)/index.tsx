@@ -45,8 +45,8 @@ export default function VendorDashboardScreen() {
   const offeringsQuery = useGetVendorOfferingsQuery(undefined, { skip: skipHomeQueries });
   const type = useDashboardType();
   const dashboard = dashboardRecord(dashboardQuery.data);
-  const dashboardNewLeads = dashboardCount(dashboard, ['new_leads', 'newLeads', 'new_requests', 'newRequests', 'new_leads_count']);
-  const dashboardSentProposals = dashboardCount(dashboard, ['sent_proposals', 'sentProposals', 'proposals_sent', 'proposalsSent', 'sent_proposals_count']);
+  const dashboardNewLeads = dashboardCount(dashboard, ['to_answer', 'new_leads', 'newLeads', 'new_requests', 'newRequests', 'new_leads_count']);
+  const dashboardSentProposals = dashboardCount(dashboard, ['prices_sent', 'sent_proposals', 'sentProposals', 'proposals_sent', 'proposalsSent', 'sent_proposals_count']);
   const newLeads = dashboardNewLeads ?? 0;
   const sentProposals = dashboardSentProposals ?? 0;
   const offerings = rowsOf(offeringsQuery.data) as VendorOffering[];

@@ -6,6 +6,7 @@ import type {
   CalendarBody,
   Id,
   OfferingBody,
+  MollieCheckoutBody,
   PlanName,
   PreferencesBody,
   ProposalBody,
@@ -73,6 +74,13 @@ export const vendorApi = api.injectEndpoints({
       query: (plan) => ({ path: 'serviospot/saveSubscription', body: { plan } }),
       invalidatesTags: ['Subscription', 'Me', 'Dashboard'],
     }),
+    createMolliePayment: build.mutation<ApiRecord, MollieCheckoutBody>({
+      query: (body) => ({ path: 'serviospot/createMolliePayment', body }),
+    }),
+    getMolliePayment: build.mutation<ApiRecord, { payment_id: Id }>({
+      query: (body) => ({ path: 'serviospot/getMolliePayment', body }),
+      invalidatesTags: ['Subscription', 'Me', 'Dashboard'],
+    }),
     getInvoices: build.query<ApiList, void>({
       query: () => ({ path: 'serviospot/getInvoices' }),
       providesTags: ['Subscription'],
@@ -125,7 +133,7 @@ export const vendorApi = api.injectEndpoints({
       query: (body) => ({ path: 'serviospot/updateOffering', body }),
       invalidatesTags: ['VendorOffering'],
     }),
-    setOfferingActive: build.mutation<ApiRecord, { offering_id: Id; active: boolean }>({
+    setOfferingActive: build.mutation<ApiRecord, { offering_id: Id; is_active: boolean }>({
       query: (body) => ({ path: 'serviospot/setOfferingActive', body }),
       invalidatesTags: ['VendorOffering'],
     }),
@@ -189,6 +197,8 @@ export const {
   useSaveVendorOnboardingMutation,
   useGetSubscriptionQuery,
   useSaveSubscriptionMutation,
+  useCreateMolliePaymentMutation,
+  useGetMolliePaymentMutation,
   useGetInvoicesQuery,
   useSaveVendorServicesMutation,
   useGetVendorDashboardQuery,

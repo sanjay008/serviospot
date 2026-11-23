@@ -1,22 +1,44 @@
-import { Redirect, router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View, type TextInputProps } from 'react-native';
-import { CodeField, Cursor, useBlurOnFulfill, useClearByFocusCell } from 'react-native-confirmation-code-field';
+import { Redirect, router, useLocalSearchParams } from "expo-router";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  type TextInputProps,
+} from "react-native";
+import {
+  CodeField,
+  Cursor,
+  useBlurOnFulfill,
+  useClearByFocusCell,
+} from "react-native-confirmation-code-field";
 
-import { COMPANY_LOGIN, setAuthToken, useCompanyLoginMutation, useLoginNewMutation, useResendOtpMutation, useVerifyOtpNewMutation, type ApiFailure, type OtpStartReply, type OtpVerifyReply } from '@/api';
-import { CountryCodePicker } from '@/components/CountryCodePicker';
-import { Button } from '@/flow2/components/Button';
-import { Card } from '@/flow2/components/Card';
-import { Input } from '@/flow2/components/Input';
-import { Notice } from '@/flow2/components/Notice';
-import { Screen } from '@/flow2/components/Screen';
-import { palette } from '@/flow2/constants/theme';
-import { useApp as useFlowApp } from '@/flow2/state/app';
-import { homeFor, useApp as useSessionApp } from '@/state/store';
-import { leading, useType } from '@/hooks/use-type';
+import {
+  COMPANY_LOGIN,
+  setAuthToken,
+  useCompanyLoginMutation,
+  useLoginNewMutation,
+  useResendOtpMutation,
+  useVerifyOtpNewMutation,
+  type ApiFailure,
+  type OtpStartReply,
+  type OtpVerifyReply,
+} from "@/api";
+import { CountryCodePicker } from "@/components/CountryCodePicker";
+import { Button } from "@/flow2/components/Button";
+import { Card } from "@/flow2/components/Card";
+import { Input } from "@/flow2/components/Input";
+import { Notice } from "@/flow2/components/Notice";
+import { Screen } from "@/flow2/components/Screen";
+import { palette } from "@/flow2/constants/theme";
+import { useApp as useFlowApp } from "@/flow2/state/app";
+import { homeFor, useApp as useSessionApp } from "@/state/store";
+import { leading, useType } from "@/hooks/use-type";
 
-type AuthRole = 'customer' | 'vendor';
-type IdentityMethod = 'whatsapp' | 'email';
+type AuthRole = "customer" | "vendor";
+type IdentityMethod = "whatsapp" | "email";
 type PendingOtp = {
   userId: string | number;
   verifyToken: string;
@@ -29,7 +51,10 @@ type PendingOtp = {
   profileComplete?: boolean;
 };
 const OTP_CELL_COUNT = 6;
-const OTP_AUTOCOMPLETE = Platform.select<TextInputProps['autoComplete']>({ android: 'sms-otp', default: 'one-time-code' });
+const OTP_AUTOCOMPLETE = Platform.select<TextInputProps["autoComplete"]>({
+  android: "sms-otp",
+  default: "one-time-code",
+});
 
 function errorMessage(error: unknown, fallback: string) {
   const apiError = error as ApiFailure | undefined;
@@ -37,74 +62,152 @@ function errorMessage(error: unknown, fallback: string) {
 }
 
 function userRecord(reply: OtpVerifyReply) {
-  return reply.user && typeof reply.user === 'object' ? reply.user : {};
+  const data =
+    reply.data && typeof reply.data === "object" && !Array.isArray(reply.data)
+      ? (reply.data as Record<string, unknown>)
+      : undefined;
+  const user = reply.user ?? data?.user;
+  return user && typeof user === "object" && !Array.isArray(user)
+    ? (user as OtpVerifyReply["user"])
+    : {};
+}
+
+function accountIdFromVerifyReply(
+  reply: OtpVerifyReply,
+  user: OtpVerifyReply["user"],
+): string | number | undefined {
+  const data =
+    reply.data && typeof reply.data === "object" && !Array.isArray(reply.data)
+      ? (reply.data as Record<string, unknown>)
+      : undefined;
+  const candidates = [
+    user.id,
+    user.user_id,
+    user.account_id,
+    reply.id,
+    reply.user_id,
+    reply.account_id,
+    data?.id,
+    data?.user_id,
+    data?.account_id,
+  ];
+  const value = candidates.find(
+    (item) =>
+      (typeof item === "string" && item.trim() !== "") ||
+      typeof item === "number",
+  );
+  return typeof value === "string" || typeof value === "number"
+    ? value
+    : undefined;
 }
 
 function flag(value: unknown): boolean | undefined {
-  if (value === true || value === 1 || value === '1') return true;
-  if (value === false || value === 0 || value === '0') return false;
+  if (value === true || value === 1 || value === "1") return true;
+  if (value === false || value === 0 || value === "0") return false;
   return undefined;
 }
 
 export default function CustomerAuthScreen() {
   const params = useLocalSearchParams<{ role?: string }>();
   const type = useType();
-  const { role: selectedRole, setRole, setCustomerAccount, patchOnboarding } = useFlowApp();
-  const role: AuthRole = params.role === 'vendor' ? 'vendor' : params.role === 'customer' ? 'customer' : selectedRole;
+  const {
+    role: selectedRole,
+    setRole,
+    setCustomerAccount,
+    patchOnboarding,
+  } = useFlowApp();
+  const role: AuthRole =
+    params.role === "vendor"
+      ? "vendor"
+      : params.role === "customer"
+        ? "customer"
+        : selectedRole;
   const { session, restored, startSession } = useSessionApp();
-  const [method, setMethod] = useState<IdentityMethod>('whatsapp');
-  const [countryCode, setCountryCode] = useState('31');
-  const [countryName, setCountryName] = useState('Netherlands');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
+  const [signedInOnOpen] = useState(session.signedIn);
+  const [method, setMethod] = useState<IdentityMethod>("whatsapp");
+  const [countryCode, setCountryCode] = useState("31");
+  const [countryName, setCountryName] = useState("Netherlands");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
   const [pending, setPending] = useState<PendingOtp | null>(null);
-  const [error, setError] = useState('');
-  const [notice, setNotice] = useState('');
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [resends, setResends] = useState(0);
   const otpRef = useBlurOnFulfill({ value: otp, cellCount: OTP_CELL_COUNT });
-  const [otpFieldProps, getCellOnLayoutHandler] = useClearByFocusCell({ value: otp, setValue: setOtp });
+  const [otpFieldProps, getCellOnLayoutHandler] = useClearByFocusCell({
+    value: otp,
+    setValue: setOtp,
+  });
   const [companyLogin, { isLoading: connecting }] = useCompanyLoginMutation();
   const [loginNew, { isLoading: starting }] = useLoginNewMutation();
   const [verifyOtp, { isLoading: verifying }] = useVerifyOtpNewMutation();
   const [resendOtp, { isLoading: resending }] = useResendOtpMutation();
 
-  const phoneDigits = useMemo(() => phone.replace(/\D/g, '').replace(/^0(?=\d)/, ''), [phone]);
+  const phoneDigits = useMemo(
+    () => phone.replace(/\D/g, "").replace(/^0(?=\d)/, ""),
+    [phone],
+  );
 
   useEffect(() => {
     if (secondsLeft <= 0) return;
-    const timer = setTimeout(() => setSecondsLeft((remaining) => remaining - 1), 1000);
+    const timer = setTimeout(
+      () => setSecondsLeft((remaining) => remaining - 1),
+      1000,
+    );
     return () => clearTimeout(timer);
   }, [secondsLeft]);
 
-  if (restored && session.signedIn) return <Redirect href={homeFor(session) as never} />;
+  useEffect(() => {
+    if (__DEV__ && signedInOnOpen && restored && session.signedIn) {
+      console.log(
+        `[AUTH FLOW] OTP login skipped: saved session is active (role=${session.mode}).`,
+      );
+    }
+  }, [restored, session.signedIn, session.mode, signedInOnOpen]);
 
-  const roleTitle = role === 'vendor' ? 'Vendor' : 'Customer';
+  if (restored && session.signedIn)
+    return <Redirect href={homeFor(session) as never} />;
+
+  const roleTitle = role === "vendor" ? "Vendor" : "Customer";
 
   const start = async () => {
-    setError('');
-    setNotice('');
+    setError("");
+    setNotice("");
     const cleanEmail = email.trim().toLowerCase();
-    if (method === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-      setError('Enter a valid email address.');
+    if (method === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      setError("Enter a valid email address.");
       return;
     }
-    if (method === 'whatsapp' && (phoneDigits.length < 6 || phoneDigits.length > 15)) {
-      setError('Enter a valid WhatsApp number.');
+    if (
+      method === "whatsapp" &&
+      (phoneDigits.length < 6 || phoneDigits.length > 15)
+    ) {
+      setError("Enter a valid WhatsApp number.");
       return;
     }
 
     try {
+      if (__DEV__)
+        console.log(
+          `[AUTH FLOW] OTP login started (role=${role}, method=${method}).`,
+        );
       await companyLogin({ company_login: COMPANY_LOGIN }).unwrap();
       const reply: OtpStartReply = await loginNew({
         company_login: COMPANY_LOGIN,
         role,
-        ...(method === 'email' ? { email: cleanEmail } : { country_code: countryCode, whatsapp_number: phoneDigits }),
+        ...(method === "email"
+          ? { email: cleanEmail }
+          : { country_code: countryCode, whatsapp_number: phoneDigits }),
       }).unwrap();
       const user = reply.user;
-      if (!user?.id || !user.verify_token || !reply.type) throw new Error('The server reply was missing OTP details. Please try again.');
-      const identity = method === 'email' ? cleanEmail : `+${countryCode} ${phoneDigits}`;
+      if (!user?.id || !user.verify_token || !reply.type)
+        throw new Error(
+          "The server reply was missing OTP details. Please try again.",
+        );
+      const identity =
+        method === "email" ? cleanEmail : `+${countryCode} ${phoneDigits}`;
       setPending({
         userId: user.id,
         verifyToken: user.verify_token,
@@ -116,25 +219,33 @@ export default function CustomerAuthScreen() {
         vendorProfileComplete: flag(reply.vendor_profile_complete),
         profileComplete: flag(reply.profile_complete),
       });
-      setOtp('');
+      setOtp("");
       setSecondsLeft(30);
       setResends(1);
-      setNotice(reply.type === 'user_register_requests'
-        ? 'OTP sent. Enter the code to create your account.'
-        : 'OTP sent. Enter the code to log in.');
+      setNotice(
+        reply.type === "user_register_requests"
+          ? "OTP sent. Enter the code to create your account."
+          : "OTP sent. Enter the code to log in.",
+      );
     } catch (failure) {
-      setError(errorMessage(failure, 'Could not send a code. Please try again.'));
+      setError(
+        errorMessage(failure, "Could not send a code. Please try again."),
+      );
     }
   };
 
   const verify = async () => {
     if (!pending) return;
-    setError('');
+    setError("");
     if (!/^\d{6}$/.test(otp)) {
-      setError('Enter the 6-digit code.');
+      setError("Enter the 6-digit code.");
       return;
     }
     try {
+      if (__DEV__)
+        console.log(
+          `[AUTH FLOW] OTP verification started (role=${pending.role}, user_id=${pending.userId}).`,
+        );
       const reply = await verifyOtp({
         token: pending.verifyToken,
         user_id: pending.userId,
@@ -143,96 +254,171 @@ export default function CustomerAuthScreen() {
         role: pending.role,
       }).unwrap();
       const user = userRecord(reply);
-      const verifiedRole = user.role === 'vendor' ? 'vendor' : user.role === 'customer' ? 'customer' : pending.role;
-      if (verifiedRole !== pending.role) throw new Error('The account role did not match the selected button. Please use the correct role.');
-      const sessionToken = [user.verify_token, reply.token, user.token].find((value) => typeof value === 'string' && value.trim()) as string | undefined;
-      if (!sessionToken) throw new Error('The server reply was missing a session token. Please try again.');
+      const accountId = accountIdFromVerifyReply(reply, user);
+      if (__DEV__)
+        console.log(
+          `[AUTH FLOW] OTP verification succeeded; account_id=${accountId ?? "missing"}.`,
+        );
+      const verifiedRole =
+        user.role === "vendor"
+          ? "vendor"
+          : user.role === "customer"
+            ? "customer"
+            : pending.role;
+      if (verifiedRole !== pending.role)
+        throw new Error(
+          "The account role did not match the selected button. Please use the correct role.",
+        );
+      const sessionToken = [user.verify_token, reply.token, user.token].find(
+        (value) => typeof value === "string" && value.trim(),
+      ) as string | undefined;
+      if (!sessionToken)
+        throw new Error(
+          "The server reply was missing a session token. Please try again.",
+        );
       await setAuthToken(sessionToken);
 
-      const emailRequired = flag(reply.email_required) ?? flag(user.email_required) ?? pending.emailRequired ?? false;
-      const vendorProfileComplete = flag(reply.vendor_profile_complete) ?? pending.vendorProfileComplete ?? false;
-      const profileComplete = flag(reply.profile_complete) ?? pending.profileComplete;
-      const fullName = [user.full_name, user.name, user.first_name].find((value) => typeof value === 'string' && value.trim()) as string | undefined;
-      const accountEmail = emailRequired ? '' : typeof user.email === 'string' && user.email.trim() ? user.email.trim() : pending.method === 'email' ? pending.identity : '';
-      const accountPhone = typeof user.whatsapp_number === 'string' && user.whatsapp_number.trim()
-        ? `+${typeof user.country_code === 'string' ? user.country_code : countryCode} ${user.whatsapp_number}`
-        : typeof user.phone === 'string' && user.phone.trim() ? user.phone : pending.method === 'whatsapp' ? pending.identity : '';
-      const displayName = fullName?.trim() ?? '';
+      const emailRequired =
+        flag(reply.email_required) ??
+        flag(user.email_required) ??
+        pending.emailRequired ??
+        false;
+      const vendorProfileComplete =
+        flag(reply.vendor_profile_complete) ??
+        pending.vendorProfileComplete ??
+        false;
+      const profileComplete =
+        flag(reply.profile_complete) ?? pending.profileComplete;
+      const fullName = [user.full_name, user.name, user.first_name].find(
+        (value) => typeof value === "string" && value.trim(),
+      ) as string | undefined;
+      const accountEmail = emailRequired
+        ? ""
+        : typeof user.email === "string" && user.email.trim()
+          ? user.email.trim()
+          : pending.method === "email"
+            ? pending.identity
+            : "";
+      const accountPhone =
+        typeof user.whatsapp_number === "string" && user.whatsapp_number.trim()
+          ? `+${typeof user.country_code === "string" ? user.country_code : countryCode} ${user.whatsapp_number}`
+          : typeof user.phone === "string" && user.phone.trim()
+            ? user.phone
+            : pending.method === "whatsapp"
+              ? pending.identity
+              : "";
+      const displayName = fullName?.trim() ?? "";
 
       setRole(verifiedRole);
-      setCustomerAccount({ name: displayName, email: accountEmail, phone: accountPhone, emailRequired });
+      setCustomerAccount({
+        name: displayName,
+        email: accountEmail,
+        phone: accountPhone,
+        emailRequired,
+      });
       const destination = startSession({
         name: displayName || accountEmail || accountPhone,
         email: accountEmail,
         phone: accountPhone,
-        mode: verifiedRole === 'vendor' ? 'provider' : 'customer',
-        hasProviderProfile: verifiedRole === 'vendor' && vendorProfileComplete,
+        mode: verifiedRole === "vendor" ? "provider" : "customer",
+        hasProviderProfile: verifiedRole === "vendor" && vendorProfileComplete,
+        accountId,
         vendorProfileComplete: vendorProfileComplete ? 1 : 0,
         authResponse: reply as Record<string, unknown>,
       });
-      if (verifiedRole === 'vendor') {
+      if (verifiedRole === "vendor") {
         if (!vendorProfileComplete) {
           patchOnboarding({
             name: displayName,
             email: accountEmail,
             emailRequired,
             phone: accountPhone,
-            password: '',
+            password: "",
             accountCreated: true,
             emailVerified: !emailRequired,
             phoneVerified: true,
             profileName: displayName,
           });
-          router.replace('/vendor' as never);
+          router.replace("/vendor" as never);
         } else {
           router.replace(destination as never);
         }
       } else if (emailRequired || profileComplete === false || !displayName) {
-        router.replace('/customer/profile-edit?required=1' as never);
+        router.replace("/customer/profile-edit?required=1" as never);
       } else {
         router.replace(destination as never);
       }
     } catch (failure) {
-      setError(errorMessage(failure, 'That code could not be verified. Check it and try again.'));
+      setError(
+        errorMessage(
+          failure,
+          "That code could not be verified. Check it and try again.",
+        ),
+      );
     }
   };
 
   const resend = async () => {
     if (!pending || secondsLeft > 0 || resending) return;
-    setError('');
+    setError("");
     try {
-      await resendOtp({ company_login: COMPANY_LOGIN, user_id: pending.userId, otp_type: pending.otpType }).unwrap();
+      await resendOtp({
+        company_login: COMPANY_LOGIN,
+        user_id: pending.userId,
+        otp_type: pending.otpType,
+      }).unwrap();
       setResends((count) => count + 1);
       setSecondsLeft(30);
-      setNotice('A new code was sent.');
+      setNotice("A new code was sent.");
     } catch (failure) {
-      setError(errorMessage(failure, 'Could not resend the code. Please try again.'));
+      setError(
+        errorMessage(failure, "Could not resend the code. Please try again."),
+      );
     }
   };
 
   const changeMethod = (next: IdentityMethod) => {
     setMethod(next);
-    setError('');
-    setNotice('');
+    setError("");
+    setNotice("");
   };
 
   return (
     <Screen>
       <View style={styles.intro}>
-        <Text style={[styles.title, { fontSize: type.pageTitle }]}>{pending ? 'Enter your code' : `Login / Register as ${roleTitle}`}</Text>
-        <Text style={[styles.subtitle, { fontSize: type.secondary, lineHeight: leading(type.secondary, 6) }]}>{pending ? `We sent a code to ${pending.identity}.` : 'Use WhatsApp or email. We’ll send a code to log in or create your account.'}</Text>
+        <Text style={[styles.title, { fontSize: type.pageTitle }]}>
+          {pending ? "Enter your code" : `Login / Register as ${roleTitle}`}
+        </Text>
+        <Text
+          style={[
+            styles.subtitle,
+            {
+              fontSize: type.secondary,
+              lineHeight: leading(type.secondary, 6),
+            },
+          ]}
+        >
+          {pending
+            ? `We sent a code to ${pending.identity}.`
+            : "Use WhatsApp or email. We’ll send a code to log in or create your account."}
+        </Text>
       </View>
 
       <Card style={styles.form}>
         {pending ? (
           <>
             <View style={styles.otpField}>
-              <Text style={[styles.fieldLabel, { fontSize: type.label }]}>6-digit code</Text>
+              <Text style={[styles.fieldLabel, { fontSize: type.label }]}>
+                6-digit code
+              </Text>
               <CodeField
                 ref={otpRef}
                 {...otpFieldProps}
                 value={otp}
-                onChangeText={(value) => { setOtp(value.replace(/\D/g, '').slice(0, OTP_CELL_COUNT)); setError(''); }}
+                onChangeText={(value) => {
+                  setOtp(value.replace(/\D/g, "").slice(0, OTP_CELL_COUNT));
+                  setError("");
+                }}
                 cellCount={OTP_CELL_COUNT}
                 rootStyle={styles.otpCells}
                 keyboardType="number-pad"
@@ -240,7 +426,15 @@ export default function CustomerAuthScreen() {
                 autoComplete={OTP_AUTOCOMPLETE}
                 autoFocus
                 renderCell={({ index, symbol, isFocused }) => (
-                  <Text key={index} onLayout={getCellOnLayoutHandler(index)} style={[styles.otpCell, { fontSize: type.prominentTitle }, isFocused && styles.otpCellFocused]}>
+                  <Text
+                    key={index}
+                    onLayout={getCellOnLayoutHandler(index)}
+                    style={[
+                      styles.otpCell,
+                      { fontSize: type.prominentTitle },
+                      isFocused && styles.otpCellFocused,
+                    ]}
+                  >
                     {symbol || (isFocused ? <Cursor /> : null)}
                   </Text>
                 )}
@@ -248,36 +442,117 @@ export default function CustomerAuthScreen() {
             </View>
             {notice ? <Notice tone="info" body={notice} /> : null}
             {error ? <Notice tone="error" body={error} /> : null}
-            <Button label="Verify code" onPress={verify} loading={verifying} style={styles.submit} />
+            <Button
+              label="Verify code"
+              onPress={verify}
+              loading={verifying}
+              style={styles.submit}
+            />
             <View style={styles.resendRow}>
-              <Text style={[styles.switchText, { fontSize: type.secondary }]}>{secondsLeft > 0 ? `Resend available in ${secondsLeft}s` : resends >= 3 ? 'Resend limit reached. Try again later.' : "Didn't receive a code?"}</Text>
-              {secondsLeft === 0 && resends < 3 ? <Pressable accessibilityRole="button" disabled={resending} onPress={() => void resend()}><Text style={[styles.switchAction, { fontSize: type.secondary }]}>{resending ? 'Sending…' : 'Resend code'}</Text></Pressable> : null}
+              <Text style={[styles.switchText, { fontSize: type.secondary }]}>
+                {secondsLeft > 0
+                  ? `Resend available in ${secondsLeft}s`
+                  : resends >= 3
+                    ? "Resend limit reached. Try again later."
+                    : "Didn't receive a code?"}
+              </Text>
+              {secondsLeft === 0 && resends < 3 ? (
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={resending}
+                  onPress={() => void resend()}
+                >
+                  <Text
+                    style={[styles.switchAction, { fontSize: type.secondary }]}
+                  >
+                    {resending ? "Sending…" : "Resend code"}
+                  </Text>
+                </Pressable>
+              ) : null}
             </View>
-            <Pressable accessibilityRole="button" onPress={() => { setPending(null); setNotice(''); setError(''); setOtp(''); }} style={styles.backLink}>
-              <Text style={[styles.switchAction, { fontSize: type.secondary }]}>Change login details</Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                setPending(null);
+                setNotice("");
+                setError("");
+                setOtp("");
+              }}
+              style={styles.backLink}
+            >
+              <Text style={[styles.switchAction, { fontSize: type.secondary }]}>
+                Change login details
+              </Text>
             </Pressable>
           </>
         ) : (
           <>
-            {method === 'whatsapp' ? (
+            {method === "whatsapp" ? (
               <View style={styles.phoneField}>
-                <Text style={[styles.fieldLabel, { fontSize: type.label }]}>WhatsApp number</Text>
+                <Text style={[styles.fieldLabel, { fontSize: type.label }]}>
+                  WhatsApp number
+                </Text>
                 <View style={styles.phoneRow}>
-                  <CountryCodePicker value={countryCode} countryName={countryName} onChange={(code, name) => { setCountryCode(code); setCountryName(name); setError(''); }} />
+                  <CountryCodePicker
+                    value={countryCode}
+                    countryName={countryName}
+                    onChange={(code, name) => {
+                      setCountryCode(code);
+                      setCountryName(name);
+                      setError("");
+                    }}
+                  />
                   <View style={styles.phoneInput}>
-                    <Input value={phone} onChangeText={(value) => { setPhone(value); setError(''); }} placeholder="6 1234 5678" keyboardType="phone-pad" autoCapitalize="none" />
+                    <Input
+                      value={phone}
+                      onChangeText={(value) => {
+                        setPhone(value);
+                        setError("");
+                      }}
+                      placeholder="6 1234 5678"
+                      keyboardType="phone-pad"
+                      autoCapitalize="none"
+                    />
                   </View>
                 </View>
               </View>
             ) : (
-              <Input label="Email address" value={email} onChangeText={(value) => { setEmail(value); setError(''); }} placeholder="you@example.com" keyboardType="email-address" autoCapitalize="none" />
+              <Input
+                label="Email address"
+                value={email}
+                onChangeText={(value) => {
+                  setEmail(value);
+                  setError("");
+                }}
+                placeholder="you@example.com"
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
             )}
             {error ? <Notice tone="error" body={error} /> : null}
-            <Button label="Send code" onPress={() => void start()} loading={connecting || starting} style={styles.submit} />
+            <Button
+              label="Send code"
+              onPress={() => void start()}
+              loading={connecting || starting}
+              style={styles.submit}
+            />
             <View style={styles.switchRow}>
-              <Text style={[styles.switchText, { fontSize: type.secondary }]}>{method === 'whatsapp' ? 'Prefer email?' : 'Prefer WhatsApp?'}</Text>
-              <Pressable accessibilityRole="button" onPress={() => changeMethod(method === 'whatsapp' ? 'email' : 'whatsapp')}>
-                <Text style={[styles.switchAction, { fontSize: type.secondary }]}>{method === 'whatsapp' ? 'Login with email' : 'Login with WhatsApp'}</Text>
+              <Text style={[styles.switchText, { fontSize: type.secondary }]}>
+                {method === "whatsapp" ? "Prefer email?" : "Prefer WhatsApp?"}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() =>
+                  changeMethod(method === "whatsapp" ? "email" : "whatsapp")
+                }
+              >
+                <Text
+                  style={[styles.switchAction, { fontSize: type.secondary }]}
+                >
+                  {method === "whatsapp"
+                    ? "Login with email"
+                    : "Login with WhatsApp"}
+                </Text>
               </Pressable>
             </View>
           </>
@@ -288,22 +563,53 @@ export default function CustomerAuthScreen() {
 }
 
 const styles = StyleSheet.create({
-  intro: { gap: 7, marginTop: 22, marginBottom: 8, alignItems: 'center' },
-  title: { color: palette.ink, fontWeight: '800', textAlign: 'center' },
-  subtitle: { color: palette.muted, textAlign: 'center', maxWidth: 360 },
+  intro: { gap: 7, marginTop: 22, marginBottom: 8, alignItems: "center" },
+  title: { color: palette.ink, fontWeight: "800", textAlign: "center" },
+  subtitle: { color: palette.muted, textAlign: "center", maxWidth: 360 },
   form: { gap: 14, padding: 18 },
   otpField: { gap: 8 },
-  otpCells: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', gap: 7 },
-  otpCell: { flex: 1, minWidth: 0, maxWidth: 48, height: 54, borderRadius: 11, borderWidth: 1, borderColor: palette.line, backgroundColor: palette.surface, color: palette.ink, fontWeight: '700', lineHeight: 52, textAlign: 'center', overflow: 'hidden' },
+  otpCells: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 7,
+  },
+  otpCell: {
+    flex: 1,
+    minWidth: 0,
+    maxWidth: 48,
+    height: 54,
+    borderRadius: 11,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    color: palette.ink,
+    fontWeight: "700",
+    lineHeight: 52,
+    textAlign: "center",
+    overflow: "hidden",
+  },
   otpCellFocused: { borderColor: palette.accent, borderWidth: 2 },
   phoneField: { gap: 6 },
-  fieldLabel: { color: palette.ink, fontWeight: '700' },
-  phoneRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  fieldLabel: { color: palette.ink, fontWeight: "700" },
+  phoneRow: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
   phoneInput: { flex: 1 },
   submit: { marginTop: 2, minHeight: 52 },
-  switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 5, flexWrap: 'wrap' },
-  resendRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 5, flexWrap: 'wrap' },
-  switchText: { color: palette.muted, textAlign: 'center' },
-  switchAction: { color: palette.accentDark, fontWeight: '800' },
-  backLink: { alignSelf: 'center', padding: 6 },
+  switchRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 5,
+    flexWrap: "wrap",
+  },
+  resendRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 5,
+    flexWrap: "wrap",
+  },
+  switchText: { color: palette.muted, textAlign: "center" },
+  switchAction: { color: palette.accentDark, fontWeight: "800" },
+  backLink: { alignSelf: "center", padding: 6 },
 });

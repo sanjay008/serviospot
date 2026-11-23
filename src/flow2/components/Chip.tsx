@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { palette } from '@/flow2/constants/theme';
+import { palette, radius, spacing } from '@/flow2/constants/theme';
 import { useType } from '@/hooks/use-type';
 
 type LabelOf<T extends string> = (option: T) => string;
@@ -9,13 +9,27 @@ const same = <T extends string>(option: T): string => option;
 export function Chip({ label, selected, onPress }: { label: string; selected?: boolean; onPress?: () => void }) {
   const type = useType();
   return (
-    <Pressable accessibilityRole="button" accessibilityState={{ selected: !!selected }} onPress={onPress} style={[styles.chip, selected && styles.on]}>
-      <Text style={[styles.text, selected && styles.onText, { fontSize: type.body }]}>{label}</Text>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected: !!selected }}
+      onPress={onPress}
+      style={({ pressed }) => [styles.chip, selected && styles.on, pressed && !selected && styles.pressed]}>
+      <Text style={[styles.text, selected && styles.onText, { fontSize: type.secondary }]}>{label}</Text>
     </Pressable>
   );
 }
 
-export function ChipGroup<T extends string>({ options, selected, onToggle, labelOf = same }: { options: T[]; selected: T[]; onToggle: (item: T) => void; labelOf?: LabelOf<T> }) {
+export function ChipGroup<T extends string>({
+  options,
+  selected,
+  onToggle,
+  labelOf = same,
+}: {
+  options: T[];
+  selected: T[];
+  onToggle: (item: T) => void;
+  labelOf?: LabelOf<T>;
+}) {
   return (
     <View style={styles.row}>
       {options.map((option) => (
@@ -25,7 +39,17 @@ export function ChipGroup<T extends string>({ options, selected, onToggle, label
   );
 }
 
-export function ChipSingle<T extends string>({ options, value, onChange, labelOf = same }: { options: T[]; value: T; onChange: (value: T) => void; labelOf?: LabelOf<T> }) {
+export function ChipSingle<T extends string>({
+  options,
+  value,
+  onChange,
+  labelOf = same,
+}: {
+  options: T[];
+  value: T;
+  onChange: (value: T) => void;
+  labelOf?: LabelOf<T>;
+}) {
   return (
     <View style={styles.row}>
       {options.map((option) => (
@@ -36,9 +60,27 @@ export function ChipSingle<T extends string>({ options, value, onChange, labelOf
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { minHeight: 40, maxWidth: '100%', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.well, borderWidth: 1, borderColor: palette.line },
-  on: { backgroundColor: palette.accent, borderColor: palette.accent },
-  text: { color: palette.ink, fontWeight: '600', textAlign: 'center' },
-  onText: { color: '#fff' },
+  row: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  chip: {
+    minHeight: 40,
+    maxWidth: '100%',
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: palette.well,
+    borderWidth: 1.5,
+    borderColor: palette.line,
+  },
+  on: {
+    backgroundColor: palette.accent,
+    borderColor: palette.accent,
+  },
+  pressed: {
+    backgroundColor: palette.accentSoft,
+    borderColor: palette.accentMid,
+  },
+  text: { color: palette.inkSecondary, fontWeight: '600', textAlign: 'center' },
+  onText: { color: palette.white },
 });

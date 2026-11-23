@@ -1,12 +1,16 @@
 import { api } from '@/api/baseApi';
 import { setAuthToken } from '@/api/client';
-import type { ApiList, ApiRecord, Id, NotificationSettingsBody, ReportBody } from '@/api/types';
+import type { ApiList, ApiRecord, Id, NotificationSettingsBody, ReportBody, UpdateMeBody } from '@/api/types';
 
 export const accountApi = api.injectEndpoints({
   endpoints: (build) => ({
-    getMe: build.query<ApiRecord, void>({
-      query: () => ({ path: 'serviospot/me' }),
+    getMe: build.query<ApiRecord, Id | void>({
+      query: (id) => ({ path: 'serviospot/me', body: id === undefined ? {} : { id } }),
       providesTags: ['Me'],
+    }),
+    updateMe: build.mutation<ApiRecord, UpdateMeBody>({
+      query: (body) => ({ path: 'serviospot/updateMe', body }),
+      invalidatesTags: ['Me'],
     }),
     verifyPhone: build.mutation<ApiRecord, { phone: string }>({
       query: (body) => ({ path: 'serviospot/verifyPhone', body }),
@@ -67,6 +71,7 @@ export const accountApi = api.injectEndpoints({
 
 export const {
   useGetMeQuery,
+  useUpdateMeMutation,
   useVerifyPhoneMutation,
   useVerifyEmailMutation,
   useSavePushTokenMutation,

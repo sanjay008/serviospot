@@ -9,7 +9,6 @@ export function Screen({
   header,
   footer,
   scroll = true,
-  tab,
   refresh,
   onRefresh,
   loading = false,
@@ -31,7 +30,7 @@ export function Screen({
 }) {
   const insets = useSafeAreaInsets();
   const { gutter, maxWidth, width } = useResponsive();
-  const bottom = footer ? 20 : tab ? 24 : insets.bottom + 24;
+  const bottom = footer ? 20 : insets.bottom + 24;
   const frame = { width: '100%' as const, maxWidth, alignSelf: 'center' as const };
   const topSpace = width < 360 ? 12 : width >= 768 ? 20 : 16;
   const body = loading ? (
@@ -55,7 +54,7 @@ export function Screen({
       <View style={[styles.content, frame, { paddingHorizontal: gutter, paddingTop: topSpace }, style]}>{children}</View>
     </ScrollView>
   ) : (
-    <View style={[styles.flex, styles.body, styles.content, frame, { paddingHorizontal: gutter, paddingTop: topSpace }, style]}>{children}</View>
+    <View style={[styles.flex, styles.body, styles.content, frame, { paddingHorizontal: gutter, paddingTop: topSpace }, style, { paddingBottom: footer ? 0 : insets.bottom }]}>{children}</View>
   );
 
   return (

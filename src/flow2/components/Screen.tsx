@@ -1,7 +1,17 @@
-import { ActivityIndicator, KeyboardAvoidingView, Platform, RefreshControl, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { palette } from '@/flow2/constants/theme';
+import { palette, spacing } from '@/flow2/constants/theme';
 import { useResponsive } from '@/hooks/use-responsive';
 
 export function Screen({
@@ -27,10 +37,10 @@ export function Screen({
 }) {
   const insets = useSafeAreaInsets();
   const { gutter, maxWidth, width } = useResponsive();
-  const bottom = footer ? 20 : insets.bottom + 24;
+  const bottom = footer ? spacing.xl : insets.bottom + spacing.xxl;
   const frame = { width: '100%' as const, maxWidth, alignSelf: 'center' as const };
-  const contentGap = width < 360 ? 10 : width >= 768 ? 16 : 12;
-  const topSpace = width < 360 ? 12 : width >= 768 ? 20 : 16;
+  const contentGap = width < 360 ? spacing.md : width >= 768 ? spacing.lg : 14;
+  const topSpace = width < 360 ? spacing.md : width >= 768 ? spacing.xl : spacing.lg;
 
   const body = loading ? (
     <View style={[styles.flex, styles.body, styles.loader, { paddingHorizontal: gutter }]}>
@@ -43,12 +53,20 @@ export function Screen({
       automaticallyAdjustKeyboardInsets
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
-      refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={palette.accent} colors={[palette.accent]} /> : undefined}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={palette.accent} colors={[palette.accent]} />
+        ) : undefined
+      }
       showsVerticalScrollIndicator={false}>
-      <View style={[styles.content, frame, { paddingHorizontal: gutter, paddingTop: topSpace, gap: contentGap }, style]}>{children}</View>
+      <View style={[styles.content, frame, { paddingHorizontal: gutter, paddingTop: topSpace, gap: contentGap }, style]}>
+        {children}
+      </View>
     </ScrollView>
   ) : (
-    <View style={[styles.flex, styles.body, styles.content, frame, { paddingHorizontal: gutter, paddingTop: topSpace, gap: contentGap }, style]}>{children}</View>
+    <View style={[styles.flex, styles.body, styles.content, frame, { paddingHorizontal: gutter, paddingTop: topSpace, gap: contentGap }, style, { paddingBottom: footer ? 0 : insets.bottom }]}>
+      {children}
+    </View>
   );
 
   return (
@@ -59,7 +77,7 @@ export function Screen({
         {header ? <View style={frame}>{header}</View> : null}
         {body}
         {footer ? (
-          <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+          <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
             <View style={[frame, { paddingHorizontal: gutter }]}>{footer}</View>
           </View>
         ) : null}
@@ -71,7 +89,12 @@ export function Screen({
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   body: { backgroundColor: palette.bg },
-  content: { gap: 12 },
+  content: { gap: spacing.md },
   loader: { alignItems: 'center', justifyContent: 'center' },
-  footer: { paddingTop: 12, backgroundColor: palette.surface, borderTopWidth: 1, borderTopColor: palette.line },
+  footer: {
+    paddingTop: spacing.md,
+    backgroundColor: palette.surface,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: palette.line,
+  },
 });

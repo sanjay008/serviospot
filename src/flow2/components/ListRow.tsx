@@ -1,13 +1,28 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Icon, type IconName } from '@/flow2/components/Icon';
-import { palette } from '@/flow2/constants/theme';
+import { palette, radius, spacing } from '@/flow2/constants/theme';
 import { leading, useType } from '@/hooks/use-type';
 
-export function ListRow({ title, subtitle, onPress, icon, trailing }: { title: string; subtitle?: string; onPress?: () => void; icon?: IconName; trailing?: string }) {
+export function ListRow({
+  title,
+  subtitle,
+  onPress,
+  icon,
+  trailing,
+}: {
+  title: string;
+  subtitle?: string;
+  onPress?: () => void;
+  icon?: IconName;
+  trailing?: string;
+}) {
   const type = useType();
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={styles.row}>
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.row, pressed && onPress ? styles.pressed : null]}>
       {icon ? (
         <View style={styles.well}>
           <Icon name={icon} color={palette.accent} size={18} />
@@ -15,19 +30,38 @@ export function ListRow({ title, subtitle, onPress, icon, trailing }: { title: s
       ) : null}
       <View style={styles.text}>
         <Text style={[styles.title, { fontSize: type.cardTitle, lineHeight: leading(type.cardTitle, 4) }]}>{title}</Text>
-        {subtitle ? <Text style={[styles.subtitle, { fontSize: type.caption, lineHeight: leading(type.caption, 5) }]}>{subtitle}</Text> : null}
+        {subtitle ? (
+          <Text style={[styles.subtitle, { fontSize: type.caption, lineHeight: leading(type.caption, 5) }]}>{subtitle}</Text>
+        ) : null}
       </View>
       {trailing ? <Text style={[styles.trailing, { fontSize: type.secondary }]}>{trailing}</Text> : null}
-      {onPress ? <Icon name="chevron" color={palette.muted} size={16} /> : null}
+      {onPress ? <Icon name="chevron" color={palette.mutedSoft} size={16} /> : null}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
-  well: { width: 36, height: 36, borderRadius: 10, backgroundColor: palette.accentSoft, alignItems: 'center', justifyContent: 'center' },
+  row: {
+    minHeight: 58,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: 2,
+  },
+  pressed: { opacity: 0.72 },
+  well: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.md,
+    backgroundColor: palette.accentSoft,
+    borderWidth: 1,
+    borderColor: palette.accentMid,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   text: { flex: 1, gap: 2, minWidth: 0 },
-  title: { color: palette.ink, fontWeight: '600' },
+  title: { color: palette.ink, fontWeight: '700' },
   subtitle: { color: palette.muted },
-  trailing: { color: palette.muted },
+  trailing: { color: palette.muted, fontWeight: '600' },
 });

@@ -1,4 +1,5 @@
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
 import { Icon, type IconName } from '@/components/Icon';
@@ -31,9 +32,10 @@ export function ConfirmModal({
 }) {
   const { isTablet } = useResponsive();
   const type = useType();
+  const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={loading ? undefined : onClose}>
-      <View style={styles.modal}>
+      <View style={[styles.modal, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}>
         <Pressable accessibilityRole="button" accessibilityLabel="Close" style={styles.backdrop} onPress={loading ? undefined : onClose} />
         <View style={[styles.card, isTablet && styles.cardWide]}>
           <View style={[styles.icon, danger && styles.iconDanger]}>
@@ -51,11 +53,29 @@ export function ConfirmModal({
 
 const styles = StyleSheet.create({
   modal: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  backdrop: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: 'rgba(30,27,75,0.4)' },
-  card: { width: '100%', maxWidth: 360, backgroundColor: palette.surface, borderRadius: 24, borderWidth: 1, borderColor: palette.line, padding: 20, gap: 12 },
+  backdrop: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: palette.overlay },
+  card: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: palette.surface,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: palette.line,
+    padding: 22,
+    gap: 12,
+  },
   cardWide: { maxWidth: 400 },
-  icon: { width: 48, height: 48, borderRadius: 16, backgroundColor: palette.accentSoft, alignItems: 'center', justifyContent: 'center' },
-  iconDanger: { backgroundColor: palette.dangerSoft },
-  title: { fontWeight: '700', color: palette.ink },
-  body: { color: palette.muted, marginBottom: 4 },
+  icon: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: palette.accentSoft,
+    borderWidth: 1,
+    borderColor: palette.accentMid,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconDanger: { backgroundColor: palette.dangerSoft, borderColor: '#FECACA' },
+  title: { fontWeight: '800', color: palette.ink, letterSpacing: -0.2 },
+  body: { color: palette.muted, marginBottom: 4, fontWeight: '500' },
 });

@@ -2,6 +2,8 @@ import { router } from 'expo-router';
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { API_ENABLED, useGetMeQuery } from '@/api';
+import { textOf } from '@/api/mappers';
 import { Icon } from '@/flow2/components/Icon';
 import { Header } from '@/flow2/components/Header';
 import { Notice } from '@/flow2/components/Notice';
@@ -14,12 +16,17 @@ import { useApp as useSession } from '@/state/store';
 
 export default function CustomerAccountTab() {
   const { t, customerAccount } = useApp();
-  const { signOut, deleteAccount } = useSession();
+  const { signOut, deleteAccount, session, restored } = useSession();
   const type = useType();
-  const name = customerAccount?.name || 'Guest';
-  const email = customerAccount?.email || '';
-  const phone = customerAccount?.phone || '';
-  const isGuest = !customerAccount;
+  const meQuery = useGetMeQuery(session.accountId, { skip: !API_ENABLED || !restored || !session.signedIn || session.accountId === undefined });
+  const me = meQuery.data ?? null;
+  const meName = textOf(me, 'full_name', 'name');
+  const meEmail = textOf(me, 'email');
+  const mePhone = textOf(me, 'phone', 'phone_number');
+  const name = meName || customerAccount?.name || 'Guest';
+  const email = meEmail || customerAccount?.email || '';
+  const phone = mePhone || customerAccount?.phone || '';
+  const isGuest = !customerAccount && !session.signedIn;
 
   return (
     <Screen

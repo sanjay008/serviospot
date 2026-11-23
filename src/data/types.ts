@@ -400,6 +400,8 @@ export type Session = {
   photo: string;
   mode: 'customer' | 'provider';
   hasProviderProfile: boolean;
+  /** Backend account ID returned by OTP verification or the authenticated profile endpoint. */
+  accountId?: string | number;
   /** Original successful OTP verification reply, kept with the restored auth session. */
   authResponse?: Record<string, unknown>;
   /** Normalized vendor_profile_complete value from auth/onboarding replies. */

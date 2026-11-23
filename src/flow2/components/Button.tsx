@@ -1,9 +1,9 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 
-import { palette } from '@/flow2/constants/theme';
+import { control, palette, radius } from '@/flow2/constants/theme';
 import { useType } from '@/hooks/use-type';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline';
 
 export function Button({
   label,
@@ -24,17 +24,28 @@ export function Button({
 }) {
   const busy = disabled || loading;
   const type = useType();
+  const spinner =
+    variant === 'primary' || variant === 'danger' ? palette.white : palette.accentDark;
+
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ disabled: !!busy }}
       disabled={busy}
       onPress={onPress}
-      style={({ pressed }) => [styles.base, styles[variant], busy && styles.disabled, pressed && !busy && styles.pressed, style]}>
+      style={({ pressed }) => [
+        styles.base,
+        styles[variant],
+        busy && styles.disabled,
+        pressed && !busy && styles.pressed,
+        style,
+      ]}>
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' || variant === 'danger' ? '#fff' : palette.accentDark} />
+        <ActivityIndicator color={spinner} />
       ) : (
-        <Text style={[styles.label, styles[`${variant}Label`], { fontSize: type.button, lineHeight: type.button + 2 }, labelStyle]} numberOfLines={1}>
+        <Text
+          style={[styles.label, styles[`${variant}Label` as const], { fontSize: type.button, lineHeight: type.button + 2 }, labelStyle]}
+          numberOfLines={1}>
           {label}
         </Text>
       )}
@@ -43,16 +54,39 @@ export function Button({
 }
 
 const styles = StyleSheet.create({
-  base: { minHeight: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, paddingVertical: 10 },
+  base: {
+    minHeight: control.height,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+  },
   primary: { backgroundColor: palette.accent },
-  secondary: { backgroundColor: palette.surface, borderWidth: 1, borderColor: palette.line },
+  secondary: {
+    backgroundColor: palette.surface,
+    borderWidth: 1.5,
+    borderColor: palette.lineStrong,
+  },
+  outline: {
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+    borderColor: palette.accent,
+  },
   ghost: { backgroundColor: 'transparent' },
   danger: { backgroundColor: palette.danger },
-  disabled: { opacity: 0.45 },
-  pressed: { opacity: 0.88 },
-  label: { fontWeight: '600', textAlign: 'center', textAlignVertical: 'center', includeFontPadding: false },
-  primaryLabel: { color: '#fff' },
+  disabled: { opacity: 0.42 },
+  pressed: { opacity: 0.9, transform: [{ scale: 0.985 }] },
+  label: {
+    fontWeight: '700',
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    includeFontPadding: false,
+    letterSpacing: 0.1,
+  },
+  primaryLabel: { color: palette.white },
   secondaryLabel: { color: palette.ink },
-  ghostLabel: { color: palette.accent },
-  dangerLabel: { color: '#fff' },
+  outlineLabel: { color: palette.accentDark },
+  ghostLabel: { color: palette.accentDark },
+  dangerLabel: { color: palette.white },
 });

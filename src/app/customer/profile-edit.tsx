@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text } from 'react-native';
 
+import { API_ENABLED, useUpdateMeMutation } from '@/api';
 import { PhotoPicker } from '@/components/PhotoPicker';
 import { Button } from '@/flow2/components/Button';
 import { Card } from '@/flow2/components/Card';
@@ -20,6 +21,7 @@ export default function CustomerProfileEditScreen() {
   const { customerAccount, setCustomerAccount, t } = useApp();
   const { hydrate } = useSessionApp();
   const type = useType();
+  const [updateMe, updateState] = useUpdateMeMutation();
   const [name, setName] = useState(customerAccount?.name === 'Guest' ? '' : customerAccount?.name ?? '');
   const [email, setEmail] = useState(customerAccount?.email ?? '');
   const [phone, setPhone] = useState(customerAccount?.phone ?? '');
@@ -27,7 +29,7 @@ export default function CustomerProfileEditScreen() {
   const [error, setError] = useState('');
   const emailRequired = customerAccount?.emailRequired === true;
 
-  const save = () => {
+  const save = async () => {
     const cleanEmail = email.trim().toLowerCase();
     if (!name.trim()) {
       setError(t({ en: 'Please enter your name.', nl: 'Vul je naam in.' }));
@@ -46,9 +48,27 @@ export default function CustomerProfileEditScreen() {
       return;
     }
 
+    setError('');
+    if (API_ENABLED) {
+      try {
+        await updateMe({
+          full_name: name.trim(),
+          email: cleanEmail || undefined,
+          phone: phone.trim() || undefined,
+          photo: photo || undefined,
+        }).unwrap();
+      } catch (failure) {
+        const message =
+          failure && typeof failure === 'object' && 'message' in failure && typeof (failure as { message: unknown }).message === 'string'
+            ? (failure as { message: string }).message
+            : t({ en: 'Could not save your profile. Please try again.', nl: 'Profiel kon niet worden opgeslagen. Probeer opnieuw.' });
+        setError(message);
+        return;
+      }
+    }
+
     setCustomerAccount({ name: name.trim(), email: cleanEmail, phone: phone.trim(), photo, emailRequired: false });
     hydrate({ session: { name: name.trim(), email: cleanEmail, phone: phone.trim() } });
-    setError('');
     if (requiredProfile) router.replace('/customer' as never);
     else router.back();
   };
@@ -63,18 +83,30 @@ export default function CustomerProfileEditScreen() {
           value={photo}
           onChange={setPhoto}
         />
-        <Text style={[styles.photoHint, { fontSize: type.small, lineHeight: leading(type.small, 6) }]}>{t({ en: 'Choose a clear photo so providers can recognise you.', nl: 'Kies een duidelijke foto zodat providers je kunnen herkennen.' })}</Text>
+        <Text style={[styles.photoHint, { fontSize: type.small, lineHeight: leading(type.small, 6) }]}>
+          {t({ en: 'Choose a clear photo so providers can recognise you.', nl: 'Kies een duidelijke foto zodat providers je kunnen herkennen.' })}
+        </Text>
       </Card>
 
       <Card style={styles.form}>
         <Text style={[styles.sectionTitle, { fontSize: type.sectionTitle }]}>{t({ en: 'Personal details', nl: 'Persoonlijke gegevens' })}</Text>
         <Input label={t({ en: 'Full name', nl: 'Volledige naam' })} value={name} onChangeText={setName} placeholder={t({ en: 'Your name', nl: 'Je naam' })} autoCapitalize="words" />
-        <Input label={t({ en: emailRequired ? 'Email address (required)' : 'Email address', nl: emailRequired ? 'E-mailadres (verplicht)' : 'E-mailadres' })} value={email} onChangeText={(value) => { setEmail(value); setError(''); }} placeholder="you@example.com" keyboardType="email-address" autoCapitalize="none" />
+        <Input
+          label={t({ en: emailRequired ? 'Email address (required)' : 'Email address', nl: emailRequired ? 'E-mailadres (verplicht)' : 'E-mailadres' })}
+          value={email}
+          onChangeText={(value) => {
+            setEmail(value);
+            setError('');
+          }}
+          placeholder="you@example.com"
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
         <Input label={t({ en: 'Phone number', nl: 'Telefoonnummer' })} value={phone} onChangeText={setPhone} placeholder="+31 6 1234 5678" keyboardType="phone-pad" />
         {error ? <Notice tone="error" body={error} /> : null}
       </Card>
 
-      <Button label={t({ en: 'Save changes', nl: 'Wijzigingen opslaan' })} onPress={save} style={styles.save} />
+      <Button label={t({ en: 'Save changes', nl: 'Wijzigingen opslaan' })} loading={updateState.isLoading} onPress={() => void save()} style={styles.save} />
     </Screen>
   );
 }

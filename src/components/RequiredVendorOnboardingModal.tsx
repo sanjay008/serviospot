@@ -1,5 +1,6 @@
 import { router, useSegments } from 'expo-router';
 import { Modal, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/flow2/components/Button';
 import { palette } from '@/flow2/constants/theme';
@@ -9,13 +10,14 @@ import { useApp } from '@/state/store';
 export function RequiredVendorOnboardingModal() {
   const { session, restored } = useApp();
   const type = useType();
+  const insets = useSafeAreaInsets();
   const segments = useSegments();
   const onOnboarding = segments[0] === 'vendor' && segments[1] === 'onboarding';
   const visible = restored && session.signedIn && session.mode === 'provider' && !session.hasProviderProfile && !onOnboarding;
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={() => {}}>
-      <View style={styles.overlay}>
+      <View style={[styles.overlay, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}>
         <View style={styles.card}>
           <Text style={[styles.title, { fontSize: type.prominentTitle }]}>Your profile is incomplete</Text>
           <Text style={[styles.body, { fontSize: type.body, lineHeight: leading(type.body, 7) }]}>Please continue your vendor onboarding to access your account.</Text>

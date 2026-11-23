@@ -2,6 +2,7 @@ import { Redirect, router } from 'expo-router';
 import { Image } from 'expo-image';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/flow2/components/Button';
 import { useApp } from '@/flow2/state/app';
@@ -12,6 +13,7 @@ export default function RoleSelectionScreen() {
   const { setRole } = useApp();
   const { session, restored } = useSessionApp();
   const type = useType();
+  const insets = useSafeAreaInsets();
 
   if (!restored) return null;
   if (session.signedIn) return <Redirect href={homeFor(session) as any} />;
@@ -36,7 +38,7 @@ export default function RoleSelectionScreen() {
         accessibilityLabel="ServioSpot welcome screen with a blurred cooking scene"
       />
 
-      <View style={styles.content}>
+      <View style={[styles.content, { paddingBottom: insets.bottom + 24 }]}>
         <View style={styles.copy}>
           <Text style={[styles.brand, { fontSize: type.display }]}>
             <Text style={styles.brandErp}>ERP </Text>

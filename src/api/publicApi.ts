@@ -1,6 +1,14 @@
 import { api } from '@/api/baseApi';
 import type { ApiList, ApiRecord, Id, ProviderFilters } from '@/api/types';
 
+/** Postman/PHP contract uses `guest_count`; keep accepting `guests` from UI filters. */
+function providerFilterBody(filters?: ProviderFilters | Pick<ProviderFilters, 'city' | 'guests' | 'guest_count'> | void | null) {
+  if (!filters) return {};
+  const { guests, guest_count, ...rest } = filters;
+  const count = guest_count ?? guests;
+  return { ...rest, ...(count != null ? { guest_count: count } : {}) };
+}
+
 export const publicApi = api.injectEndpoints({
   endpoints: (build) => ({
     getCategories: build.query<ApiList, void>({
@@ -12,11 +20,11 @@ export const publicApi = api.injectEndpoints({
     getLegal: build.query<ApiRecord, 'terms' | 'privacy'>({
       query: (doc) => ({ path: 'serviospot/getLegal', body: { doc } }),
     }),
-    getProviders: build.query<ApiList, Pick<ProviderFilters, 'city' | 'guests'> | void>({
-      query: (filters) => ({ path: 'serviospot/getProviders', body: filters ?? {} }),
+    getProviders: build.query<ApiList, Pick<ProviderFilters, 'city' | 'guests' | 'guest_count'> | void>({
+      query: (filters) => ({ path: 'serviospot/getProviders', body: providerFilterBody(filters ?? undefined) }),
     }),
     searchProviders: build.query<ApiList, ProviderFilters>({
-      query: (filters) => ({ path: 'serviospot/searchProviders', body: filters }),
+      query: (filters) => ({ path: 'serviospot/searchProviders', body: providerFilterBody(filters) }),
     }),
     getProviderDetails: build.query<ApiRecord, Id>({
       query: (provider_id) => ({ path: 'serviospot/getProviderDetails', body: { provider_id } }),

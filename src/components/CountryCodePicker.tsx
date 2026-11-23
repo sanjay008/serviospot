@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { palette } from '@/constants/theme';
 import { useType } from '@/hooks/use-type';
@@ -31,6 +32,7 @@ const COUNTRIES: Country[] = [
 
 export function CountryCodePicker({ value, countryName, onChange }: { value: string; countryName: string; onChange: (code: string, name: string) => void }) {
   const type = useType();
+  const insets = useSafeAreaInsets();
   const [visible, setVisible] = useState(false);
   const [query, setQuery] = useState('');
   const [searching, setSearching] = useState(false);
@@ -50,7 +52,7 @@ export function CountryCodePicker({ value, countryName, onChange }: { value: str
       </Pressable>
       <Modal visible={visible} transparent animationType="slide" onRequestClose={() => { setSearching(false); setVisible(false); }}>
         <View style={styles.backdrop}>
-          <View style={[styles.sheet, searching && styles.sheetSearching]}>
+          <View style={[styles.sheet, searching && styles.sheetSearching, { paddingBottom: Math.max(insets.bottom, 16) }]}>
             <View style={styles.heading}>
               <Text style={[styles.title, { fontSize: type.screenTitle }]}>Choose country</Text>
               <Pressable accessibilityRole="button" accessibilityLabel="Close country picker" onPress={() => { setSearching(false); setVisible(false); }} hitSlop={12}>

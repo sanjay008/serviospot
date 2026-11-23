@@ -13,7 +13,7 @@ Only the APIs the app still needs. Already working OTP/onboarding/discover/reque
 |---|---|---|
 | `getVendorProfile` | Load vendor edit profile | `{ token }` |
 | `updateVendorProfile` | Save vendor edit profile | `{ token, name?, city?, story?, logo? }` + confirm if `business_name` / starting price are supported |
-| `updateMe` **(new)** | Save customer edit profile | `{ token, full_name?, email?, phone?, country_code?, photo? }` |
+| ~~`updateMe`~~ | Wired in app (`serviospot/updateMe`) — confirm backend is live | `{ token, full_name?, email?, phone?, country_code?, photo? }` |
 
 ---
 

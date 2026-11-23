@@ -26,16 +26,16 @@ export default function CustomerTabsLayout() {
         tabBarStyle: {
           backgroundColor: palette.surface,
           borderTopColor: palette.line,
-          borderTopWidth: 1,
-          height: 56 + bottom,
-          paddingTop: 4,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          height: 58 + bottom,
+          paddingTop: 6,
           paddingBottom: bottom,
           elevation: 0,
           shadowOpacity: 0,
           shadowRadius: 0,
           shadowOffset: { width: 0, height: 0 },
         },
-        tabBarLabelStyle: { fontSize: type.tab, fontWeight: '600' as const },
+        tabBarLabelStyle: { fontSize: type.tab, fontWeight: '700' as const },
         tabBarItemStyle: { paddingHorizontal: 2 },
         tabBarButton: (props: any) => (
           <Pressable

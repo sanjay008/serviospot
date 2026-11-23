@@ -13,7 +13,7 @@ import { SectionTitle } from '@/flow2/components/SectionTitle';
 import { palette } from '@/flow2/constants/theme';
 import { useType } from '@/hooks/use-type';
 import { b } from '@/flow2/data/options';
-import { API_ENABLED, type ApiRecord, useGetContactReleasesQuery, useGetContactReleaseMutation, useGetLeadsQuery } from '@/api';
+import { API_ENABLED, type ApiRecord, useGetContactReleasesQuery, useGetContactReleaseMutation, useGetLeadsQuery, useWithdrawProposalMutation } from '@/api';
 import { useApp as useSession } from '@/state/store';
 import { rowsOf, textOf } from '@/api/mappers';
 import { useState } from 'react';
@@ -27,9 +27,29 @@ export default function VendorProposalsScreen() {
   const leadsQuery = useGetLeadsQuery('sent', { skip: !enabled });
   const releases = useGetContactReleasesQuery(undefined, { skip: !enabled });
   const [getContactRelease, contactResult] = useGetContactReleaseMutation();
+  const [withdrawProposal, withdrawState] = useWithdrawProposalMutation();
   const [contact, setContact] = useState<ApiRecord | null>(null);
+  const [notice, setNotice] = useState('');
+  const [error, setError] = useState('');
+  const [withdrawingId, setWithdrawingId] = useState('');
   const type = useType();
   const sent = rowsOf(leadsQuery.data);
+
+  const onWithdraw = async (proposalId: string) => {
+    if (!proposalId) return;
+    setNotice('');
+    setError('');
+    setWithdrawingId(proposalId);
+    try {
+      await withdrawProposal(proposalId).unwrap();
+      setNotice(t(b('Voorstel ingetrokken.', 'Proposal withdrawn.')));
+      void leadsQuery.refetch();
+    } catch {
+      setError(t(b('Voorstel kon niet worden ingetrokken.', 'Could not withdraw this proposal.')));
+    } finally {
+      setWithdrawingId('');
+    }
+  };
 
   return (
     <Screen
@@ -40,11 +60,20 @@ export default function VendorProposalsScreen() {
       <Notice tone="accent" body={t(b('Analytics: profielweergaven → uitnodigingen → beschikbaarheid → voorstellen → contacten. Contacten zijn geen bewezen omzet.', 'Metrics: profile views → invitations → availability → proposals → contacts. Contacts are not verified revenue.'))} />
 
       <SectionTitle title={t(b('Verzonden voorstellen', 'Sent proposals'))} />
+      {notice ? <Notice tone="success" body={notice} /> : null}
+      {error ? <Notice tone="error" body={error} /> : null}
       {!enabled ? <EmptyState icon="send" title="Vendor API unavailable" body="Sign in as a vendor and enable the API to load proposals." /> : null}
       {leadsQuery.isLoading ? <Text>Loading proposals…</Text> : null}
       {leadsQuery.isError ? <Notice tone="error" body="Could not load proposals from the server." /> : null}
       {leadsQuery.isSuccess && sent.length === 0 ? <EmptyState icon="send" title={t(b('Nog geen voorstellen', 'No proposals yet'))} body={t(b('De server heeft geen voorstellen teruggegeven.', 'The server returned no proposals.'))} action={t(b('Naar inbox', 'Go to inbox'))} onAction={() => router.push('/vendor/leads' as any)} /> : null}
-      {leadsQuery.isSuccess ? sent.map((lead) => <SentProposalCard key={String(lead.lead_id ?? lead.id ?? lead.request_id)} row={lead} />) : null}
+      {leadsQuery.isSuccess ? sent.map((lead) => (
+        <SentProposalCard
+          key={String(lead.lead_id ?? lead.id ?? lead.request_id)}
+          row={lead}
+          withdrawing={withdrawState.isLoading && withdrawingId === String(lead.proposal_id ?? (lead.proposal && typeof lead.proposal === 'object' ? (lead.proposal as ApiRecord).id : '') ?? '')}
+          onWithdraw={onWithdraw}
+        />
+      )) : null}
 
       <SectionTitle title={t(b('Klantreacties', 'Customer responses'))} />
       {releases.isLoading ? <Text>Loading released contacts…</Text> : null}
@@ -86,20 +115,24 @@ export default function VendorProposalsScreen() {
   );
 }
 
-function SentProposalCard({ row }: { row: ApiRecord }) {
+function SentProposalCard({ row, withdrawing, onWithdraw }: { row: ApiRecord; withdrawing: boolean; onWithdraw: (proposalId: string) => void }) {
   const type = useType();
   const id = String(row.lead_id ?? row.id ?? row.request_id ?? '');
   const proposal = row.proposal && typeof row.proposal === 'object' ? row.proposal as ApiRecord : row;
   const request = row.request && typeof row.request === 'object' ? row.request as ApiRecord : row;
+  const proposalId = String(row.proposal_id ?? proposal.id ?? proposal.proposal_id ?? '');
   const title = textOf(row, 'reference', 'request_reference') || textOf(request, 'event_type', 'occasion') || `Request ${id}`;
   const total = proposal.total_cents == null ? null : Number(proposal.total_cents);
   const perPerson = proposal.per_person_cents == null ? null : Number(proposal.per_person_cents);
+  const status = textOf(proposal, 'status') || 'sent';
+  const withdrawn = status === 'withdrawn';
   return (
     <Card>
-      <View style={styles.head}><View style={styles.headText}><Text style={[styles.ref, { fontSize: type.cardTitle }]}>{title}</Text><Text style={[styles.provider, { fontSize: type.caption }]}>{textOf(proposal, 'status') || 'sent'}</Text></View><Badge label="Sent" tone="good" /></View>
+      <View style={styles.head}><View style={styles.headText}><Text style={[styles.ref, { fontSize: type.cardTitle }]}>{title}</Text><Text style={[styles.provider, { fontSize: type.caption }]}>{status}</Text></View><Badge label={withdrawn ? 'Withdrawn' : 'Sent'} tone={withdrawn ? 'warn' : 'good'} /></View>
       <View style={styles.metaRow}><Icon name="receipt" color={palette.muted} size={14} /><Text style={[styles.metaText, { fontSize: type.caption }]}>{euro(total)} · {euro(perPerson)} per person</Text></View>
       <View style={styles.metaRow}><Icon name="lock" color={palette.muted} size={14} /><Text style={[styles.metaText, { fontSize: type.caption }]}>Customer contact stays hidden until consent.</Text></View>
       <Button label="View request" variant="secondary" onPress={() => router.push(`/vendor/lead/${id}` as any)} />
+      {!withdrawn && proposalId ? <Button label="Withdraw proposal" variant="danger" loading={withdrawing} onPress={() => onWithdraw(proposalId)} /> : null}
     </Card>
   );
 }

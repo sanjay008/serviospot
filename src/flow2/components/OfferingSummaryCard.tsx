@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import type { ReactNode } from 'react';
 
 import type { VendorOffering } from '@/api/vendorApi';
 import { euro } from '@/data/format';
@@ -6,7 +7,7 @@ import { Card } from '@/flow2/components/Card';
 import { palette } from '@/flow2/constants/theme';
 import { useType } from '@/hooks/use-type';
 
-export function OfferingSummaryCard({ item }: { item: VendorOffering }) {
+export function OfferingSummaryCard({ item, footer }: { item: VendorOffering; footer?: ReactNode }) {
   const type = useType();
   const description = item.description?.trim() ?? '';
   const includesIndex = description.toLocaleLowerCase().indexOf('includes:');
@@ -26,6 +27,7 @@ export function OfferingSummaryCard({ item }: { item: VendorOffering }) {
       ) : null}
       {dishes ? <Text style={[styles.details, { fontSize: type.caption, lineHeight: type.caption + 4 }]} numberOfLines={3}>{dishes}</Text> : null}
       {otherDescription ? <Text style={[styles.details, { fontSize: type.caption, lineHeight: type.caption + 4 }]} numberOfLines={3}>{otherDescription}</Text> : null}
+      {footer ? <View style={styles.footer}>{footer}</View> : null}
     </Card>
   );
 }
@@ -37,4 +39,5 @@ const styles = StyleSheet.create({
   price: { color: palette.accentDark, fontWeight: '800', textAlign: 'right' },
   meta: { color: palette.muted, fontWeight: '600' },
   details: { color: palette.ink },
+  footer: { marginTop: 8, paddingTop: 14, borderTopWidth: 1, borderTopColor: palette.line },
 });

@@ -4,7 +4,7 @@ import { Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/flow2/components/Icon';
-import { palette } from '@/flow2/constants/theme';
+import { control, palette, radius, spacing } from '@/flow2/constants/theme';
 import { leading, useType } from '@/hooks/use-type';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -164,26 +164,26 @@ export function DateField({
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 6 },
-  label: { fontWeight: '600', color: '#5C5772' },
+  wrap: { gap: spacing.xs },
+  label: { fontWeight: '600', color: palette.inkSecondary },
   field: {
     minHeight: 56,
-    borderRadius: 14,
+    borderRadius: radius.lg - 2,
     borderWidth: 1.5,
-    paddingLeft: 14,
-    paddingRight: 8,
+    paddingLeft: spacing.lg - 2,
+    paddingRight: spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: spacing.md,
   },
   fieldEmpty: {
-    backgroundColor: '#F7F5FC',
-    borderColor: '#D8D2EA',
+    backgroundColor: palette.well,
+    borderColor: palette.lineStrong,
     borderStyle: 'dashed',
   },
   fieldFilled: {
     backgroundColor: palette.surface,
-    borderColor: '#D4CEEA',
+    borderColor: palette.lineStrong,
     borderStyle: 'solid',
   },
   valueBlock: { flex: 1, gap: 2, minWidth: 0 },
@@ -194,11 +194,11 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   value: { color: palette.ink, fontWeight: '700' },
-  placeholder: { color: '#9A95AB', fontWeight: '500' },
+  placeholder: { color: palette.mutedSoft, fontWeight: '500' },
   iconBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
+    width: control.icon + 2,
+    height: control.icon + 2,
+    borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: palette.accent,
@@ -220,21 +220,21 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(20, 16, 40, 0.4)',
+    backgroundColor: palette.overlay,
   },
   sheet: {
     backgroundColor: palette.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingTop: 8,
-    paddingHorizontal: 8,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    paddingTop: spacing.sm,
+    paddingHorizontal: spacing.sm,
   },
   sheetHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
   },
   sheetTitle: { fontWeight: '700', color: palette.ink },
   sheetAction: { color: palette.muted, fontWeight: '600' },

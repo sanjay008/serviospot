@@ -87,9 +87,8 @@ function useSignedIn() {
 /* Shared */
 
 export function useMeSync() {
-  const { hydrate } = useApp();
-  const signedIn = useSignedIn();
-  const me = useGetMeQuery(undefined, { skip: !signedIn });
+  const { hydrate, session } = useApp();
+  const me = useGetMeQuery(session.accountId, { skip: !session.signedIn || session.accountId === undefined });
   useOnData(me.data, (data) => {
     const record = recordOf(data, 'user');
     if (record) hydrate({ session: toSessionPatch(record) });
@@ -385,7 +384,8 @@ export function useSubscriptionSync() {
   const invoices = useGetInvoicesQuery(undefined, { skip: !signedIn });
   usePlansSync();
   useOnData(subscription.data, (data) => {
-    const plan = planOf(textOf(recordOf(data, 'subscription'), 'plan', 'plan_name', 'name'));
+    const planRecord = recordOf(data, 'subscription', 'plan') ?? recordOf(data);
+    const plan = planOf(textOf(planRecord ?? {}, 'code', 'plan', 'plan_name', 'name'));
     if (plan) hydrate({ session: { planId: plan } });
   });
   const rows = useMemo(() => rowsOf(invoices.data).map(toInvoice).filter(hasId), [invoices.data]);

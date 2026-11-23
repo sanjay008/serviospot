@@ -36,7 +36,7 @@ export function RealtimeChat({ conversationId, role, recipient }: Props) {
   const sendMessage = useCallback(() => {
     const text = draft.trim();
     if (!text || !enabled) return;
-    void sendApiMessage({ conversation_id: conversationId, message: text }).unwrap().then(() => { setDraft(''); }).catch(() => undefined);
+    void sendApiMessage({ conversation_id: conversationId, body: text, message: text }).unwrap().then(() => { setDraft(''); }).catch(() => undefined);
   }, [conversationId, draft, enabled, sendApiMessage]);
 
 

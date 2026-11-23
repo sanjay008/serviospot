@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View, type KeyboardTypeOptions } from 'react-native';
 
-import { palette } from '@/flow2/constants/theme';
+import { control, palette, radius, spacing } from '@/flow2/constants/theme';
 import { leading, useType } from '@/hooks/use-type';
 
 export function Input({
@@ -37,10 +37,16 @@ export function Input({
     <View style={styles.wrap}>
       {label || rightAction ? (
         <View style={styles.labelRow}>
-          {label ? <Text style={[styles.label, { fontSize: type.label, lineHeight: leading(type.label, 4) }]}>{label}</Text> : <View />}
+          {label ? (
+            <Text style={[styles.label, { fontSize: type.label, lineHeight: leading(type.label, 4) }]}>{label}</Text>
+          ) : (
+            <View />
+          )}
           {rightAction ? (
-            <Pressable accessibilityRole="button" disabled={rightAction.disabled} onPress={rightAction.onPress} hitSlop={8}>
-              <Text style={[styles.actionText, { fontSize: type.secondary }, rightAction.disabled && styles.actionDisabled]}>{rightAction.label}</Text>
+            <Pressable accessibilityRole="button" disabled={rightAction.disabled} onPress={rightAction.onPress} hitSlop={control.hitSlop}>
+              <Text style={[styles.actionText, { fontSize: type.secondary }, rightAction.disabled && styles.actionDisabled]}>
+                {rightAction.label}
+              </Text>
             </Pressable>
           ) : null}
         </View>
@@ -49,7 +55,7 @@ export function Input({
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor="#8A847C"
+        placeholderTextColor={palette.mutedSoft}
         multiline={multiline}
         keyboardType={keyboardType}
         secureTextEntry={secure}
@@ -58,32 +64,52 @@ export function Input({
         autoCorrect={autoCapitalize === 'none' ? false : undefined}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        style={[styles.input, { fontSize: type.input }, multiline && styles.multi, focused && styles.focused, error ? styles.bad : null]}
+        style={[
+          styles.input,
+          { fontSize: type.input, lineHeight: type.input + 4 },
+          multiline && styles.multi,
+          focused && styles.focused,
+          error ? styles.bad : null,
+          !editable && styles.readonly,
+        ]}
         textAlignVertical={multiline ? 'top' : 'center'}
       />
-      {error ? <Text style={[styles.error, { fontSize: type.caption, lineHeight: leading(type.caption, 5) }]}>{error}</Text> : hint ? <Text style={[styles.hint, { fontSize: type.caption, lineHeight: leading(type.caption, 5) }]}>{hint}</Text> : null}
+      {error ? (
+        <Text style={[styles.error, { fontSize: type.helper, lineHeight: leading(type.helper, 4) }]}>{error}</Text>
+      ) : hint ? (
+        <Text style={[styles.hint, { fontSize: type.helper, lineHeight: leading(type.helper, 4) }]}>{hint}</Text>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 6 },
-  labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 20 },
-  label: { fontWeight: '600', color: '#5C5772' },
+  wrap: { gap: spacing.xs },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: 18,
+  },
+  label: { fontWeight: '600', color: palette.inkSecondary },
   input: {
-    minHeight: 48,
-    borderRadius: 12,
-    borderWidth: 1,
+    minHeight: control.height,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
     borderColor: palette.line,
     backgroundColor: palette.surface,
-    paddingHorizontal: 14,
+    paddingHorizontal: spacing.lg,
     color: palette.ink,
   },
   actionText: { color: palette.accentDark, fontWeight: '700' },
   actionDisabled: { color: palette.muted },
-  focused: { borderColor: palette.accent },
-  multi: { minHeight: 110, paddingTop: 12 },
-  bad: { borderColor: palette.danger },
-  error: { color: palette.danger },
+  focused: {
+    borderColor: palette.accent,
+    backgroundColor: palette.surface,
+  },
+  multi: { minHeight: 112, paddingTop: 14, paddingBottom: 14 },
+  bad: { borderColor: palette.danger, backgroundColor: '#FFF8F8' },
+  readonly: { backgroundColor: palette.well, color: palette.inkSecondary },
+  error: { color: palette.danger, fontWeight: '600' },
   hint: { color: palette.muted },
 });

@@ -1,8 +1,18 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useMemo } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { API_ENABLED, useGetProviderDetailsQuery, useGetProviderOfferingsQuery, useGetProviderReviewsQuery } from '@/api';
+import {
+  API_ENABLED,
+  useDeleteFavoriteMutation,
+  useGetFavoritesQuery,
+  useGetOfferingQuery,
+  useGetProviderDetailsQuery,
+  useGetProviderOfferingsQuery,
+  useGetProviderReviewsQuery,
+  useSaveFavoriteMutation,
+} from '@/api';
 import { recordOf, rowsOf, textOf } from '@/api/mappers';
 import { apiMediaUri } from '@/api/media';
 import type { ApiRecord } from '@/api/types';
@@ -15,6 +25,7 @@ import { palette } from '@/flow2/constants/theme';
 import { money } from '@/flow2/data/format';
 import { useApp } from '@/flow2/state/app';
 import { useType } from '@/hooks/use-type';
+import { useApp as useSession } from '@/state/store';
 
 const CATEGORY_LABELS: Record<string, string> = {
   food: 'Food',
@@ -34,16 +45,37 @@ const CATEGORY_LABELS: Record<string, string> = {
 export default function ProviderDetailScreen() {
   const { id = '' } = useLocalSearchParams<{ id: string }>();
   const { lang, resetDraft, patchDraft } = useApp();
+  const { session, restored } = useSession();
   const type = useType();
+  const signedIn = API_ENABLED && restored && session.signedIn && session.mode === 'customer';
   const detailsQuery = useGetProviderDetailsQuery(id, { skip: !API_ENABLED || !id });
   const offeringsQuery = useGetProviderOfferingsQuery(id, { skip: !API_ENABLED || !id });
   const reviewsQuery = useGetProviderReviewsQuery(id, { skip: !API_ENABLED || !id });
+  const favoritesQuery = useGetFavoritesQuery(undefined, { skip: !signedIn });
+  const [saveFavorite, saveFavoriteState] = useSaveFavoriteMutation();
+  const [deleteFavorite, deleteFavoriteState] = useDeleteFavoriteMutation();
   const provider = recordOf(detailsQuery.data, 'provider', 'vendor', 'provider_details', 'details');
   const offerings = rowsOf(offeringsQuery.data).filter((item) => item.is_active !== false && item.active !== false);
   const reviews = rowsOf(reviewsQuery.data);
+  const favorite = useMemo(() => {
+    const rows = rowsOf(favoritesQuery.data);
+    return rows.find((row) => {
+      const typeName = textOf(row, 'type', 'favorite_type');
+      const target = String(row.target_id ?? row.provider_id ?? row.id ?? '');
+      const nested = row.provider && typeof row.provider === 'object' ? String((row.provider as ApiRecord).id ?? '') : '';
+      return (typeName === 'provider' || !typeName) && (target === id || nested === id);
+    });
+  }, [favoritesQuery.data, id]);
+  const favoriteId = favorite ? String(favorite.favorite_id ?? favorite.id ?? '') : '';
   const name = present(textOf(provider, 'business_name', 'provider_name', 'vendor_name', 'name', 'title'));
   const loading = detailsQuery.isLoading || offeringsQuery.isLoading || reviewsQuery.isLoading;
-  const refreshing = (detailsQuery.isFetching || offeringsQuery.isFetching || reviewsQuery.isFetching) && !loading;
+  const refreshing = (detailsQuery.isFetching || offeringsQuery.isFetching || reviewsQuery.isFetching || favoritesQuery.isFetching) && !loading;
+
+  const toggleFavorite = () => {
+    if (!signedIn || !id) return;
+    if (favoriteId) void deleteFavorite(favoriteId);
+    else void saveFavorite({ type: 'provider', id });
+  };
 
   if (!API_ENABLED) {
     return (
@@ -88,7 +120,23 @@ export default function ProviderDetailScreen() {
         void offeringsQuery.refetch();
         void reviewsQuery.refetch();
       }}
-      header={<Header title={name ?? 'Caterer'} subtitle={city ?? ''} back />}
+      header={(
+        <Header
+          title={name ?? 'Caterer'}
+          subtitle={city ?? ''}
+          back
+          right={signedIn ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={favoriteId ? 'Remove favorite' : 'Save favorite'}
+              disabled={saveFavoriteState.isLoading || deleteFavoriteState.isLoading}
+              onPress={toggleFavorite}
+              style={styles.favoriteButton}>
+              <Icon name="heart" color={favoriteId ? palette.danger : palette.accentDark} size={19} filled={!!favoriteId} />
+            </Pressable>
+          ) : undefined}
+        />
+      )}
       footer={
         <Button
           label="Request a proposal"
@@ -192,15 +240,19 @@ export default function ProviderDetailScreen() {
 
 function OfferingCard({ offering, lang }: { offering: ApiRecord; lang: 'nl' | 'en' }) {
   const type = useType();
-  const title = present(textOf(offering, 'title', 'name', 'offering_name', 'package_name'));
-  const image = imagesOf(offering)[0];
-  const amount = priceValue(offering);
-  const unit = prettyUnit(textOf(offering, 'price_type', 'price_unit', 'unit'));
-  const category = prettyLabel(textOf(offering, 'category_name', 'category', 'cuisine'));
-  const parsed = splitDescription(present(textOf(offering, 'description', 'details', 'package_description')));
-  const included = listOf(offering, 'included', 'dishes', 'items', 'contents');
+  const offeringId = String(offering.offering_id ?? offering.id ?? '');
+  const detailQuery = useGetOfferingQuery(offeringId, { skip: !API_ENABLED || !offeringId });
+  const detail = recordOf(detailQuery.data, 'offering') ?? {};
+  const row = { ...offering, ...detail };
+  const title = present(textOf(row, 'title', 'name', 'offering_name', 'package_name'));
+  const image = imagesOf(row)[0];
+  const amount = priceValue(row);
+  const unit = prettyUnit(textOf(row, 'price_type', 'price_unit', 'unit'));
+  const category = prettyLabel(textOf(row, 'category_name', 'category', 'cuisine'));
+  const parsed = splitDescription(present(textOf(row, 'description', 'details', 'package_description')));
+  const included = listOf(row, 'included', 'dishes', 'items', 'contents');
   const extras = included.length ? included : parsed.includes;
-  const diet = listOf(offering, 'diet', 'dietary', 'allergens');
+  const diet = listOf(row, 'diet', 'dietary', 'allergens');
 
   if (!title && !parsed.body && !amount) return null;
 
@@ -413,6 +465,7 @@ function priceOf(record: ApiRecord | null, lang: 'nl' | 'en') {
 }
 
 const styles = StyleSheet.create({
+  favoriteButton: { width: 40, height: 40, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.accentSoft, borderWidth: 1, borderColor: '#E6DEFF' },
   gallery: { height: 210, marginHorizontal: -16, marginTop: -16, borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden', backgroundColor: palette.accentSoft },
   heroImage: { width: 320, height: 210, backgroundColor: palette.accentSoft },
   heroFallback: { height: 88, marginHorizontal: -16, marginTop: -16, borderTopLeftRadius: 20, borderTopRightRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.accentSoft },

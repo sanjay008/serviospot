@@ -23,7 +23,9 @@ export type LoginBody = { email: string; password: string; role: Role };
 export type ProviderFilters = {
   q?: string;
   city?: string;
+  /** UI/legacy alias — mapped to `guest_count` on the wire. */
   guests?: number;
+  guest_count?: number;
   category?: string;
   cuisine?: string;
   diet?: string;
@@ -111,10 +113,30 @@ export type OfferingBody = {
   cuisine?: string;
   diet?: string[];
   photo?: string;
+  image?: string;
+  is_active?: boolean;
 };
 
-/** `logo` and `photo` are data URIs (`data:image/jpeg;base64,…`) for a new image, or '' to remove it. */
-export type VendorProfileBody = { name?: string; city?: string; story?: string; logo?: string };
+export type UpdateMeBody = {
+  id?: Id;
+  full_name?: string;
+  email?: string;
+  phone?: string;
+  country_code?: string;
+  photo?: string;
+};
+
+/** `logo` / `photo` are data URIs (`data:image/jpeg;base64,…`) for a new image, or '' to remove it. */
+export type VendorProfileBody = {
+  name?: string;
+  city?: string;
+  story?: string;
+  photo?: string;
+  logo?: string;
+  business_name?: string;
+  from_price?: string | number;
+  from_price_cents?: number;
+};
 
 export type VerificationBody = { kvk_number: string; vat_number?: string; legal_name: string };
 
@@ -123,3 +145,6 @@ export type PreferencesBody = { city?: string; min_guests?: number; max_guests?:
 export type CalendarBody = { date: string; status: 'available' | 'limited' | 'unavailable' };
 
 export type TemplateBody = { name: string; body: ApiRecord };
+
+/** Paid plans start a Mollie checkout. The app never sends a price or a Mollie key. */
+export type MollieCheckoutBody = { plan: Exclude<PlanName, 'free'>; redirect_url: string };

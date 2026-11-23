@@ -516,6 +516,7 @@ export function toViews(r: R) {
 export function toSessionPatch(r: R): Partial<Session> {
   const user = nested(r, 'user', 'profile') ?? r;
   const patch: Partial<Session> = {};
+  const accountId = str(user, 'id', 'user_id', 'account_id');
   const name = str(user, 'full_name', 'name');
   const email = str(user, 'email');
   const phone = str(user, 'phone');
@@ -524,6 +525,7 @@ export function toSessionPatch(r: R): Partial<Session> {
   const phoneVerified = bool(user, 'phone_verified', 'is_phone_verified');
   const plan = planOf(str(user, 'plan', 'plan_name'));
   if (name) patch.name = name;
+  if (accountId) patch.accountId = accountId;
   if (email) patch.email = email;
   if (phone) patch.phone = phone;
   if (photo !== undefined) patch.photo = photo;

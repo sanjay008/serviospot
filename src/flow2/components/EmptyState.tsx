@@ -2,15 +2,27 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/flow2/components/Button';
 import { Icon, type IconName } from '@/flow2/components/Icon';
-import { palette } from '@/flow2/constants/theme';
+import { palette, radius, spacing } from '@/flow2/constants/theme';
 import { leading, useType } from '@/hooks/use-type';
 
-export function EmptyState({ icon = 'search', title, body, action, onAction }: { icon?: IconName; title: string; body: string; action?: string; onAction?: () => void }) {
+export function EmptyState({
+  icon = 'search',
+  title,
+  body,
+  action,
+  onAction,
+}: {
+  icon?: IconName;
+  title: string;
+  body: string;
+  action?: string;
+  onAction?: () => void;
+}) {
   const type = useType();
   return (
     <View style={styles.wrap}>
       <View style={styles.icon}>
-        <Icon name={icon} color={palette.accent} size={28} />
+        <Icon name={icon} color={palette.accent} size={26} />
       </View>
       <Text style={[styles.title, { fontSize: type.sectionTitle, lineHeight: leading(type.sectionTitle, 6) }]}>{title}</Text>
       <Text style={[styles.body, { fontSize: type.body, lineHeight: leading(type.body, 7) }]}>{body}</Text>
@@ -20,9 +32,24 @@ export function EmptyState({ icon = 'search', title, body, action, onAction }: {
 }
 
 const styles = StyleSheet.create({
-  wrap: { alignItems: 'center', gap: 10, paddingVertical: 28, paddingHorizontal: 12 },
-  icon: { width: 56, height: 56, borderRadius: 16, backgroundColor: palette.accentSoft, alignItems: 'center', justifyContent: 'center' },
-  title: { fontWeight: '700', color: palette.ink, textAlign: 'center' },
-  body: { color: palette.muted, textAlign: 'center' },
-  action: { alignSelf: 'center', minHeight: 44, paddingHorizontal: 18 },
+  wrap: {
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.xxxl,
+    paddingHorizontal: spacing.lg,
+  },
+  icon: {
+    width: 64,
+    height: 64,
+    borderRadius: radius.xl,
+    backgroundColor: palette.accentSoft,
+    borderWidth: 1,
+    borderColor: palette.accentMid,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xs,
+  },
+  title: { fontWeight: '800', color: palette.ink, textAlign: 'center' },
+  body: { color: palette.muted, textAlign: 'center', maxWidth: 320 },
+  action: { alignSelf: 'center', minWidth: 160, marginTop: spacing.xs },
 });

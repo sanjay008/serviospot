@@ -22,7 +22,8 @@ This is the combined backend handoff for the current customer and vendor flows. 
 | `register` | `{ role, full_name, email, password, country_code, phone, city? }` | Create customer/vendor account; return token | In app |
 | `login` | `{ email, password, role }` | Sign in; return token and user/role data | In app |
 | `logout` | `{}` | Invalidate session if supported | In app |
-| `me` | `{}` | Current user profile, role, verification flags | In app |
+| `me` | `{ id }` | Current user profile, role, verification flags for the OTP-verified account | In app |
+| `updateMe` | `{ id, full_name?, email?, phone?, country_code?, photo? }` | Update signed-in account details; auth token is also attached by the client | In app; latest reply: `Account not found` — verify account lookup by `id` and token |
 | `verifyEmail` | `{}` | Email verification action/status | In app |
 | `verifyPhone` | `{ phone }` | Phone verification action/status | In app |
 | `savePushToken` | `{ expo_token }` | Register Expo push token for signed-in user | In app |
@@ -38,7 +39,7 @@ This is the combined backend handoff for the current customer and vendor flows. 
 | `getPlans` | `{}` | Public plan list | In app |
 | `getLegal` | `{ doc: "terms" \| "privacy" }` | Legal document text | In app |
 
-`updateMe` is described in the customer spec but is **not** currently defined/called by the app. Add it only if profile editing is expected to update account identity fields; current profile-edit screens may use role-specific endpoints instead. Email/phone verification requirements must be consistent across customer and vendor onboarding (see flow rules below).
+Account profile reads call `me` with `{ id }`. Profile editing calls `updateMe` with `{ id, full_name?, email?, phone?, country_code?, photo? }`. Both IDs come from the successful OTP verification reply, and the authenticated session token is attached by the shared transport. Email/phone verification requirements must be consistent across customer and vendor onboarding (see flow rules below).
 
 ## 2. Public discovery (customer and guest)
 
@@ -206,7 +207,7 @@ Only `continueWithProvider` should create a release record, record consent, noti
 1. Current code sends POST for all REST calls, but base URL is environment-configured; do not assume the production URL from older docs.
 2. `getMe` route in code is `serviospot/me`, not `serviospot/getMe`.
 3. Existing app's customer submit payload type has no `consent` field although the flow spec requires consent.
-4. `updateMe`, proposal compare, proposal interested/rejected, request update/duplicate/close, vendor onboarding, and vendor-side contact-release fetch are documented needs but not wired in current API modules.
+4. Proposal compare, proposal interested/rejected, request update/duplicate/close, vendor onboarding, and vendor-side contact-release fetch are documented needs but not wired in current API modules.
 5. Customer spec says phone verification is not currently required to submit; vendor spec requires both verifications for onboarding. Decide customer policy explicitly.
 6. Current availability values differ from the flow spec. Decide canonical server values and update app mapping/types together.
 7. Existing docs contain conceptual “exists” labels; backend team should report actual endpoint implementation and test status separately.

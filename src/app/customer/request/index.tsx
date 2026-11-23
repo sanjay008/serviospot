@@ -2,12 +2,10 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { API_ENABLED, useSubmitRequestMutation } from '@/api';
+import { API_ENABLED, useSaveRequestDraftMutation, useSubmitRequestMutation } from '@/api';
 import { Button } from '@/flow2/components/Button';
 import { Card } from '@/flow2/components/Card';
-import { ChipSingle } from '@/flow2/components/Chip';
 import { DateField } from '@/flow2/components/DateField';
-import { Field } from '@/flow2/components/Field';
 import { Header } from '@/flow2/components/Header';
 import { Input } from '@/flow2/components/Input';
 import { Notice } from '@/flow2/components/Notice';
@@ -15,6 +13,7 @@ import { ProgressSteps } from '@/flow2/components/ProgressSteps';
 import { RequestSummary } from '@/flow2/components/RequestSummary';
 import { Screen } from '@/flow2/components/Screen';
 import { SectionTitle } from '@/flow2/components/SectionTitle';
+import { SelectField } from '@/flow2/components/SelectField';
 import { Stepper } from '@/flow2/components/Stepper';
 import { palette } from '@/flow2/constants/theme';
 import { b, COUNT_FIELDS, CUISINES, CUISINE_STYLES, DRINK_TYPES, FORMATS, FULFILMENTS, OCCASIONS, SETTINGS, TASKS, VENUE_TYPES, WARE, YES_NO, totalDishes } from '@/flow2/data/options';
@@ -25,12 +24,31 @@ import { useApp as useSession } from '@/state/store';
 
 type Option = { value: string; label: Bilingual };
 
-function Choice({ label, options, value, onChange, hint }: { label: string; options: Option[]; value: string; onChange: (value: string) => void; hint?: string }) {
+function Choice({
+  label,
+  options,
+  value,
+  onChange,
+  hint,
+  placeholder,
+}: {
+  label: string;
+  options: Option[];
+  value: string;
+  onChange: (value: string) => void;
+  hint?: string;
+  placeholder?: string;
+}) {
   const { t } = useApp();
   return (
-    <Field label={label} hint={hint}>
-      <ChipSingle options={options.map((option) => option.value)} value={value} onChange={onChange} labelOf={(v) => t(options.find((option) => option.value === v)?.label ?? v)} />
-    </Field>
+    <SelectField
+      label={label}
+      value={value}
+      hint={hint}
+      placeholder={placeholder ?? t(b('Selecteer…', 'Select…'))}
+      options={options.map((option) => ({ value: option.value, label: t(option.label) }))}
+      onChange={onChange}
+    />
   );
 }
 
@@ -38,6 +56,7 @@ export default function RequestWizardScreen() {
   const params = useLocalSearchParams<{ providerId?: string; fresh?: string }>();
   const { t, draft, patchDraft, patchCount, patchTask, resetDraft, providers } = useApp();
   const { session } = useSession();
+  const [saveRequestDraft] = useSaveRequestDraftMutation();
   const [submitRequest, submitState] = useSubmitRequestMutation();
   const [step, setStep] = useState(0);
   const [error, setError] = useState('');
@@ -64,8 +83,40 @@ export default function RequestWizardScreen() {
     t(b('Controleer alles voordat je verstuurt.', 'Check everything before you send.')),
   ];
 
+  const requestBody = () => {
+    const services = Object.entries(draft.tasks).filter(([, value]) => value === 'yes').map(([key]) => key);
+    return {
+      event_type: draft.occasion || draft.eventName,
+      event_date: draft.date,
+      start_time: draft.start || undefined,
+      end_time: draft.end || undefined,
+      city: draft.city,
+      postcode: draft.postcode,
+      location: draft.venueName || undefined,
+      indoor_outdoor: draft.setting,
+      guest_count: draft.guests,
+      needs: ['food'],
+      cuisines: [draft.cuisine, draft.cuisineStyle].filter(Boolean),
+      dietary: [draft.vegetarian !== 'no' ? `vegetarian:${draft.vegetarian}` : '', draft.halal === 'yes' ? 'halal' : '', draft.vegan === 'yes' ? 'vegan' : '', draft.dietNotes].filter(Boolean),
+      services,
+      budget_total_cents: draft.budget ? Math.round(draft.budget * 100) : undefined,
+      description: [draft.comments, draft.access, draft.allergies && `Allergies: ${draft.allergies}`, draft.forbidden && `Avoid: ${draft.forbidden}`].filter(Boolean).join('\n') || undefined,
+      details: {
+        venue_type: draft.venueType, occasion: draft.occasion, cuisine_style: draft.cuisineStyle,
+        counts: draft.counts, serving_format: draft.format, staff: draft.staff, warming: draft.warm,
+        fulfilment: draft.fulfilment, handover_time: draft.handoverTime, tableware: draft.ware,
+        plates: draft.plates, cutlery: draft.cutlery, glasses: draft.glasses, end_date: draft.endDate,
+        drinks: draft.drinks, drink_type: draft.drinkType, drink_quantity: draft.drinkQuantity,
+        halal: draft.halal, vegan: draft.vegan, diet_notes: draft.dietNotes,
+      },
+    };
+  };
+
   const next = () => {
     setError('');
+    if (API_ENABLED && session.signedIn && session.mode === 'customer') {
+      void saveRequestDraft(requestBody()).unwrap().catch(() => undefined);
+    }
     setStep((current) => Math.min(steps.length - 1, current + 1));
   };
 
@@ -82,32 +133,9 @@ export default function RequestWizardScreen() {
     setError('');
     if (API_ENABLED && session.signedIn && session.mode === 'customer') {
       try {
-        const services = Object.entries(draft.tasks).filter(([, value]) => value === 'yes').map(([key]) => key);
         const reply = await submitRequest({
-          event_type: draft.occasion || draft.eventName,
-          event_date: draft.date,
-          start_time: draft.start || undefined,
-          end_time: draft.end || undefined,
-          city: draft.city,
-          postcode: draft.postcode,
-          location: draft.venueName || undefined,
-          indoor_outdoor: draft.setting,
-          guest_count: draft.guests,
-          needs: ['food'],
-          cuisines: [draft.cuisine, draft.cuisineStyle].filter(Boolean),
-          dietary: [draft.vegetarian !== 'no' ? `vegetarian:${draft.vegetarian}` : '', draft.halal === 'yes' ? 'halal' : '', draft.vegan === 'yes' ? 'vegan' : '', draft.dietNotes].filter(Boolean),
-          services,
-          budget_total_cents: draft.budget ? Math.round(draft.budget * 100) : undefined,
-          description: [draft.comments, draft.access, draft.allergies && `Allergies: ${draft.allergies}`, draft.forbidden && `Avoid: ${draft.forbidden}`].filter(Boolean).join('\n') || undefined,
-          consent: draft.consent,
-          details: {
-            venue_type: draft.venueType, occasion: draft.occasion, cuisine_style: draft.cuisineStyle,
-            counts: draft.counts, serving_format: draft.format, staff: draft.staff, warming: draft.warm,
-            fulfilment: draft.fulfilment, handover_time: draft.handoverTime, tableware: draft.ware,
-            plates: draft.plates, cutlery: draft.cutlery, glasses: draft.glasses, end_date: draft.endDate,
-            drinks: draft.drinks, drink_type: draft.drinkType, drink_quantity: draft.drinkQuantity,
-            halal: draft.halal, vegan: draft.vegan, diet_notes: draft.dietNotes,
-          },
+          ...requestBody(),
+          consent: draft.consent as true,
         }).unwrap();
         const requestId = String(reply.request_id ?? reply.id ?? '');
         if (!requestId) {

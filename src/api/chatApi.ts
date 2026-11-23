@@ -11,8 +11,12 @@ export const chatApi = api.injectEndpoints({
       query: (conversation_id) => ({ path: 'serviospot/getMessages', body: { conversation_id } }),
       providesTags: (_result, _error, id) => [{ type: 'Message', id }],
     }),
-    sendMessage: build.mutation<ApiRecord, { conversation_id: Id; message: string }>({
-      query: (body) => ({ path: 'serviospot/sendMessage', body }),
+    sendMessage: build.mutation<ApiRecord, { conversation_id: Id; body: string; message?: string }>({
+      query: ({ conversation_id, body, message }) => ({
+        path: 'serviospot/sendMessage',
+        // PHP/Postman contract uses `body`; keep `message` for older backends.
+        body: { conversation_id, body, message: message ?? body },
+      }),
       invalidatesTags: (_result, _error, { conversation_id }) => [{ type: 'Message', id: conversation_id }, 'Conversation'],
     }),
   }),
