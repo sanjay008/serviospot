@@ -1,11 +1,11 @@
-import { router } from 'expo-router';
 import { Image } from 'expo-image';
+import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { API_ENABLED, useGetMeQuery } from '@/api';
 import { textOf } from '@/api/mappers';
-import { Icon } from '@/flow2/components/Icon';
 import { Header } from '@/flow2/components/Header';
+import { Icon } from '@/flow2/components/Icon';
 import { Notice } from '@/flow2/components/Notice';
 import { ProfileSettings } from '@/flow2/components/ProfileSettings';
 import { Screen } from '@/flow2/components/Screen';

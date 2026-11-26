@@ -1,10 +1,10 @@
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/flow2/components/Button';
 import { Card } from '@/flow2/components/Card';
-import { ChipGroup, ChipSingle } from '@/flow2/components/Chip';
+import { ChipGroup } from '@/flow2/components/Chip';
 import { Field } from '@/flow2/components/Field';
 import { Header } from '@/flow2/components/Header';
 import { Input } from '@/flow2/components/Input';
@@ -63,7 +63,8 @@ function apiMessage(error: unknown, fallback: string) {
 }
 
 export default function VendorOnboardingScreen() {
-  const { onboarding, patchOnboarding, submitOnboarding, lang } = useApp();
+  const { onboarding, patchOnboarding, submitOnboarding, lang, t } = useApp();
+  const tx = (en: string) => t({ en, nl: en });
   const { hydrate, session } = useSessionApp();
   const type = useType();
   const [step, setStep] = useState(0);
@@ -73,19 +74,21 @@ export default function VendorOnboardingScreen() {
   const [optionsReady, setOptionsReady] = useState(false);
   const [getOptions] = useGetOnboardingOptionsMutation();
   const [saveVendorOnboarding, { isLoading: saving }] = useSaveVendorOnboardingMutation();
+  const seededName = useRef(false);
 
   useEffect(() => {
     if (!session.signedIn || session.mode !== 'provider') return;
+    const writtenName = /[A-Za-z]/.test(session.name) ? session.name.trim() : '';
     patchOnboarding({
-      name: session.name,
       email: session.email,
       emailRequired: !session.email,
       phone: session.phone,
       accountCreated: true,
       emailVerified: Boolean(session.email),
       phoneVerified: Boolean(session.phone),
-      profileName: session.name,
+      ...(seededName.current ? {} : { name: writtenName, profileName: writtenName }),
     });
+    seededName.current = true;
   }, [session.signedIn, session.mode, session.name, session.email, session.phone, patchOnboarding]);
 
   useEffect(() => {
@@ -110,18 +113,19 @@ export default function VendorOnboardingScreen() {
     return item ? (lang === 'nl' ? item.label_nl : item.label_en) : code;
   };
   const steps = [
-    'Contact details',
-    'Provider & private address',
-    'Service area & fulfilment',
-    'Catering capabilities',
-    'Capacity per fulfilment type',
-    'Profile, PDF & photos',
-    '6 months of full access',
-    'Review & submit',
+    tx('Contact details'),
+    tx('Provider & private address'),
+    tx('Service area & fulfilment'),
+    tx('Catering capabilities'),
+    tx('Capacity per fulfilment type'),
+    tx('Profile, PDF & photos'),
+    tx('6 months of full access'),
+    tx('Review & submit'),
   ];
 
   const validate = (index: number): string => {
-    if (index === 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(onboarding.email.trim())) return 'Enter a real email address.';
+    if (index === 0 && !onboarding.name.trim()) return tx('Enter your full name.');
+    if (index === 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(onboarding.email.trim())) return tx('Enter a real email address.');
     return '';
   };
 
@@ -158,10 +162,11 @@ export default function VendorOnboardingScreen() {
     try {
       const saved = await saveVendorOnboarding({
         email: onboarding.email.trim().toLowerCase(),
+        full_name: onboarding.name.trim(),
         profile_name: onboarding.profileName.trim(),
-        provider_type: onboarding.type,
-        ...(onboarding.type === 'business' ? { business_name: onboarding.company.trim() } : {}),
-        ...(onboarding.type === 'business' && onboarding.kvk.trim() ? { kvk: onboarding.kvk.trim() } : {}),
+        provider_type: 'business',
+        business_name: onboarding.company.trim(),
+        ...(onboarding.kvk.trim() ? { kvk: onboarding.kvk.trim() } : {}),
         street: onboarding.street.trim(),
         ...(onboarding.house.trim() ? { house_number: onboarding.house.trim() } : {}),
         postcode: onboarding.postal.trim().toUpperCase(),
@@ -202,11 +207,12 @@ export default function VendorOnboardingScreen() {
 
   return (
     <Screen
-      header={<Header title={'Provider onboarding'} subtitle={'8 steps · private and business'} prominent />}
+      liftFooter={false}
+      header={<Header title={tx('Provider onboarding')} subtitle={tx('8 steps · private and business')} prominent />}
       footer={
         <View style={styles.footerRow}>
-          {step > 0 ? <Button label={'Back'} variant="secondary" onPress={back} style={styles.footerBtn} /> : null}
-          {step < steps.length - 1 ? <Button label={step === 3 && !optionsReady ? 'Loading options…' : 'Next'} onPress={next} loading={step === 3 && !optionsReady} style={styles.footerBtn} /> : <Button label={saving ? 'Saving…' : 'Confirm & submit'} onPress={() => void submit()} loading={saving} style={styles.footerBtn} />}
+          {step > 0 ? <Button label={tx('Back')} variant="secondary" onPress={back} style={styles.footerBtn} /> : null}
+          {step < steps.length - 1 ? <Button label={step === 3 && !optionsReady ? tx('Loading options…') : tx('Next')} onPress={next} loading={step === 3 && !optionsReady} style={styles.footerBtn} /> : <Button label={saving ? tx('Saving…') : tx('Confirm & submit')} onPress={() => void submit()} loading={saving} style={styles.footerBtn} />}
         </View>
       }>
       <ProgressSteps
@@ -219,45 +225,32 @@ export default function VendorOnboardingScreen() {
 
       {step === 0 ? (
         <Card style={styles.accountFields}>
-          <Row label={'Full name'} value={onboarding.name || '—'} />
-          <Input label={'Email'} value={onboarding.email} onChangeText={(value) => patchOnboarding({ email: value, emailVerified: false })} placeholder={'you@example.com'} keyboardType="email-address" autoCapitalize="none" />
-          <Row label={'Phone'} value={onboarding.phone || '—'} />
+          <Input label={tx('Full name')} value={onboarding.name} onChangeText={(value) => patchOnboarding({ name: value })} placeholder={tx('Your name')} autoCapitalize="words" />
+          <Input label={tx('Email')} value={onboarding.email} onChangeText={(value) => patchOnboarding({ email: value, emailVerified: false })} placeholder={'you@example.com'} keyboardType="email-address" autoCapitalize="none" />
+          <Row label={tx('Phone')} value={onboarding.phone || '—'} />
         </Card>
       ) : null}
 
       {step === 1 ? (
         <Card>
-          <Field label={'Provider type'}>
-            <ChipSingle
-              options={options.provider_types.map((item) => item.code)}
-              value={onboarding.type}
-              onChange={(value) => patchOnboarding({ type: value as 'private' | 'business' })}
-              labelOf={(value) => optionLabel(options.provider_types, value)}
-            />
-          </Field>
-          <Input label={'Public profile name'} value={onboarding.profileName} onChangeText={(value) => patchOnboarding({ profileName: value })} autoCapitalize="words" />
-          {onboarding.type === 'business' ? (
-            <>
-              <Input label={'Business name'} value={onboarding.company} onChangeText={(value) => patchOnboarding({ company: value })} autoCapitalize="words" />
-              <Input label={'KvK number — optional'} value={onboarding.kvk} onChangeText={(value) => patchOnboarding({ kvk: value })} autoCapitalize="none" />
-            </>
-          ) : null}
-          <Input label={'Street — private'} value={onboarding.street} onChangeText={(value) => patchOnboarding({ street: value })} autoCapitalize="words" />
-          <Input label={'House number — private'} value={onboarding.house} onChangeText={(value) => patchOnboarding({ house: value })} autoCapitalize="none" />
-          <Input label={'Postcode — private'} value={onboarding.postal} onChangeText={(value) => patchOnboarding({ postal: value })} autoCapitalize="characters" />
-          <Input label={'City'} value={onboarding.city} onChangeText={(value) => patchOnboarding({ city: value })} autoCapitalize="words" />
-          <Notice tone="info" body={'Your address is not public. Only city and service area appear on your profile.'} />
+          <Input label={tx('Public profile name')} value={onboarding.profileName} onChangeText={(value) => patchOnboarding({ profileName: value })} autoCapitalize="words" />
+          <Input label={tx('Business name')} value={onboarding.company} onChangeText={(value) => patchOnboarding({ company: value })} autoCapitalize="words" />
+          <Input label={tx('KvK number — optional')} value={onboarding.kvk} onChangeText={(value) => patchOnboarding({ kvk: value })} autoCapitalize="none" />
+          <Input label={tx('Street — private')} value={onboarding.street} onChangeText={(value) => patchOnboarding({ street: value })} autoCapitalize="words" />
+          <Input label={tx('House number — private')} value={onboarding.house} onChangeText={(value) => patchOnboarding({ house: value })} autoCapitalize="none" />
+          <Input label={tx('Postcode — private')} value={onboarding.postal} onChangeText={(value) => patchOnboarding({ postal: value })} autoCapitalize="characters" />
+          <Input label={tx('City')} value={onboarding.city} onChangeText={(value) => patchOnboarding({ city: value })} autoCapitalize="words" />
         </Card>
       ) : null}
 
       {step === 2 ? (
         <>
           <Card>
-            <Input label={'Base postcode'} value={onboarding.postal} onChangeText={(value) => patchOnboarding({ postal: value })} autoCapitalize="characters" />
-            <Stepper label={'Service area: radius in km'} value={onboarding.radius} onChange={(value) => patchOnboarding({ radius: value })} min={1} max={120} />
+            <Input label={tx('Base postcode')} value={onboarding.postal} onChangeText={(value) => patchOnboarding({ postal: value })} autoCapitalize="characters" />
+            <Stepper label={tx('Service area: radius in km')} value={onboarding.radius} onChange={(value) => patchOnboarding({ radius: value })} min={1} max={120} />
           </Card>
           <Card>
-            <SectionTitle title={'Which fulfilment types do you offer?'} />
+            <SectionTitle title={tx('Which fulfilment types do you offer?')} />
             <Field>
               <ChipGroup
                 options={options.fulfilments.map((item) => item.code)}
@@ -274,13 +267,13 @@ export default function VendorOnboardingScreen() {
         optionsReady ? (
           <>
             <Card>
-              <SectionTitle title={'Cuisines'} />
+              <SectionTitle title={tx('Cuisines')} />
               <Field>
                 <ChipGroup options={options.cuisines.map((item) => item.code)} selected={onboarding.cuisines} onToggle={(value) => patchOnboarding({ cuisines: onboarding.cuisines.includes(value) ? onboarding.cuisines.filter((item) => item !== value) : [...onboarding.cuisines, value] })} labelOf={(value) => optionLabel(options.cuisines, value)} />
               </Field>
               {onboarding.cuisines.includes('surinamese') ? (
                 <>
-                  <SectionTitle title={'Surinamese styles'} />
+                  <SectionTitle title={tx('Surinamese styles')} />
                   <Field>
                     <ChipGroup options={options.cuisine_styles.map((item) => item.code)} selected={onboarding.cuisineStyles} onToggle={(value) => patchOnboarding({ cuisineStyles: onboarding.cuisineStyles.includes(value) ? onboarding.cuisineStyles.filter((item) => item !== value) : [...onboarding.cuisineStyles, value] })} labelOf={(value) => optionLabel(options.cuisine_styles, value)} />
                   </Field>
@@ -288,57 +281,58 @@ export default function VendorOnboardingScreen() {
               ) : null}
             </Card>
             <Card>
-              <SectionTitle title={'What can you offer?'} />
+              <SectionTitle title={tx('What can you offer?')} />
               <Field>
                 <ChipGroup options={options.capabilities.map((item) => item.code)} selected={onboarding.capabilities} onToggle={(value) => patchOnboarding({ capabilities: onboarding.capabilities.includes(value) ? onboarding.capabilities.filter((item) => item !== value) : [...onboarding.capabilities, value] })} labelOf={(value) => optionLabel(options.capabilities, value)} />
               </Field>
             </Card>
           </>
-        ) : <Notice tone="info" body={'Loading onboarding options…'} />
+        ) : <Notice tone="info" body={tx('Loading options…')} />
       ) : null}
 
       {step === 4 ? (
         <>
-          <Notice tone="info" body={'Each enabled fulfilment type has its own minimum and maximum guest count.'} />
-          {onboarding.delivery ? <Card><SectionTitle title={'Delivery'} /><Stepper label={'Minimum'} value={onboarding.minDelivery} onChange={(value) => patchOnboarding({ minDelivery: value })} min={1} max={500} /><Stepper label={'Maximum'} value={onboarding.maxDelivery} onChange={(value) => patchOnboarding({ maxDelivery: value })} min={1} max={1000} /></Card> : null}
-          {onboarding.pickup ? <Card><SectionTitle title={'Pickup'} /><Stepper label={'Minimum'} value={onboarding.minPickup} onChange={(value) => patchOnboarding({ minPickup: value })} min={1} max={500} /><Stepper label={'Maximum'} value={onboarding.maxPickup} onChange={(value) => patchOnboarding({ maxPickup: value })} min={1} max={1000} /></Card> : null}
-          {onboarding.onsite ? <Card><SectionTitle title={'On-site'} /><Stepper label={'Minimum'} value={onboarding.minOnsite} onChange={(value) => patchOnboarding({ minOnsite: value })} min={1} max={500} /><Stepper label={'Maximum'} value={onboarding.maxOnsite} onChange={(value) => patchOnboarding({ maxOnsite: value })} min={1} max={1000} /></Card> : null}
+          <Notice tone="info" body={tx('Each enabled fulfilment type has its own minimum and maximum guest count.')} />
+          {onboarding.delivery ? <Card><SectionTitle title={tx('Delivery')} /><Stepper label={tx('Minimum')} value={onboarding.minDelivery} onChange={(value) => patchOnboarding({ minDelivery: value })} min={1} max={500} /><Stepper label={tx('Maximum')} value={onboarding.maxDelivery} onChange={(value) => patchOnboarding({ maxDelivery: value })} min={1} max={1000} /></Card> : null}
+          {onboarding.pickup ? <Card><SectionTitle title={tx('Pickup')} /><Stepper label={tx('Minimum')} value={onboarding.minPickup} onChange={(value) => patchOnboarding({ minPickup: value })} min={1} max={500} /><Stepper label={tx('Maximum')} value={onboarding.maxPickup} onChange={(value) => patchOnboarding({ maxPickup: value })} min={1} max={1000} /></Card> : null}
+          {onboarding.onsite ? <Card><SectionTitle title={tx('On-site')} /><Stepper label={tx('Minimum')} value={onboarding.minOnsite} onChange={(value) => patchOnboarding({ minOnsite: value })} min={1} max={500} /><Stepper label={tx('Maximum')} value={onboarding.maxOnsite} onChange={(value) => patchOnboarding({ maxOnsite: value })} min={1} max={1000} /></Card> : null}
           <Card>
-            <Stepper label={'Minimum preparation time (days)'} value={onboarding.leadDays} onChange={(value) => patchOnboarding({ leadDays: value })} min={0} max={30} />
+            <Stepper label={tx('Minimum preparation time (days)')} value={onboarding.leadDays} onChange={(value) => patchOnboarding({ leadDays: value })} min={0} max={30} />
           </Card>
         </>
       ) : null}
 
       {step === 5 ? (
         <Card>
-          <Input label={'Profile description'} value={onboarding.description} onChangeText={(value) => patchOnboarding({ description: value })} multiline hint={'At least 20 characters.'} />
-          <Input label={'Starting price per guest (€ incl. VAT) — optional'} value={onboarding.fromPrice} onChangeText={(value) => patchOnboarding({ fromPrice: value })} keyboardType="numeric" />
-          <Notice tone="info" title={'Menu PDF and photos'} body={'Optional. In production files are stored securely and moderated. This demo does not upload.'} />
+          <Input label={tx('Profile description')} value={onboarding.description} onChangeText={(value) => patchOnboarding({ description: value })} multiline hint={tx('At least 20 characters.')} />
+          <Input label={tx('Starting price per guest (€ incl. VAT) — optional')} value={onboarding.fromPrice} onChangeText={(value) => patchOnboarding({ fromPrice: value })} keyboardType="numeric" />
+          <Notice tone="info" title={tx('Menu PDF and photos')} body={tx('Optional. In production files are stored securely and moderated. This demo does not upload.')} />
         </Card>
       ) : null}
 
       {step === 6 ? (
         <Card>
-          <SectionTitle title={'Full plan · 6 months free'} subtitle={'For all new providers, private and business.'} />
-          <Text style={[styles.paragraph, { fontSize: type.secondary, lineHeight: leading(type.secondary, 7) }]}>{'Starts on admin approval. No billing details needed. After expiry you explicitly choose paid or Free. Without an active plan new leads stop.'}</Text>
-          <CheckRow checked={onboarding.trialConsent} onPress={() => patchOnboarding({ trialConsent: !onboarding.trialConsent })} label={'I understand the free period and the plan choice after.'} />
+          <SectionTitle title={tx('Full plan · 6 months free')} subtitle={tx('For all new providers, private and business.')} />
+          <Text style={[styles.paragraph, { fontSize: type.secondary, lineHeight: leading(type.secondary, 7) }]}>{tx('Starts on admin approval. No billing details needed. After expiry you explicitly choose paid or Free. Without an active plan new leads stop.')}</Text>
+          <CheckRow checked={onboarding.trialConsent} onPress={() => patchOnboarding({ trialConsent: !onboarding.trialConsent })} label={tx('I understand the free period and the plan choice after.')} />
         </Card>
       ) : null}
 
       {step === 7 ? (
         <>
           <Card>
-            <SectionTitle title={'Summary'} />
-            <Row label={'Profile name'} value={onboarding.profileName || '—'} />
-            <Row label={'Type'} value={onboarding.type === 'private' ? 'Private' : 'Business'} />
-            <Row label={'Verification'} value={`${onboarding.emailVerified ? 'e-mail ✓' : 'e-mail ✗'} · ${onboarding.phoneVerified ? 'telefoon ✓' : 'telefoon ✗'}`} />
-            <Row label={'City'} value={onboarding.city || '—'} />
-            <Row label={'Service area'} value={`${onboarding.radius} km`} />
-            <Row label={'Cuisines'} value={String(onboarding.cuisines.length)} />
-            <Row label={'Capabilities'} value={String(onboarding.capabilities.length)} />
-            <Row label={'Starting price'} value={onboarding.fromPrice ? `€ ${onboarding.fromPrice}` : '—'} />
+            <SectionTitle title={tx('Summary')} />
+            <Row label={tx('Full name')} value={onboarding.name || '—'} />
+            <Row label={tx('Profile name')} value={onboarding.profileName || '—'} />
+            <Row label={tx('Business name')} value={onboarding.company || '—'} />
+            <Row label={tx('Verification')} value={`${onboarding.emailVerified ? 'e-mail ✓' : 'e-mail ✗'} · ${onboarding.phoneVerified ? 'telefoon ✓' : 'telefoon ✗'}`} />
+            <Row label={tx('City')} value={onboarding.city || '—'} />
+            <Row label={tx('Service area')} value={`${onboarding.radius} km`} />
+            <Row label={tx('Cuisines')} value={String(onboarding.cuisines.length)} />
+            <Row label={tx('Capabilities')} value={String(onboarding.capabilities.length)} />
+            <Row label={tx('Starting price')} value={onboarding.fromPrice ? `€ ${onboarding.fromPrice}` : '—'} />
           </Card>
-          <CheckRow checked={onboarding.terms} onPress={() => patchOnboarding({ terms: !onboarding.terms })} label={'I confirm my details are accurate and accept the terms.'} />
+          <CheckRow checked={onboarding.terms} onPress={() => patchOnboarding({ terms: !onboarding.terms })} label={tx('I confirm my details are accurate and accept the terms.')} />
         </>
       ) : null}
     </Screen>

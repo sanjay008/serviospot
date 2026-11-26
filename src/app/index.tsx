@@ -10,7 +10,8 @@ import { useType } from '@/hooks/use-type';
 import { homeFor, useApp as useSessionApp } from '@/state/store';
 
 export default function RoleSelectionScreen() {
-  const { setRole } = useApp();
+  const { setRole, t } = useApp();
+  const tx = (en: string) => t({ en, nl: en });
   const { session, restored } = useSessionApp();
   const type = useType();
   const insets = useSafeAreaInsets();
@@ -47,8 +48,8 @@ export default function RoleSelectionScreen() {
           <Text style={[styles.tagline, { fontSize: type.secondary }]}>Find. Compare. Connect.</Text>
         </View>
         <View style={styles.buttons}>
-          <Button label="Customer" onPress={openCustomer} style={[styles.button, styles.customerButton]} />
-          <Button label="Vendor" variant="secondary" onPress={openVendor} style={[styles.button, styles.vendorButton]} />
+          <Button label={tx('Customer')} onPress={openCustomer} style={[styles.button, styles.customerButton]} />
+          <Button label={tx('Vendor')} variant="secondary" onPress={openVendor} style={[styles.button, styles.vendorButton]} />
         </View>
       </View>
     </View>

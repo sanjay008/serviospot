@@ -14,7 +14,7 @@ export function ChatTopBar({ name, subtitle, onBack }: { name: string; subtitle:
       <View style={styles.avatar}><Text style={[styles.initial, { fontSize: type.sectionTitle }]}>{name.charAt(0).toUpperCase()}</Text></View>
       <View style={styles.person}>
         <Text style={[styles.name, { fontSize: type.cardTitle }]} numberOfLines={1}>{name}</Text>
-        <Text style={[styles.subtitle, { fontSize: type.small }]} numberOfLines={1}>{subtitle}</Text>
+        {subtitle ? <Text style={[styles.subtitle, { fontSize: type.small }]} numberOfLines={1}>{subtitle}</Text> : null}
       </View>
     </View>
   );

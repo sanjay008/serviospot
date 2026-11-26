@@ -35,13 +35,15 @@ export type IconName =
   | 'lock'
   | 'eye'
   | 'edit'
+  | 'copy'
   | 'card'
   | 'refresh'
   | 'party'
   | 'drink'
   | 'box'
   | 'chart'
-  | 'photo';
+  | 'photo'
+  | 'chef';
 
 const ICONS: Record<IconName, () => ReactNode> = {
   home: () => (
@@ -213,6 +215,12 @@ const ICONS: Record<IconName, () => ReactNode> = {
       <Path d="M14 6l4 4" />
     </>
   ),
+  copy: () => (
+    <>
+      <Rect x={8} y={8} width={11} height={12} rx={2} />
+      <Path d="M6 16H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </>
+  ),
   card: () => (
     <>
       <Rect x={3} y={5.5} width={18} height={13} rx={2.5} />
@@ -247,6 +255,12 @@ const ICONS: Record<IconName, () => ReactNode> = {
       <Rect x={3} y={5} width={18} height={14} rx={2.5} />
       <Circle cx={8.5} cy={10} r={1.6} />
       <Path d="M4 17l4.5-4 3.5 3 3-2.5L20 17" />
+    </>
+  ),
+  chef: () => (
+    <>
+      <Path d="M8 13.5a2.8 2.8 0 0 1-1.2-5.2A3.2 3.2 0 0 1 12 6.2a3.2 3.2 0 0 1 5.2 2.1A2.8 2.8 0 0 1 16 13.5" />
+      <Path d="M7.5 13.5h9v2.2a2.2 2.2 0 0 1-2.2 2.2H9.7a2.2 2.2 0 0 1-2.2-2.2z" />
     </>
   ),
 };

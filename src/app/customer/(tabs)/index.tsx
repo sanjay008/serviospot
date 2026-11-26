@@ -1,24 +1,30 @@
 import { router } from 'expo-router';
-import { Image } from 'expo-image';
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { EmptyState } from '@/flow2/components/EmptyState';
+import { API_ENABLED, useDeleteFavoriteMutation, useGetCategoriesQuery, useGetFavoritesQuery, useGetProvidersQuery, useSaveFavoriteMutation, useSearchProvidersQuery } from '@/api';
+import { rowsOf, textOf } from '@/api/mappers';
+import { apiMediaUri } from '@/api/media';
+import type { ApiRecord } from '@/api/types';
+import { CatererCard, type CatererCardModel } from '@/components/CatererCard';
+import { euro } from '@/data/format';
+import type { Lang } from '@/flow2/data/types';
 import { Button } from '@/flow2/components/Button';
+import { EmptyState } from '@/flow2/components/EmptyState';
 import { Header } from '@/flow2/components/Header';
 import { Icon } from '@/flow2/components/Icon';
+import { Notice } from '@/flow2/components/Notice';
 import { Screen } from '@/flow2/components/Screen';
-import { palette } from '@/flow2/constants/theme';
+import { palette, spacing } from '@/flow2/constants/theme';
 import { b } from '@/flow2/data/options';
-import { API_ENABLED, useGetCategoriesQuery, useGetProvidersQuery, useSearchProvidersQuery } from '@/api';
-import { rowsOf, textOf } from '@/api/mappers';
-import type { ApiRecord } from '@/api/types';
-import { apiMediaUri } from '@/api/media';
-import { useType } from '@/hooks/use-type';
 import { useApp } from '@/flow2/state/app';
+import { useType } from '@/hooks/use-type';
+import { useApp as useSession } from '@/state/store';
 
 export default function CustomerHomeScreen() {
-  const { t } = useApp();
+  const { t, lang } = useApp();
+  const { session, restored } = useSession();
+  const signedIn = API_ENABLED && restored && session.signedIn && session.mode === 'customer';
   const type = useType();
   const [query, setQuery] = useState('');
   const [cuisine, setCuisine] = useState('all');
@@ -32,6 +38,11 @@ export default function CustomerHomeScreen() {
   const isFetching = (Object.keys(filters).length ? searchQuery : providersQuery).isFetching;
   const categoryRows = rowsOf(categoriesQuery.data);
   const resultsQuery = Object.keys(filters).length ? searchQuery : providersQuery;
+  const favoritesQuery = useGetFavoritesQuery(undefined, { skip: !signedIn });
+  const [saveFavorite, saveState] = useSaveFavoriteMutation();
+  const [deleteFavorite, deleteState] = useDeleteFavoriteMutation();
+  const [favoriteError, setFavoriteError] = useState('');
+  const favoriteByProvider = useMemo(() => favoriteIds(rowsOf(favoritesQuery.data)), [favoritesQuery.data]);
 
   const toggleFilters = () => {
     if (filtersOpen) {
@@ -42,10 +53,27 @@ export default function CustomerHomeScreen() {
     setFiltersOpen(true);
   };
 
-  const filtered = useMemo(() => providerRows.map(mapProvider).filter((provider) => provider.id), [providerRows]);
+  const filtered = useMemo(() => providerRows.map((row) => mapProvider(row, lang)).filter((provider) => provider.id), [lang, providerRows]);
+
+  const toggleFavorite = async (providerId: string) => {
+    if (!signedIn) return;
+    if (!favoritesQuery.isSuccess) {
+      setFavoriteError(t(b('Favorieten zijn nog niet geladen.', 'Favorites are still loading.')));
+      return;
+    }
+    setFavoriteError('');
+    try {
+      const favoriteId = favoriteByProvider.get(providerId);
+      if (favoriteId) await deleteFavorite(favoriteId).unwrap();
+      else await saveFavorite({ type: 'provider', id: providerId }).unwrap();
+    } catch (cause) {
+      const message = cause && typeof cause === 'object' && 'message' in cause && typeof cause.message === 'string' ? cause.message : t(b('Favoriet kon niet worden opgeslagen.', 'Could not update this favorite.'));
+      setFavoriteError(message);
+    }
+  };
 
   return (
-    <Screen loading={isLoading} refreshing={isFetching && !isLoading} onRefresh={() => { void (Object.keys(filters).length ? searchQuery.refetch() : providersQuery.refetch()); void categoriesQuery.refetch(); }} header={<Header title={t(b('Alle cateraars', 'All caterers'))} subtitle={t(b('Vind catering voor jouw evenement', 'Find catering for your event'))} />}>
+    <Screen scroll={false} canvas={palette.bg} loading={isLoading} style={styles.screen} header={<Header title={t(b('Alle cateraars', 'All caterers'))} subtitle={t(b('Beschikbare cateraars', 'Available caterers'))} />}>
       <View style={styles.searchRow}>
         <View style={styles.searchBox}>
           <Icon name="search" color={palette.muted} size={19} />
@@ -78,19 +106,38 @@ export default function CustomerHomeScreen() {
         </View>
       ) : null}
 
-      <View style={styles.resultsHeading}>
-        <Text style={[styles.resultsTitle, { fontSize: type.sectionTitle }]}>{t(b('Catering bij jou in de buurt', 'Caterers for your event'))}</Text>
-        <Text style={[styles.count, { fontSize: type.small }]}>{filtered.length}</Text>
-      </View>
+      {favoriteError ? <Notice tone="error" body={favoriteError} /> : null}
 
       {!API_ENABLED ? <EmptyState title="API unavailable" body="Enable the backend API to load caterers." /> : resultsQuery.isError ? (
         <View style={styles.loadError}><EmptyState title={t(b('Cateraars laden niet', 'Could not load caterers'))} body={t(b('De server kon de cateraars niet laden. Probeer opnieuw.', 'The server could not load caterers. Please try again.'))} /><Button label={t(b('Opnieuw proberen', 'Try again'))} variant="secondary" onPress={() => { void resultsQuery.refetch(); }} /></View>
-      ) : filtered.length === 0 ? (
-        <EmptyState title={t(b('Geen cateraars gevonden', 'No caterers found'))} body={t(b('Pas je zoekopdracht of filters aan.', 'Try changing your search or filters.'))} action={t(b('Wis filters', 'Clear filters'))} onAction={() => { setQuery(''); setCuisine('all'); }} />
       ) : (
-        filtered.map((provider) => (
-          <CatererCard key={provider.id} provider={provider} onPress={() => router.push(`/customer/provider/${provider.id}` as any)} />
-        ))
+        <FlatList
+          data={filtered}
+          keyExtractor={(item) => item.id}
+          style={styles.list}
+          contentContainerStyle={styles.listContent}
+          keyboardShouldPersistTaps="handled"
+          refreshControl={<RefreshControl refreshing={isFetching && !isLoading} onRefresh={() => { void resultsQuery.refetch(); void categoriesQuery.refetch(); if (signedIn) void favoritesQuery.refetch(); }} tintColor={palette.accent} colors={[palette.accent]} />}
+          ListHeaderComponent={
+            <View style={styles.resultsHeading}>
+              <Text style={[styles.resultsTitle, { fontSize: type.sectionTitle }]}>{t(b('Beschikbare cateraars', 'Available caterers'))}</Text>
+              <Text style={[styles.count, { fontSize: type.small }]}>{filtered.length}</Text>
+            </View>
+          }
+          ListEmptyComponent={<EmptyState title={t(b('Geen cateraars gevonden', 'No caterers found'))} body={t(b('Pas je zoekopdracht of filters aan.', 'Try changing your search or filters.'))} action={t(b('Wis filters', 'Clear filters'))} onAction={() => { setQuery(''); setCuisine('all'); }} />}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          renderItem={({ item }) => {
+            const favoriteId = favoriteByProvider.get(item.id);
+            const model: CatererCardModel = { ...item, favorite: favoritesQuery.isSuccess ? Boolean(favoriteId) : item.favorite, favoriteBusy: saveState.isLoading || deleteState.isLoading };
+            return (
+              <CatererCard
+                caterer={model}
+                onPress={() => router.push(`/customer/provider/${item.id}` as never)}
+                onFavorite={signedIn ? () => { void toggleFavorite(item.id); } : undefined}
+              />
+            );
+          }}
+        />
       )}
     </Screen>
   );
@@ -105,100 +152,107 @@ function CuisineChip({ label, selected, onPress }: { label: string; selected: bo
   );
 }
 
-type ApiProvider = {
-  id: string;
-  name?: string;
-  photo?: string;
-  city?: string;
-  rating?: number;
-};
+function mapProvider(row: ApiRecord, lang: Lang): CatererCardModel {
+  const logo = media(textOf(row, 'logo'));
+  const photo = media(textOf(row, 'photo'));
+  const cents = centsOf(row, 'from_price_cents') ?? centsOf(row, 'starting_price_cents');
+  const count = Number(row.review_count);
+  return {
+    id: String(row.provider_id ?? row.id ?? ''),
+    name: present(textOf(row, 'name', 'business_name')) || (lang === 'nl' ? 'Cateraar' : lang === 'ar' ? 'متعهد طعام' : 'Caterer'),
+    city: present(textOf(row, 'city')),
+    image: logo || photo,
+    imageKind: logo ? 'logo' : photo ? 'photo' : undefined,
+    reviewCount: Number.isFinite(count) && count > 0 ? count : 0,
+    verified: row.verified === true || row.verified === 1 || row.verified === '1' || row.verified === 'true',
+    price: cents == null ? undefined : formatCents(cents, present(textOf(row, 'currency')), lang),
+    guests: guestRange(row, lang),
+    favorite: row.is_favorite === true || row.is_favorite === 1 || row.is_favorite === '1' || row.is_favorite === 'true',
+  };
+}
 
-function present(value?: string | number | null) {
-  if (value === undefined || value === null) return undefined;
-  const clean = String(value).trim();
+function favoriteIds(rows: ApiRecord[]) {
+  const map = new Map<string, string>();
+  rows.forEach((row) => {
+    const typeName = textOf(row, 'type', 'favorite_type');
+    if (typeName && typeName !== 'provider') return;
+    const providerId = String(row.target_id ?? row.provider_id ?? (row.provider && typeof row.provider === 'object' ? (row.provider as ApiRecord).id ?? '' : ''));
+    const favoriteId = String(row.favorite_id ?? row.id ?? '');
+    if (providerId && favoriteId) map.set(providerId, favoriteId);
+  });
+  return map;
+}
+
+function present(value?: string | null) {
+  if (!value) return undefined;
+  const clean = value.trim();
   if (!clean || clean.toLowerCase() === 'null') return undefined;
   return clean;
 }
 
-function numberOf(row: ApiRecord, ...keys: string[]) {
-  for (const key of keys) {
-    const value = Number(row[key]);
-    if (Number.isFinite(value) && value >= 0) return value;
-  }
+function media(value?: string) {
+  const uri = apiMediaUri(present(value));
+  if (!uri || /^https?:\/\/[^/\s]+\/data:/i.test(uri)) return undefined;
+  return uri;
+}
+
+function centsOf(row: ApiRecord, key: string) {
+  if (!(key in row) || row[key] == null || row[key] === '') return null;
+  const value = Number(row[key]);
+  return Number.isFinite(value) && value > 0 ? value : null;
+}
+
+function formatCents(cents: number, currency: string | undefined, lang: Lang) {
+  const code = (currency || 'EUR').toUpperCase();
+  if (!/^[A-Z]{3}$/.test(code) || code === 'EUR') return euro(cents);
+  return new Intl.NumberFormat(lang === 'nl' ? 'nl-NL' : lang === 'ar' ? 'ar' : 'en-GB', { style: 'currency', currency: code }).format(cents / 100);
+}
+
+function guestRange(row: ApiRecord, lang: Lang) {
+  const min = positive(row.min_guests);
+  const max = positive(row.max_guests);
+  const guests = lang === 'nl' ? 'gasten' : lang === 'ar' ? 'ضيوف' : 'guests';
+  if (min && max) return `${min}–${max} ${guests}`;
+  if (min) return lang === 'nl' ? `Minimaal ${min} ${guests}` : lang === 'ar' ? `${min} ${guests} على الأقل` : `Minimum ${min} ${guests}`;
+  if (max) return lang === 'nl' ? `Tot ${max} ${guests}` : lang === 'ar' ? `حتى ${max} ${guests}` : `Up to ${max} ${guests}`;
   return undefined;
 }
 
-function mapProvider(row: ApiRecord): ApiProvider {
-  return {
-    id: String(row.provider_id ?? row.vendor_id ?? row.id ?? ''),
-    name: present(textOf(row, 'name', 'business_name', 'provider_name', 'vendor_name', 'title')),
-    photo: apiMediaUri(textOf(row, 'photo', 'logo', 'image', 'profile_photo', 'cover_image', 'image_url', 'photo_url')),
-    city: present(textOf(row, 'city')),
-    rating: numberOf(row, 'rating', 'average_rating', 'avg_rating'),
-  };
-}
-
-function CatererCard({ provider, onPress }: { provider: ApiProvider; onPress: () => void }) {
-  const type = useType();
-  return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}>
-      <View style={styles.cover}>
-        {provider.photo ? (
-          <Image source={{ uri: provider.photo }} style={styles.coverImage} contentFit="cover" transition={180} accessibilityLabel={`${provider.name ?? 'Caterer'} catering`} />
-        ) : (
-          <View style={styles.placeholder}>
-            <View style={styles.placeholderIcon}>
-              <Icon name="photo" color={palette.accent} size={28} />
-            </View>
-          </View>
-        )}
-      </View>
-      <View style={styles.cardBody}>
-        {provider.name ? <Text style={[styles.name, { fontSize: type.cardTitle }]} numberOfLines={1}>{provider.name}</Text> : null}
-        <View style={styles.metaRow}>
-          {provider.city ? (
-            <View style={styles.location}>
-              <Icon name="pin" color={palette.muted} size={14} />
-              <Text style={[styles.metaText, { fontSize: type.small }]}>{provider.city}</Text>
-            </View>
-          ) : <View />}
-          {provider.rating !== undefined ? (
-            <View style={styles.ratingRow}>
-              <Icon name="star" color={palette.gold} size={14} filled />
-              <Text style={[styles.rating, { fontSize: type.small }]}>{provider.rating}</Text>
-            </View>
-          ) : null}
-        </View>
-      </View>
-    </Pressable>
-  );
+function positive(value: unknown) {
+  if (value == null || value === '') return undefined;
+  const count = Number(value);
+  return Number.isFinite(count) && count > 0 ? count : undefined;
 }
 
 const styles = StyleSheet.create({
+  screen: { flex: 1, paddingTop: spacing.md, gap: spacing.md },
+  list: { flex: 1 },
+  listContent: { paddingBottom: spacing.xl },
+  separator: { height: 10 },
   searchRow: { flexDirection: 'row', gap: 10 },
   loadError: { gap: 12 },
   searchBox: {
-    height: 52,
+    height: 44,
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     paddingHorizontal: 14,
-    borderRadius: 16,
+    borderRadius: 14,
     backgroundColor: palette.surface,
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: palette.line,
   },
   searchInput: { flex: 1, minWidth: 0, padding: 0, color: palette.ink, fontWeight: '500' },
   filterButton: {
-    width: 52,
-    height: 52,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 16,
-    backgroundColor: palette.accentSoft,
-    borderWidth: 1.5,
-    borderColor: palette.accentMid,
+    borderRadius: 14,
+    backgroundColor: palette.surface,
+    borderWidth: 1,
+    borderColor: palette.line,
   },
   filterButtonActive: { backgroundColor: palette.accent, borderColor: palette.accent },
   filterPanel: {
@@ -225,45 +279,7 @@ const styles = StyleSheet.create({
   chipSelected: { backgroundColor: palette.accent, borderColor: palette.accent },
   chipText: { color: palette.inkSecondary, fontWeight: '700' },
   chipTextSelected: { color: palette.white },
-  resultsHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
-  resultsTitle: { color: palette.ink, fontWeight: '800', letterSpacing: -0.2, flex: 1, paddingRight: 10 },
-  count: {
-    color: palette.accentDark,
-    fontWeight: '800',
-    backgroundColor: palette.accentSoft,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: palette.accentMid,
-  },
-  card: {
-    overflow: 'hidden',
-    backgroundColor: palette.surface,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: palette.line,
-  },
-  cardPressed: { opacity: 0.92, borderColor: palette.accentMid },
-  cover: { height: 152, backgroundColor: palette.well, overflow: 'hidden' },
-  placeholder: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.accentSoft },
-  placeholderIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: palette.white,
-    borderWidth: 1,
-    borderColor: palette.accentMid,
-  },
-  coverImage: { width: '100%', height: '100%' },
-  cardBody: { padding: 14, gap: 8 },
-  name: { color: palette.ink, fontWeight: '800' },
-  metaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
-  location: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 5 },
-  metaText: { color: palette.muted, fontWeight: '500' },
-  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  rating: { color: palette.ink, fontWeight: '800' },
+  resultsHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
+  resultsTitle: { color: palette.ink, fontWeight: '600', flex: 1, paddingRight: 10 },
+  count: { color: palette.muted, fontWeight: '600' },
 });

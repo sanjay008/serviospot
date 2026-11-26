@@ -12,7 +12,8 @@ function TabIcon({ name, color, size }: { name: IconName; color: string; size: n
 }
 
 export default function CustomerTabsLayout() {
-  const { resetDraft } = useApp();
+  const { resetDraft, t } = useApp();
+  const tx = (en: string) => t({ en, nl: en });
   const insets = useSafeAreaInsets();
   const type = useType();
   const bottom = Math.max(insets.bottom, Platform.OS === 'ios' ? 4 : 8);
@@ -51,37 +52,37 @@ export default function CustomerTabsLayout() {
     >
       <Tabs.Screen
         name="index"
-        options={{ title: 'Home', tabBarIcon: ({ color, size }) => <TabIcon name="home" color={String(color)} size={size} /> }}
+        options={{ title: tx('Home'), tabBarIcon: ({ color, size }) => <TabIcon name="home" color={String(color)} size={size} /> }}
       />
       <Tabs.Screen
         name="requests"
-        options={{ title: 'Requests', tabBarIcon: ({ color, size }) => <TabIcon name="inbox" color={String(color)} size={size} /> }}
+        options={{ title: tx('Requests'), tabBarIcon: ({ color, size }) => <TabIcon name="inbox" color={String(color)} size={size} /> }}
       />
       <Tabs.Screen
         name="new-request"
         options={{
-          title: 'New request',
+          title: tx('New request'),
           tabBarLabel: () => null,
           tabBarButton: (props: any) => (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Start a new request"
-              onPress={() => { resetDraft(); router.push('/customer/request' as any); }}
+              accessibilityLabel={tx('Start a new request')}
+              onPress={() => { resetDraft(); router.push('/customer/choose-vendor' as any); }}
               android_ripple={{ color: 'transparent' }}
               style={[props.style, styles.createTab]}>
               <View style={styles.createButton}><TabIcon name="plus" color="#FFFFFF" size={27} /></View>
-              <Text style={[styles.createLabel, { fontSize: type.micro, lineHeight: type.micro + 2 }]}>New</Text>
+              <Text style={[styles.createLabel, { fontSize: type.micro, lineHeight: type.micro + 2 }]}>{tx('New')}</Text>
             </Pressable>
           ),
         }}
       />
       <Tabs.Screen
         name="chat"
-        options={{ title: 'Chat', tabBarIcon: ({ color, size }) => <TabIcon name="chat" color={String(color)} size={size} /> }}
+        options={{ title: tx('Chat'), tabBarIcon: ({ color, size }) => <TabIcon name="chat" color={String(color)} size={size} /> }}
       />
       <Tabs.Screen
         name="account"
-        options={{ title: 'Me', tabBarIcon: ({ color, size }) => <TabIcon name="person" color={String(color)} size={size} /> }}
+        options={{ title: tx('Me'), tabBarIcon: ({ color, size }) => <TabIcon name="person" color={String(color)} size={size} /> }}
       />
     </Tabs>
   );

@@ -6,23 +6,31 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/flow2/components/Button';
 import { Card } from '@/flow2/components/Card';
 import { Icon } from '@/flow2/components/Icon';
-import { Notice } from '@/flow2/components/Notice';
 import { palette } from '@/flow2/constants/theme';
+import type { Lang } from '@/flow2/data/types';
 import { useApp } from '@/flow2/state/app';
 import { leading, useType } from '@/hooks/use-type';
 import { useApp as useSession } from '@/state/store';
 
+const LANGUAGES: { code: Lang; name: string }[] = [
+  { code: 'en', name: 'English' },
+  { code: 'nl', name: 'Dutch' },
+  { code: 'ar', name: 'Arabic' },
+];
+
 export function ProfileSettings({ onLogout, onDeleteAccount }: { onLogout: () => void; onDeleteAccount: () => void }) {
   const { lang, setLang, notificationsEnabled, setNotificationsEnabled, t } = useApp();
-  const { setNotify, exportAccount } = useSession();
+  const { setNotify } = useSession();
   const type = useType();
   const insets = useSafeAreaInsets();
   const [languageOpen, setLanguageOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState<'logout' | 'delete' | null>(null);
-  const [exportNotice, setExportNotice] = useState('');
-  const [exportError, setExportError] = useState('');
-  const [exporting, setExporting] = useState(false);
+  // Export my data is hidden for now.
+  // const [exportNotice, setExportNotice] = useState('');
+  // const [exportError, setExportError] = useState('');
+  // const [exporting, setExporting] = useState(false);
   const deleting = confirmAction === 'delete';
+  const languageName = LANGUAGES.find((item) => item.code === lang)?.name ?? 'English';
   const dismissConfirm = () => setConfirmAction(null);
   const performConfirm = () => {
     const action = confirmAction;
@@ -36,18 +44,18 @@ export function ProfileSettings({ onLogout, onDeleteAccount }: { onLogout: () =>
     void setNotify({ push: enabled });
   };
 
-  const onExport = async () => {
-    setExportNotice('');
-    setExportError('');
-    setExporting(true);
-    const result = await exportAccount();
-    setExporting(false);
-    if (!result.ok) {
-      setExportError(result.reason);
-      return;
-    }
-    setExportNotice(t({ en: 'Export requested. Check your email when it is ready.', nl: 'Export aangevraagd. Check je e-mail wanneer deze klaar is.' }));
-  };
+  // const onExport = async () => {
+  //   setExportNotice('');
+  //   setExportError('');
+  //   setExporting(true);
+  //   const result = await exportAccount();
+  //   setExporting(false);
+  //   if (!result.ok) {
+  //     setExportError(result.reason);
+  //     return;
+  //   }
+  //   setExportNotice(t({ en: 'Export requested. Check your email when it is ready.', nl: 'Export aangevraagd. Check je e-mail wanneer deze klaar is.' }));
+  // };
 
   return (
     <>
@@ -59,21 +67,21 @@ export function ProfileSettings({ onLogout, onDeleteAccount }: { onLogout: () =>
             <Text style={[styles.hint, { fontSize: type.small, lineHeight: leading(type.small, 5) }]}>{t({ en: 'Choose your app language', nl: 'Kies de taal van de app' })}</Text>
           </View>
           <Pressable accessibilityRole="button" accessibilityState={{ expanded: languageOpen }} onPress={() => setLanguageOpen((open) => !open)} style={styles.languageButton}>
-            <Text style={[styles.languageValue, { fontSize: type.caption }]}>{lang === 'en' ? 'English' : 'Dutch'}</Text>
+            <Text style={[styles.languageValue, { fontSize: type.caption }]}>{languageName}</Text>
             <Text style={[styles.chevron, { fontSize: type.sectionTitle }]}>{languageOpen ? '⌃' : '⌄'}</Text>
           </Pressable>
         </View>
         {languageOpen ? (
           <View style={styles.options}>
-            {(['en', 'nl'] as const).map((option) => (
+            {LANGUAGES.map((option) => (
               <Pressable
-                key={option}
+                key={option.code}
                 accessibilityRole="button"
-                accessibilityState={{ selected: lang === option }}
-                onPress={() => { setLang(option); setLanguageOpen(false); }}
-                style={[styles.option, lang === option && styles.optionSelected]}>
-                <Text style={[styles.optionText, { fontSize: type.secondary }, lang === option && styles.optionTextSelected]}>{option === 'en' ? 'English' : 'Dutch'}</Text>
-                {lang === option ? <Text style={styles.check}>✓</Text> : null}
+                accessibilityState={{ selected: lang === option.code }}
+                onPress={() => { setLang(option.code); setLanguageOpen(false); }}
+                style={[styles.option, lang === option.code && styles.optionSelected]}>
+                <Text style={[styles.optionText, { fontSize: type.secondary }, lang === option.code && styles.optionTextSelected]}>{option.name}</Text>
+                {lang === option.code ? <Text style={styles.check}>✓</Text> : null}
               </Pressable>
             ))}
           </View>
@@ -98,8 +106,6 @@ export function ProfileSettings({ onLogout, onDeleteAccount }: { onLogout: () =>
 
       <Card style={styles.actions}>
         <Text style={[styles.heading, { fontSize: type.cardTitle }]}>{t({ en: 'Account', nl: 'Account' })}</Text>
-        {exportNotice ? <Notice tone="success" body={exportNotice} /> : null}
-        {exportError ? <Notice tone="error" body={exportError} /> : null}
         <Pressable accessibilityRole="button" onPress={() => router.push('/account-terms' as any)} style={styles.termsRow}>
           <Text style={[styles.label, { fontSize: type.secondary }]}>{t({ en: 'Terms & Conditions', nl: 'Algemene voorwaarden' })}</Text>
           <Text style={[styles.chevron, { fontSize: type.sectionTitle }]}>›</Text>
@@ -108,7 +114,7 @@ export function ProfileSettings({ onLogout, onDeleteAccount }: { onLogout: () =>
           <Text style={[styles.label, { fontSize: type.secondary }]}>{t({ en: 'Privacy Policy', nl: 'Privacybeleid' })}</Text>
           <Text style={[styles.chevron, { fontSize: type.sectionTitle }]}>›</Text>
         </Pressable>
-        <Button label={t({ en: 'Export my data', nl: 'Mijn gegevens exporteren' })} variant="secondary" loading={exporting} onPress={() => void onExport()} />
+        {/* <Button label={t({ en: 'Export my data', nl: 'Mijn gegevens exporteren' })} variant="secondary" loading={exporting} onPress={() => void onExport()} /> */}
         <Button label={t({ en: 'Log out', nl: 'Uitloggen' })} variant="secondary" onPress={() => setConfirmAction('logout')} />
         <Button label={t({ en: 'Delete account', nl: 'Account verwijderen' })} variant="danger" onPress={() => setConfirmAction('delete')} />
       </Card>
@@ -151,7 +157,7 @@ const styles = StyleSheet.create({
   copy: { flex: 1, gap: 3 },
   label: { color: palette.ink, fontWeight: '700' },
   hint: { color: palette.muted },
-  languageButton: { minWidth: 112, minHeight: 42, borderWidth: 1, borderColor: palette.line, backgroundColor: palette.well, borderRadius: 11, paddingHorizontal: 11, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  languageButton: { minWidth: 148, minHeight: 42, borderWidth: 1, borderColor: palette.line, backgroundColor: palette.well, borderRadius: 11, paddingHorizontal: 11, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
   languageValue: { color: palette.ink, fontWeight: '700' },
   chevron: { color: palette.accentDark, fontWeight: '700' },
   options: { borderWidth: 1, borderColor: palette.line, borderRadius: 12, overflow: 'hidden', backgroundColor: palette.surface },

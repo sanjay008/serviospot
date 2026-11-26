@@ -1,4 +1,5 @@
-import type { DishCounts, TaskKey } from '@/flow2/data/types';
+import type { DishCounts, Lang, TaskKey } from '@/flow2/data/types';
+import { phrase } from '@/localization/phrase';
 
 export const b = (nl: string, en: string) => ({ nl, en });
 
@@ -32,7 +33,7 @@ export function eventNameForOccasion(occasion: string) {
 }
 
 export const VENUE_TYPES: { value: 'home' | 'venue'; label: { nl: string; en: string } }[] = [
-  { value: 'home', label: b('Thuis', 'Home') },
+  { value: 'home', label: b('Thuis', 'At home') },
   { value: 'venue', label: b('Venue / zaal', 'Venue / hall') },
 ];
 
@@ -127,5 +128,7 @@ export const emptyCounts = (): DishCounts => ({
 export const totalDishes = (counts: DishCounts): number =>
   COUNT_FIELDS.reduce((sum, field) => sum + Number(counts[field.key] || 0), 0);
 
-export const labelOf = <T extends { value: string; label: { nl: string; en: string } }>(list: T[], value: string, lang: 'nl' | 'en'): string =>
-  list.find((item) => item.value === value)?.label[lang] ?? value;
+export const labelOf = <T extends { value: string; label: { nl: string; en: string } }>(list: T[], value: string, lang: Lang): string => {
+  const label = list.find((item) => item.value === value)?.label;
+  return label ? phrase(label, lang) : value;
+};

@@ -33,7 +33,7 @@ export function rowsOf(data: unknown, depth = 0): R[] {
   if (depth > 5) return [];
   if (Array.isArray(data)) return data.filter(isRecord);
   if (!isRecord(data)) return [];
-  const preferred = ['items', 'providers', 'offerings', 'packages', 'reviews', 'requests', 'proposals', 'favorites', 'results', 'data'];
+  const preferred = ['conversations', 'messages', 'items', 'providers', 'offerings', 'packages', 'reviews', 'requests', 'proposals', 'favorites', 'results', 'data'];
   for (const key of preferred) {
     const value = data[key];
     if (Array.isArray(value)) return value.filter(isRecord);
@@ -423,6 +423,14 @@ export function toConversation(r: R, box: 'customer' | 'provider'): Conversation
 }
 
 export function toNotification(r: R, audience: 'customer' | 'provider'): AppNotification {
+  const kind = str(r, 'type');
+  const screen = str(r, 'screen');
+  const refType = str(r, 'ref_type');
+  const refId = str(r, 'ref_id');
+  const isChat = kind === 'message' || screen === 'message' || refType === 'conversation';
+  const chatHref = isChat && refId
+    ? `${audience === 'provider' ? '/vendor/(tabs)/chat' : '/customer/(tabs)/chat'}?conversation=${encodeURIComponent(refId)}`
+    : undefined;
   return {
     id: id(r, 'notification_id'),
     audience,
@@ -430,7 +438,7 @@ export function toNotification(r: R, audience: 'customer' | 'provider'): AppNoti
     body: str(r, 'body', 'message') ?? '',
     at: str(r, 'created_at', 'at') ?? '',
     read: bool(r, 'read', 'is_read') ?? false,
-    href: str(r, 'href', 'url', 'link') ?? (audience === 'provider' ? '/vendor/leads' : '/customer/requests'),
+    href: str(r, 'href', 'url', 'link') ?? chatHref ?? (audience === 'provider' ? '/vendor/leads' : '/customer/requests'),
   };
 }
 

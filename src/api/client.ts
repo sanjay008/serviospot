@@ -78,34 +78,21 @@ export class ApiError extends Error {
   }
 }
 
-const LOG_LIMIT = 2000;
+const LOG_LIMIT = 500000;
 let logCount = 0;
-const SECRET_FIELDS = /^(password|token|verify_token|access_token|refresh_token|authorization|company_login|email|phone|phone_number|whatsapp_number|authnumber|username|full_name|name|photo|logo|image|code|otp)$/i;
+const SECRET_FIELDS = /^(password|token|verify_token|access_token|refresh_token|authorization|company_login|otp|code)$/i;
 
-/** Avoid putting credentials, personal details, or full image data in Metro logs. */
+/** Hide credentials only. Profile fields, image URLs, and data URIs stay readable in the dev log. */
 function mask(key: string, value: unknown) {
   if (typeof value !== 'string') return value;
   if (SECRET_FIELDS.test(key)) return '***';
-  if (value.startsWith('data:')) return `${value.slice(0, value.indexOf(',') + 1)}… (${Math.round(value.length / 1024)} KB)`;
   return value;
 }
 
-const PROFILE_DEBUG_FIELDS = new Set(['full_name', 'email', 'phone']);
-
-function preview(value: unknown, revealProfileFields = false) {
+function preview(value: unknown) {
   const text = typeof value === 'string'
     ? value
-    : JSON.stringify(value, (key, nestedValue) => {
-      // In development, show the account fields sent to updateMe so backend
-      // developers can diagnose account matching. Tokens and photos stay masked.
-      if (revealProfileFields && PROFILE_DEBUG_FIELDS.has(key) && typeof nestedValue === 'string') return nestedValue;
-      if (revealProfileFields && key === 'photo' && typeof nestedValue === 'string') {
-        return nestedValue.startsWith('data:')
-          ? `[redacted photo payload, ${Math.round(nestedValue.length / 1024)} KB]`
-          : nestedValue ? '[redacted photo reference]' : nestedValue;
-      }
-      return mask(key, nestedValue);
-    }, 2);
+    : JSON.stringify(value, (key, nestedValue) => mask(key, nestedValue), 2);
   if (text === undefined) return 'undefined';
   return text.length > LOG_LIMIT ? `${text.slice(0, LOG_LIMIT)}… (+${text.length - LOG_LIMIT} chars)` : text;
 }
@@ -117,8 +104,7 @@ export function startApiLog(method: ApiMethod, url: string, body: unknown): Repl
   if (!__DEV__) return () => {};
   const id = ++logCount;
   const started = Date.now();
-  const showUpdateMeFields = /\/serviospot\/updateMe(?:\?|$)/.test(url);
-  console.log(`[API #${id}] → ${method} ${url}\nSEND ${preview(body, showUpdateMeFields)}`);
+  console.log(`[API #${id}] → ${method} ${url}\nSEND ${preview(body)}`);
   return (status, reply, failed = false) => {
     console.log(`[API #${id}] ${failed ? '✗ FAIL' : '← OK'} ${status} ${url} (${Date.now() - started} ms)\nREPLY ${preview(reply)}`);
   };

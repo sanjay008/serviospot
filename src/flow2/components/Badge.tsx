@@ -21,6 +21,8 @@ export function Badge({
 const styles = StyleSheet.create({
   badge: {
     alignSelf: 'flex-start',
+    maxWidth: '100%',
+    flexShrink: 1,
     borderRadius: radius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xxs + 1,

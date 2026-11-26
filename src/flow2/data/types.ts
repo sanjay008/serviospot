@@ -1,4 +1,4 @@
-export type Lang = 'nl' | 'en';
+export type Lang = 'nl' | 'en' | 'ar';
 export type Bilingual = { nl: string; en: string };
 
 export type Plan = 'free' | 'gold' | 'platinum';

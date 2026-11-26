@@ -19,7 +19,7 @@ export default function CustomerProfileEditScreen() {
   const { required } = useLocalSearchParams<{ required?: string }>();
   const requiredProfile = required === '1';
   const { customerAccount, setCustomerAccount, t } = useApp();
-  const { hydrate } = useSessionApp();
+  const { hydrate, session } = useSessionApp();
   const type = useType();
   const [updateMe, updateState] = useUpdateMeMutation();
   const [name, setName] = useState(customerAccount?.name === 'Guest' ? '' : customerAccount?.name ?? '');
@@ -48,10 +48,16 @@ export default function CustomerProfileEditScreen() {
       return;
     }
 
+    if (session.accountId === undefined || String(session.accountId).trim() === '') {
+      setError(t({ en: 'Your account ID is not loaded yet. Sign in again, then retry saving.', nl: 'Je account-ID is nog niet geladen. Log opnieuw in en probeer opnieuw.' }));
+      return;
+    }
+
     setError('');
     if (API_ENABLED) {
       try {
         await updateMe({
+          id: session.accountId,
           full_name: name.trim(),
           email: cleanEmail || undefined,
           phone: phone.trim() || undefined,

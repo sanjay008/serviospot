@@ -15,10 +15,10 @@ export const customerApi = api.injectEndpoints({
       query: (favorite_id) => ({ path: 'serviospot/deleteFavorite', body: { favorite_id } }),
       invalidatesTags: ['Favorite'],
     }),
-    saveRequestDraft: build.mutation<ApiRecord, Partial<RequestBody>>({
+    saveRequestDraft: build.mutation<ApiRecord, Partial<RequestBody> & { step?: number; draft_id?: Id; provider_id?: Id }>({
       query: (body) => ({ path: 'serviospot/saveRequestDraft', body }),
     }),
-    submitRequest: build.mutation<ApiRecord, RequestBody & { consent: true }>({
+    submitRequest: build.mutation<ApiRecord, Partial<RequestBody> & { consent: true; draft_id?: Id }>({
       query: (body) => ({ path: 'serviospot/submitRequest', body }),
       invalidatesTags: ['Request'],
     }),

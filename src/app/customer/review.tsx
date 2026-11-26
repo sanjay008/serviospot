@@ -29,8 +29,9 @@ const RATING_FIELDS: { key: RatingKey; label: string }[] = [
 ];
 
 export default function CustomerReviewScreen() {
-  const { providerId, requestId } = useLocalSearchParams<{ providerId: string; requestId?: string }>();
-  const { providers, requests, proposalsFor } = useApp();
+  const { providerId, requestId, providerName } = useLocalSearchParams<{ providerId: string; requestId?: string; providerName?: string }>();
+  const { providers, requests, proposalsFor, t } = useApp();
+  const tx = (en: string) => t({ en, nl: en });
   const [selectedRequestId, setSelectedRequestId] = useState(requestId ?? '');
   const [ratings, setRatings] = useState<Record<RatingKey, number>>({ overall: 0, food: 0, communication: 0, reliability: 0, value: 0, service: 0 });
   const [body, setBody] = useState('');
@@ -47,16 +48,18 @@ export default function CustomerReviewScreen() {
     proposalsFor(request.id).some((proposal) => proposal.providerId === providerId && proposal.contactReleased),
   ), [providerId, proposalsFor, requests]);
   const selectedRequest = eligibleRequests.find((request) => request.id === selectedRequestId) ?? eligibleRequests[0];
+  const reviewRequestId = selectedRequest?.id || requestId || '';
   const provider = providers.find((item) => item.id === providerId);
+  const openedFromRequest = Boolean(providerId && reviewRequestId);
 
   const sendReview = async () => {
-    if (!selectedRequest) return;
+    if (!reviewRequestId || !providerId) return;
     if (Object.values(ratings).some((rating) => rating < 1 || rating > 5)) {
       setError('Choose a star rating for every category.');
       return;
     }
-    if (body.trim().length < 10) {
-      setError('Write at least 10 characters about your experience.');
+    if (!body.trim()) {
+      setError('Write about your experience.');
       return;
     }
     if (!confirmEvent) {
@@ -67,8 +70,8 @@ export default function CustomerReviewScreen() {
     setError('');
     setSubmitting(true);
     try {
-      await saveOutcome({ request_id: selectedRequest.id, provider_id: providerId, outcome: 'happened' }).unwrap();
-      await saveReview({ request_id: selectedRequest.id, provider_id: providerId, ...ratings, body: body.trim() }).unwrap();
+      await saveOutcome({ request_id: reviewRequestId, provider_id: providerId, outcome: 'happened' }).unwrap();
+      await saveReview({ request_id: reviewRequestId, provider_id: providerId, ...ratings, body: body.trim() }).unwrap();
       setSubmitted(true);
     } catch (cause) {
       const failure = cause as { data?: { message?: unknown; error?: unknown }; message?: unknown };
@@ -79,12 +82,12 @@ export default function CustomerReviewScreen() {
     }
   };
 
-  if (!eligibleRequests.length) {
+  if (!openedFromRequest && !eligibleRequests.length) {
     return (
-      <Screen header={<Header title="Write a review" back />}>
+      <Screen header={<Header title={tx('Write a review')} back />}>
         <EmptyState
           icon="star"
-          title="No eligible event yet"
+          title={tx('No eligible event yet')}
           body="Verified reviews can be added after the event, once you confirm that this caterer served you."
           action="Back to caterer"
           onAction={() => router.back()}
@@ -95,15 +98,15 @@ export default function CustomerReviewScreen() {
 
   if (submitted) {
     return (
-      <Screen header={<Header title="Review submitted" back />}>
-        <Notice tone="success" title="Thank you for your review" body="Your verified review has been submitted." />
-        <Button label="Back to caterer" onPress={() => router.back()} />
+      <Screen header={<Header title={tx('Review submitted')} back />}>
+        <Notice tone="success" title={tx('Thank you for your review')} body={tx('Your verified review has been submitted.')} />
+        <Button label={tx('Back to caterer')} onPress={() => router.back()} />
       </Screen>
     );
   }
 
   return (
-    <Screen header={<Header title="Write a review" subtitle={provider?.name ?? 'Caterer'} back />}>
+    <Screen header={<Header title={tx('Write a review')} subtitle={providerName || provider?.name || tx('Caterer')} back />}>
       <Notice tone="info" body="Your review is linked to an event you confirmed with this caterer." />
       {eligibleRequests.length > 1 ? (
         <Card>
@@ -132,14 +135,14 @@ export default function CustomerReviewScreen() {
         ))}
       </Card>
       <Card>
-        <Input label="Your review" value={body} onChangeText={setBody} placeholder="How was your experience?" multiline hint="At least 10 characters." />
+        <Input label={tx('Your review')} value={body} onChangeText={setBody} placeholder={tx('How was your experience?')} multiline />
       </Card>
       <Pressable style={styles.confirmRow} onPress={() => setConfirmEvent((value) => !value)} accessibilityRole="checkbox" accessibilityState={{ checked: confirmEvent }}>
         <View style={[styles.checkbox, confirmEvent && styles.checkboxSelected]}>{confirmEvent ? <Icon name="check" color="#fff" size={14} /> : null}</View>
         <Text style={[styles.confirmText, { fontSize: type.secondary, lineHeight: leading(type.secondary, 6) }]}>I confirm the event happened and this caterer provided the service.</Text>
       </Pressable>
       {error ? <Notice tone="error" body={error} /> : null}
-      <Button label="Submit review" loading={submitting} onPress={() => void sendReview()} />
+      <Button label={tx('Submit review')} loading={submitting} onPress={() => void sendReview()} />
     </Screen>
   );
 }

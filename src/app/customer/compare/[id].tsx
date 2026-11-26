@@ -1,5 +1,3 @@
-import { router, useLocalSearchParams } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
 import { API_ENABLED, useGetRequestProposalComparisonQuery } from '@/api';
 import { recordOf, rowsOf } from '@/api/mappers';
 import { type ApiRecord } from '@/api/types';
@@ -7,6 +5,8 @@ import { EmptyState } from '@/flow2/components/EmptyState';
 import { Header } from '@/flow2/components/Header';
 import { Screen } from '@/flow2/components/Screen';
 import { palette } from '@/flow2/constants/theme';
+import { router, useLocalSearchParams } from 'expo-router';
+import { StyleSheet, Text, View } from 'react-native';
 
 export default function CompareScreen() {
   const { id = '' } = useLocalSearchParams<{ id: string }>();

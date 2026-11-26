@@ -33,7 +33,7 @@ export function RequestSummary({ request }: { request: RequestDraft }) {
         <Row label={t(b('Aantal personen', 'Guests'))} value={pluralGuests(request.guests, lang)} />
         <Row label={t(b('Datum', 'Date'))} value={dateLong(request.date, lang)} />
         <Row label={t(b('Stad', 'City'))} value={`${request.city} ${request.postcode}`} />
-        <Row label={t(b('Locatie', 'Location'))} value={request.venueType === 'venue' ? request.venueName || t(b('Venue', 'Venue')) : t(b('Thuis', 'Home'))} />
+        <Row label={t(b('Locatie', 'Location'))} value={request.venueType === 'venue' ? request.venueName || t(b('Venue', 'Venue')) : t(b('Thuis', 'At home'))} />
         <Row label={t(b('Binnen / buiten', 'Indoor / outdoor'))} value={labelOf(SETTINGS, request.setting, lang)} />
         <Row label={t(b('Gelegenheid', 'Occasion'))} value={labelOf(OCCASIONS, request.occasion, lang)} />
       </Card>

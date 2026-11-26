@@ -105,7 +105,7 @@ export default function VendorProposalBuilderScreen() {
             {t(b('All-inprijs', 'All-in price'))}: {money(total, lang)} · {money(perGuest, lang)} {t(b('p.p.', 'p.p.'))} · {t(b('borg', 'deposit'))} {money(Number(deposit) || 0, lang)}
           </Text>
           <Notice tone="accent" body={t(b('Nooit een verstuurd voorstel stilzwijgend wijzigen. Een inhoudelijke wijziging maakt een nieuwe versie.', 'Never silently edit a sent proposal. A material change creates a new version.'))} />
-          <Button label={t(b('Ga naar voorstellen', 'Go to proposals'))} onPress={() => router.replace('/vendor/proposals' as any)} />
+          <Button label={t(b('Ga naar voorstellen', 'Go to proposals'))} onPress={() => router.replace({ pathname: '/vendor/leads', params: { view: 'proposals' } } as any)} />
         </Card>
       </Screen>
     );
@@ -113,6 +113,7 @@ export default function VendorProposalBuilderScreen() {
 
   return (
     <Screen
+      liftFooter={false}
       refreshing={leadQuery.isFetching && !leadQuery.isLoading}
       onRefresh={() => { void leadQuery.refetch(); }}
       header={<Header title={t(b('Voorstel maken', 'Compose proposal'))} subtitle={textOf(request, 'event_type', 'occasion') || 'Customer request'} back />}

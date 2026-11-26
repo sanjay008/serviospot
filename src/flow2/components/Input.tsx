@@ -66,7 +66,8 @@ export function Input({
         onBlur={() => setFocused(false)}
         style={[
           styles.input,
-          { fontSize: type.input, lineHeight: type.input + 4 },
+          { fontSize: type.input },
+          multiline && { lineHeight: type.input + 4 },
           multiline && styles.multi,
           focused && styles.focused,
           error ? styles.bad : null,
@@ -100,12 +101,13 @@ const styles = StyleSheet.create({
     backgroundColor: palette.surface,
     paddingHorizontal: spacing.lg,
     color: palette.ink,
+    includeFontPadding: false,
   },
   actionText: { color: palette.accentDark, fontWeight: '700' },
   actionDisabled: { color: palette.muted },
   focused: {
     borderColor: palette.accent,
-    backgroundColor: palette.surface,
+    backgroundColor: palette.accentSoft,
   },
   multi: { minHeight: 112, paddingTop: 14, paddingBottom: 14 },
   bad: { borderColor: palette.danger, backgroundColor: '#FFF8F8' },

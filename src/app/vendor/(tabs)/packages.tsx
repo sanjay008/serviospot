@@ -11,10 +11,13 @@ import { rowsOf, textOf } from '@/api/mappers';
 import { Notice } from '@/flow2/components/Notice';
 import { palette } from '@/flow2/constants/theme';
 import { OfferingSummaryCard } from '@/flow2/components/OfferingSummaryCard';
+import { useApp as useFlow } from '@/flow2/state/app';
 import { useType } from '@/hooks/use-type';
 
 export default function VendorPackagesTab() {
   const { session, restored } = useSession();
+  const { t } = useFlow();
+  const tx = (en: string) => t({ en, nl: en });
   const type = useType();
   const enabled = API_ENABLED && restored && session.signedIn && session.mode === 'provider';
   const query = useGetVendorOfferingsQuery(undefined, { skip: !enabled });
@@ -50,7 +53,7 @@ export default function VendorPackagesTab() {
       refreshing={enabled && query.isFetching && !query.isLoading}
       onRefresh={enabled ? () => { void query.refetch(); } : undefined}
       style={query.isSuccess && offerings.length === 0 ? styles.emptyContent : undefined}
-      header={<Header title="Your packages" subtitle="Manage the packages customers can request" right={(
+      header={<Header title={tx('Your packages')} subtitle={tx('Manage the packages customers can request')} right={(
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Add package"
@@ -59,7 +62,7 @@ export default function VendorPackagesTab() {
           <Icon name="plus" color="#FFFFFF" size={21} />
         </Pressable>
       )} />}>
-      {query.isError ? <Notice tone="error" title="Offerings unavailable" body="The server did not return your offerings." /> : null}
+      {query.isError ? <Notice tone="error" title={tx('Offerings unavailable')} body={tx('The server did not return your offerings.')} /> : null}
       {error ? <Notice tone="error" body={error} /> : null}
       {query.isLoading ? <Text style={styles.loadingText}>Loading your packages…</Text> : null}
       {query.isSuccess && offerings.length > 0 ? (

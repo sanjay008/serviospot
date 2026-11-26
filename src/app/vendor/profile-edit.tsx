@@ -16,7 +16,8 @@ import { useApp } from '@/flow2/state/app';
 import { leading, useType } from '@/hooks/use-type';
 
 export default function VendorProfileEditScreen() {
-  const { onboarding, patchOnboarding } = useApp();
+  const { onboarding, patchOnboarding, t } = useApp();
+  const tx = (en: string) => t({ en, nl: en });
   const type = useType();
   const profileQuery = useGetVendorProfileQuery(undefined, { skip: !API_ENABLED });
   const [updateVendorProfile, updateState] = useUpdateVendorProfileMutation();
@@ -97,9 +98,9 @@ export default function VendorProfileEditScreen() {
       loading={API_ENABLED && profileQuery.isLoading}
       refreshing={profileQuery.isFetching && !profileQuery.isLoading}
       onRefresh={API_ENABLED ? () => { void profileQuery.refetch(); } : undefined}
-      header={<Header title="Edit profile" subtitle="Update your public vendor details" back />}>
+      header={<Header title={tx('Edit profile')} subtitle={tx('Update your public vendor details')} back />}>
       <Card style={styles.photoCard}>
-        <PhotoPicker centered shape="logo" label="Profile photo" value={photo} onChange={setPhoto} />
+        <PhotoPicker centered shape="logo" label={tx('Profile photo')} value={photo} onChange={setPhoto} />
         <Text style={[styles.photoHint, { fontSize: type.small, lineHeight: leading(type.small, 6) }]}>
           Choose a clear photo of your business or catering team.
         </Text>
@@ -107,15 +108,15 @@ export default function VendorProfileEditScreen() {
 
       <Card style={styles.form}>
         <Text style={[styles.sectionTitle, { fontSize: type.sectionTitle }]}>Business details</Text>
-        <Input label="Public profile name" value={profileName} onChangeText={setProfileName} placeholder="Name customers will see" autoCapitalize="words" />
-        <Input label="Business name" value={company} onChangeText={setCompany} placeholder="Your business name" autoCapitalize="words" />
-        <Input label="City" value={city} onChangeText={setCity} placeholder="Your city" autoCapitalize="words" />
-        <Input label="Profile description" value={description} onChangeText={setDescription} placeholder="Tell customers about your catering" multiline />
-        <Input label="Starting price per guest (€)" value={fromPrice} onChangeText={setFromPrice} placeholder="e.g. 25" keyboardType="decimal-pad" />
+        <Input label={tx('Public profile name')} value={profileName} onChangeText={setProfileName} placeholder={tx('Name customers will see')} autoCapitalize="words" />
+        <Input label={tx('Business name')} value={company} onChangeText={setCompany} placeholder={tx('Your business name')} autoCapitalize="words" />
+        <Input label={tx('City')} value={city} onChangeText={setCity} placeholder={tx('Your city')} autoCapitalize="words" />
+        <Input label={tx('Profile description')} value={description} onChangeText={setDescription} placeholder={tx('Tell customers about your catering')} multiline />
+        <Input label={tx('Starting price per guest (€)')} value={fromPrice} onChangeText={setFromPrice} placeholder="e.g. 25" keyboardType="decimal-pad" />
         {error ? <Notice tone="error" body={error} /> : null}
       </Card>
 
-      <Button label="Save changes" loading={updateState.isLoading} onPress={() => void save()} style={styles.save} />
+      <Button label={tx('Save changes')} loading={updateState.isLoading} onPress={() => void save()} style={styles.save} />
     </Screen>
   );
 }

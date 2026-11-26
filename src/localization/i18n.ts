@@ -10,13 +10,15 @@ export type LanguageOption = {
 };
 
 const LANGUAGE_STORAGE_KEY = 'userLanguage';
-const DROPDOWN_EXCLUDED = new Set(['ar']);
+const DROPDOWN_EXCLUDED = new Set<string>();
+const SUPPORTED_LANGUAGES = new Set(['en', 'nl', 'ar']);
 
 export const DEFAULT_LANGUAGE = 'en';
 
 const FALLBACK_LANGUAGES: LanguageOption[] = [
-  { id: 1, language_name: 'Nederlands', language_shortname: 'nl' },
-  { id: 2, language_name: 'English', language_shortname: 'en' },
+  { id: 1, language_name: 'English', language_shortname: 'en' },
+  { id: 2, language_name: 'Nederlands', language_shortname: 'nl' },
+  { id: 3, language_name: 'العربية', language_shortname: 'ar' },
 ];
 
 let availableLanguages: LanguageOption[] = FALLBACK_LANGUAGES;
@@ -46,7 +48,12 @@ export async function initI18n() {
   await ready;
   // Remote language API is paused; language options use the bundled fallback list.
   availableLanguages = FALLBACK_LANGUAGES;
-  await i18n.changeLanguage(DEFAULT_LANGUAGE);
+  let language = DEFAULT_LANGUAGE;
+  if (canUseStorage()) {
+    const saved = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (saved && SUPPORTED_LANGUAGES.has(saved)) language = saved;
+  }
+  await i18n.changeLanguage(language);
 }
 
 initPromise = initI18n();

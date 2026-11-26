@@ -2,6 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import { buildProposals, initialDraft, initialOnboarding, PROVIDERS, SAMPLE_REQUEST } from '@/flow2/data/seed';
+import { changeAppLanguage } from '@/localization/i18n';
+import { phrase } from '@/localization/phrase';
 import { useApp as useSession } from '@/state/store';
 import type {
   Bilingual,
@@ -66,7 +68,7 @@ function storedImage(uri: string | undefined) {
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const { session, restored: sessionRestored } = useSession();
-  const [lang, setLang] = useState<Lang>('en');
+  const [lang, setLangState] = useState<Lang>('en');
   const [role, setRole] = useState<'customer' | 'vendor'>('customer');
   const [customerAccount, setCustomerAccount] = useState<CustomerAccount | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -77,6 +79,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [chatMessages, setChatMessages] = useState<Record<string, FlowChatMessage[]>>({});
   const [profileReady, setProfileReady] = useState(false);
   const wasSignedIn = useRef(false);
+
+  useEffect(() => {
+    let alive = true;
+    void AsyncStorage.getItem('userLanguage').then((saved) => {
+      if (!alive) return;
+      if (saved === 'en' || saved === 'nl' || saved === 'ar') setLangState(saved);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const setLang = useCallback((next: Lang) => {
+    setLangState(next);
+    void changeAppLanguage(next);
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -148,8 +166,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return [own, ...PROVIDERS];
   }, [onboarding]);
 
-  const t = useCallback((value: Bilingual | string) => (typeof value === 'string' ? value : value[lang]), [lang]);
-  const toggleLang = useCallback(() => setLang((current) => (current === 'nl' ? 'en' : 'nl')), []);
+  const t = useCallback((value: Bilingual | string) => (typeof value === 'string' ? value : phrase(value, lang)), [lang]);
+  const toggleLang = useCallback(() => setLang(lang === 'nl' ? 'en' : 'nl'), [lang, setLang]);
 
   const patchDraft = useCallback((patch: Patch) => setDraft((current) => ({ ...current, ...patch })), []);
   const patchCount = useCallback(
@@ -251,6 +269,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }),
     [
       lang,
+      setLang,
       toggleLang,
       t,
       role,

@@ -1,8 +1,10 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { API_ENABLED, useSaveRequestDraftMutation, useSubmitRequestMutation } from '@/api';
+import { API_ENABLED, useGetRequestDetailsQuery, useSaveRequestDraftMutation, useSubmitRequestMutation, useUpdateRequestMutation, type RequestBody } from '@/api';
+import { recordOf } from '@/api/mappers';
+import type { ApiRecord } from '@/api/types';
 import { Button } from '@/flow2/components/Button';
 import { Card } from '@/flow2/components/Card';
 import { DateField } from '@/flow2/components/DateField';
@@ -16,8 +18,8 @@ import { SectionTitle } from '@/flow2/components/SectionTitle';
 import { SelectField } from '@/flow2/components/SelectField';
 import { Stepper } from '@/flow2/components/Stepper';
 import { palette } from '@/flow2/constants/theme';
-import { b, COUNT_FIELDS, CUISINES, CUISINE_STYLES, DRINK_TYPES, FORMATS, FULFILMENTS, OCCASIONS, SETTINGS, TASKS, VENUE_TYPES, WARE, YES_NO, totalDishes } from '@/flow2/data/options';
-import type { Bilingual, RequestDraft } from '@/flow2/data/types';
+import { COUNT_FIELDS, CUISINES, CUISINE_STYLES, DRINK_TYPES, FORMATS, FULFILMENTS, OCCASIONS, SETTINGS, TASKS, VENUE_TYPES, WARE, YES_NO, b, emptyCounts, totalDishes } from '@/flow2/data/options';
+import type { Bilingual, DishCounts, RequestDraft } from '@/flow2/data/types';
 import { useApp } from '@/flow2/state/app';
 import { leading, useType } from '@/hooks/use-type';
 import { useApp as useSession } from '@/state/store';
@@ -53,19 +55,42 @@ function Choice({
 }
 
 export default function RequestWizardScreen() {
-  const params = useLocalSearchParams<{ providerId?: string; fresh?: string }>();
+  const params = useLocalSearchParams<{ providerId?: string; providerName?: string; fresh?: string; requestId?: string }>();
+  const editing = Boolean(params.requestId);
   const { t, draft, patchDraft, patchCount, patchTask, resetDraft, providers } = useApp();
   const { session } = useSession();
-  const [saveRequestDraft] = useSaveRequestDraftMutation();
+  const [saveRequestDraft, saveState] = useSaveRequestDraftMutation();
   const [submitRequest, submitState] = useSubmitRequestMutation();
+  const [updateRequest, updateState] = useUpdateRequestMutation();
+  const detailsQuery = useGetRequestDetailsQuery(params.requestId ?? '', { skip: !params.requestId });
+  const loadedRequestId = useRef('');
   const [step, setStep] = useState(0);
+  const scrollRef = useRef<ScrollView>(null);
+  const [draftId, setDraftId] = useState<string | number | null>(null);
   const [error, setError] = useState('');
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => scrollRef.current?.scrollTo({ y: 0, animated: false }));
+    return () => cancelAnimationFrame(frame);
+  }, [step]);
+
   const provider = providers.find((item) => item.id === params.providerId);
 
   useEffect(() => {
+    if (params.requestId) return;
     resetDraft();
+    setDraftId(null);
+    setStep(0);
     if (params.providerId) patchDraft({ providerId: params.providerId });
-  }, [params.providerId, params.fresh, patchDraft, resetDraft]);
+  }, [params.providerId, params.fresh, params.requestId, patchDraft, resetDraft]);
+
+  useEffect(() => {
+    const record = recordOf(detailsQuery.data, 'request');
+    if (!params.requestId || !record || loadedRequestId.current === params.requestId) return;
+    loadedRequestId.current = params.requestId;
+    resetDraft();
+    patchDraft(draftPatchFromRequest(record));
+    setStep(0);
+  }, [detailsQuery.data, params.requestId, patchDraft, resetDraft]);
 
   const steps = [t(b('Event', 'Event')), t(b('Cuisine', 'Cuisine')), t(b('Staff', 'Staff')), t(b('Extras', 'Extras')), t(b('Review', 'Review'))];
   const stepTitles = [
@@ -83,41 +108,93 @@ export default function RequestWizardScreen() {
     t(b('Controleer alles voordat je verstuurt.', 'Check everything before you send.')),
   ];
 
-  const requestBody = () => {
+  const filled = (value: string) => value.trim() !== '';
+  const requestBody = (apiStep: number) => {
     const services = Object.entries(draft.tasks).filter(([, value]) => value === 'yes').map(([key]) => key);
+    const cuisines = [draft.cuisine, draft.cuisine === 'surinamese' ? draft.cuisineStyle : ''].filter(filled);
+    const dietary = [
+      filled(draft.vegetarian) ? `vegetarian:${draft.vegetarian}` : '',
+      draft.halal === 'yes' ? 'halal' : '',
+      draft.vegan === 'yes' ? 'vegan' : '',
+      draft.dietNotes,
+    ].filter(filled);
+    const providerId = params.providerId || draft.providerId;
     return {
-      event_type: draft.occasion || draft.eventName,
-      event_date: draft.date,
-      start_time: draft.start || undefined,
-      end_time: draft.end || undefined,
-      city: draft.city,
-      postcode: draft.postcode,
-      location: draft.venueName || undefined,
-      indoor_outdoor: draft.setting,
+      step: apiStep,
+      ...(draftId != null ? { draft_id: draftId } : {}),
+      ...(providerId ? { provider_id: providerId } : {}),
+      ...(filled(draft.occasion) || filled(draft.eventName) ? { event_type: draft.occasion || draft.eventName } : {}),
+      ...(filled(draft.date) ? { event_date: draft.date } : {}),
+      ...(filled(draft.start) ? { start_time: draft.start } : {}),
+      ...(filled(draft.end) ? { end_time: draft.end } : {}),
+      ...(filled(draft.city) ? { city: draft.city } : {}),
+      ...(filled(draft.postcode) ? { postcode: draft.postcode } : {}),
+      ...(draft.venueType === 'venue' && filled(draft.venueName) ? { location: draft.venueName } : {}),
+      ...(filled(draft.setting) ? { indoor_outdoor: draft.setting } : {}),
       guest_count: draft.guests,
       needs: ['food'],
-      cuisines: [draft.cuisine, draft.cuisineStyle].filter(Boolean),
-      dietary: [draft.vegetarian !== 'no' ? `vegetarian:${draft.vegetarian}` : '', draft.halal === 'yes' ? 'halal' : '', draft.vegan === 'yes' ? 'vegan' : '', draft.dietNotes].filter(Boolean),
-      services,
-      budget_total_cents: draft.budget ? Math.round(draft.budget * 100) : undefined,
-      description: [draft.comments, draft.access, draft.allergies && `Allergies: ${draft.allergies}`, draft.forbidden && `Avoid: ${draft.forbidden}`].filter(Boolean).join('\n') || undefined,
+      ...(cuisines.length ? { cuisines } : {}),
+      ...(dietary.length ? { dietary } : {}),
+      ...(services.length ? { services } : {}),
+      ...(draft.budget > 0 ? { budget_total_cents: Math.round(draft.budget * 100) } : {}),
+      ...([draft.comments, draft.access, draft.allergies && `Allergies: ${draft.allergies}`, draft.forbidden && `Avoid: ${draft.forbidden}`].filter(Boolean).join('\n')
+        ? { description: [draft.comments, draft.access, draft.allergies && `Allergies: ${draft.allergies}`, draft.forbidden && `Avoid: ${draft.forbidden}`].filter(Boolean).join('\n') }
+        : {}),
       details: {
-        venue_type: draft.venueType, occasion: draft.occasion, cuisine_style: draft.cuisineStyle,
-        counts: draft.counts, serving_format: draft.format, staff: draft.staff, warming: draft.warm,
-        fulfilment: draft.fulfilment, handover_time: draft.handoverTime, tableware: draft.ware,
-        plates: draft.plates, cutlery: draft.cutlery, glasses: draft.glasses, end_date: draft.endDate,
-        drinks: draft.drinks, drink_type: draft.drinkType, drink_quantity: draft.drinkQuantity,
-        halal: draft.halal, vegan: draft.vegan, diet_notes: draft.dietNotes,
+        ...(filled(draft.venueType) ? { venue_type: draft.venueType } : {}),
+        ...(filled(draft.occasion) ? { occasion: draft.occasion } : {}),
+        ...(draft.cuisine === 'surinamese' && filled(draft.cuisineStyle) ? { cuisine_style: draft.cuisineStyle } : {}),
+        counts: draft.counts,
+        ...(filled(draft.format) ? { serving_format: draft.format } : {}),
+        ...(filled(draft.staff) ? { staff: draft.staff } : {}),
+        ...(filled(draft.warm) ? { warming: draft.warm } : {}),
+        ...(filled(draft.fulfilment) ? { fulfilment: draft.fulfilment } : {}),
+        ...(filled(draft.handoverTime) ? { handover_time: draft.handoverTime } : {}),
+        ...(filled(draft.ware) ? { tableware: draft.ware } : {}),
+        ...(filled(draft.plates) ? { plates: draft.plates } : {}),
+        ...(filled(draft.cutlery) ? { cutlery: draft.cutlery } : {}),
+        ...(filled(draft.glasses) ? { glasses: draft.glasses } : {}),
+        ...(filled(draft.endDate) ? { end_date: draft.endDate } : {}),
+        ...(filled(draft.drinks) ? { drinks: draft.drinks } : {}),
+        ...(filled(draft.drinkType) ? { drink_type: draft.drinkType } : {}),
+        ...(filled(draft.drinkQuantity) ? { drink_quantity: draft.drinkQuantity } : {}),
+        ...(filled(draft.halal) ? { halal: draft.halal } : {}),
+        ...(filled(draft.vegan) ? { vegan: draft.vegan } : {}),
+        ...(filled(draft.dietNotes) ? { diet_notes: draft.dietNotes } : {}),
       },
     };
   };
 
-  const next = () => {
+  const failureMessage = (failure: unknown, fallback: string) =>
+    failure && typeof failure === 'object' && 'message' in failure && typeof (failure as { message: unknown }).message === 'string'
+      ? (failure as { message: string }).message
+      : fallback;
+
+  const next = async () => {
     setError('');
-    if (API_ENABLED && session.signedIn && session.mode === 'customer') {
-      void saveRequestDraft(requestBody()).unwrap().catch(() => undefined);
+    if (!API_ENABLED || !session.signedIn || session.mode !== 'customer') {
+      setError(t(b('Log in as a customer and connect to the API before continuing.', 'Log in as a customer and connect to the API before continuing.')));
+      return;
     }
-    setStep((current) => Math.min(steps.length - 1, current + 1));
+    const apiStep = step + 1;
+    if (editing) {
+      setStep(Math.min(steps.length - 1, apiStep));
+      return;
+    }
+    try {
+      const reply = await saveRequestDraft(requestBody(apiStep)).unwrap();
+      if (reply.draft_id != null && (typeof reply.draft_id === 'string' || typeof reply.draft_id === 'number')) setDraftId(reply.draft_id);
+      const completed = typeof reply.step_completed === 'number' ? reply.step_completed : null;
+      if (completed === apiStep) {
+        setStep(Math.min(steps.length - 1, apiStep));
+        return;
+      }
+      const nextStep = typeof reply.next_step === 'number' ? reply.next_step : null;
+      if (nextStep != null && nextStep >= 1 && nextStep <= steps.length) setStep(nextStep - 1);
+      setError(t(b('Deze stap is nog niet afgerond.', 'This step is not complete yet.')));
+    } catch (failure) {
+      setError(failureMessage(failure, t(b('Deze stap kon niet worden opgeslagen. Probeer het opnieuw.', 'This step could not be saved. Please try again.'))));
+    }
   };
 
   const back = () => {
@@ -131,12 +208,27 @@ export default function RequestWizardScreen() {
 
   const onSubmit = async () => {
     setError('');
-    if (API_ENABLED && session.signedIn && session.mode === 'customer') {
+    if (!draft.consent) {
+      setError(t(b('Bevestig de gegevens voordat je verstuurt.', 'Confirm the details before you submit.')));
+      return;
+    }
+    if (editing && params.requestId) {
+      const { step: _step, draft_id: _draftId, ...fields } = requestBody(5);
       try {
-        const reply = await submitRequest({
-          ...requestBody(),
-          consent: draft.consent as true,
-        }).unwrap();
+        await updateRequest({ ...fields, request_id: params.requestId } as RequestBody & { request_id: string }).unwrap();
+        router.replace(`/customer/request/${params.requestId}` as never);
+      } catch (failure) {
+        setError(failureMessage(failure, t(b('De aanvraag kon niet worden bijgewerkt.', 'The request could not be updated.'))));
+      }
+      return;
+    }
+    if (API_ENABLED && session.signedIn && session.mode === 'customer') {
+      if (draftId == null) {
+        setError(t(b('Rond eerst de vorige stappen af.', 'Complete the earlier steps first.')));
+        return;
+      }
+      try {
+        const reply = await submitRequest({ draft_id: draftId, consent: true }).unwrap();
         const requestId = String(reply.request_id ?? reply.id ?? '');
         if (!requestId) {
           router.replace('/customer/(tabs)/requests' as any);
@@ -145,11 +237,7 @@ export default function RequestWizardScreen() {
         router.replace(`/customer/request/${requestId}` as any);
         return;
       } catch (failure) {
-        const message =
-          failure && typeof failure === 'object' && 'message' in failure && typeof (failure as { message: unknown }).message === 'string'
-            ? (failure as { message: string }).message
-            : t(b('De aanvraag kon niet worden verstuurd. Probeer het opnieuw.', 'The request could not be submitted. Please try again.'));
-        setError(message);
+        setError(failureMessage(failure, t(b('De aanvraag kon niet worden verstuurd. Probeer het opnieuw.', 'The request could not be submitted. Please try again.'))));
         return;
       }
     }
@@ -160,17 +248,19 @@ export default function RequestWizardScreen() {
 
   return (
     <Screen
-      header={<Header title={t(b('Aanvraag', 'Request'))} subtitle={provider ? provider.name : t(b('Matching met passende aanbieders', 'Matching with suitable providers'))} back />}
+      scrollRef={scrollRef}
+      loading={editing && detailsQuery.isLoading}
+      header={<Header title={editing ? t(b('Aanvraag bijwerken', 'Update request')) : t(b('Aanvraag', 'Request'))} subtitle={editing ? t(b('Controleer elke stap en sla je wijzigingen op.', 'Check each step, then save your changes.')) : provider?.name || params.providerName || t(b('Matching met passende aanbieders', 'Matching with suitable providers'))} back />}
       footer={
         <View style={styles.footerRow}>
           <Button label={t(b('Vorige', 'Back'))} variant="secondary" onPress={back} style={styles.footerBtn} />
-          {step < steps.length - 1 ? <Button label={t(b('Volgende', 'Next'))} onPress={next} style={styles.footerBtn} /> : <Button label={t(b('Aanvraag versturen', 'Submit request'))} loading={submitState.isLoading} onPress={onSubmit} style={styles.footerBtn} />}
+          {step < steps.length - 1 ? <Button label={t(b('Volgende', 'Next'))} loading={!editing && saveState.isLoading} onPress={() => void next()} style={styles.footerBtn} /> : <Button label={editing ? t(b('Aanvraag bijwerken', 'Update request')) : t(b('Aanvraag versturen', 'Submit request'))} loading={editing ? updateState.isLoading : submitState.isLoading} onPress={() => void onSubmit()} style={styles.footerBtn} />}
         </View>
       }>
       <ProgressSteps
         steps={steps}
         current={step}
-        onPress={(index) => setStep(index)}
+        onPress={(index) => { if (editing || index < step) { setError(''); setStep(index); } }}
         title={stepTitles[step]}
         subtitle={stepSubtitles[step]}
       />
@@ -187,7 +277,6 @@ export default function RequestWizardScreen() {
             placeholder={t(b('Nog geen datum', 'No date selected'))}
           />
           <Input label={t(b('Evenementstad', 'Event city'))} value={draft.city} onChangeText={(value) => patchDraft({ city: value })} autoCapitalize="words" />
-          <Input label={t(b('Postcode', 'Postcode'))} value={draft.postcode} onChangeText={(value) => patchDraft({ postcode: value })} autoCapitalize="characters" />
           <Choice label={t(b('Evenementlocatie', 'Event location'))} options={VENUE_TYPES} value={draft.venueType} onChange={(value) => patchDraft({ venueType: value as RequestDraft['venueType'] })} />
           {draft.venueType === 'venue' ? <Input label={t(b('Naam venue', 'Venue name'))} value={draft.venueName} onChangeText={(value) => patchDraft({ venueName: value })} autoCapitalize="words" /> : null}
           <Choice label={t(b('Binnen / buiten', 'Indoor / outdoor'))} options={SETTINGS} value={draft.setting} onChange={(value) => patchDraft({ setting: value as RequestDraft['setting'] })} />
@@ -298,13 +387,98 @@ export default function RequestWizardScreen() {
   );
 }
 
+const OCCASION_CODES = new Set(['birthday', 'wedding', 'business', 'other']);
+
+function recordText(record: ApiRecord, ...keys: string[]) {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === 'string' || typeof value === 'number') return String(value);
+  }
+  return '';
+}
+
+function yesNo(value: unknown): 'yes' | 'no' {
+  return value === 'yes' ? 'yes' : 'no';
+}
+
+function draftPatchFromRequest(record: ApiRecord): Partial<RequestDraft> {
+  const details = record.details && typeof record.details === 'object' && !Array.isArray(record.details) ? record.details as ApiRecord : {};
+  const cuisines = Array.isArray(record.cuisines) ? record.cuisines.map(String) : [];
+  const dietary = Array.isArray(record.dietary) ? record.dietary.map(String) : [];
+  const services = Array.isArray(record.services) ? record.services.map(String) : [];
+  const eventType = recordText(record, 'event_type');
+  const occasion = recordText(details, 'occasion') || (OCCASION_CODES.has(eventType) ? eventType : '');
+  const vegetarianRaw = dietary.find((item) => item.startsWith('vegetarian:'))?.split(':')[1] ?? '';
+  const description = recordText(record, 'description');
+  const lines = description.split('\n').filter(Boolean);
+  const allergies = lines.find((line) => line.startsWith('Allergies:'))?.replace(/^Allergies:\s*/, '') ?? '';
+  const forbidden = lines.find((line) => line.startsWith('Avoid:'))?.replace(/^Avoid:\s*/, '') ?? '';
+  const comments = lines.filter((line) => !line.startsWith('Allergies:') && !line.startsWith('Avoid:')).join('\n');
+  const counts = emptyCounts();
+  const countsRaw = details.counts && typeof details.counts === 'object' ? details.counts as Record<string, unknown> : {};
+  (Object.keys(counts) as (keyof DishCounts)[]).forEach((key) => {
+    const value = Number(countsRaw[key]);
+    if (Number.isFinite(value)) counts[key] = value;
+  });
+  const tasks: RequestDraft['tasks'] = { decorate: 'no', buffet: 'no', serve: 'no', bar: 'no', wash: 'no', clean: 'no' };
+  (Object.keys(tasks) as (keyof RequestDraft['tasks'])[]).forEach((key) => {
+    if (services.includes(key)) tasks[key] = 'yes';
+  });
+  const cents = Number(record.budget_total_cents);
+  const setting = recordText(record, 'indoor_outdoor');
+  const format = recordText(details, 'serving_format');
+  const tableware = recordText(details, 'tableware');
+  const drinkType = recordText(details, 'drink_type');
+  const venueType = recordText(details, 'venue_type');
+  return {
+    eventName: occasion && eventType === occasion ? '' : eventType,
+    occasion,
+    guests: Number(record.guest_count) || 0,
+    date: recordText(record, 'event_date'),
+    city: recordText(record, 'city'),
+    postcode: recordText(record, 'postcode'),
+    venueName: recordText(record, 'location'),
+    venueType: venueType === 'venue' || recordText(record, 'location') ? 'venue' : 'home',
+    setting: setting === 'outdoor' || setting === 'both' ? setting : 'indoor',
+    comments,
+    allergies,
+    forbidden,
+    cuisine: cuisines[0] ?? '',
+    cuisineStyle: recordText(details, 'cuisine_style') || cuisines[1] || '',
+    vegetarian: vegetarianRaw === 'full' || vegetarianRaw === 'mixed' || vegetarianRaw === 'no' ? vegetarianRaw : 'no',
+    format: format === 'plated' || format === 'bites' ? format : 'buffet',
+    counts,
+    staff: yesNo(details.staff),
+    warm: yesNo(details.warming),
+    fulfilment: recordText(details, 'fulfilment') === 'pickup' ? 'pickup' : 'delivery',
+    handoverTime: recordText(details, 'handover_time'),
+    ware: tableware === 'real' || tableware === 'plastic' ? tableware : 'own',
+    plates: yesNo(details.plates),
+    cutlery: yesNo(details.cutlery),
+    glasses: yesNo(details.glasses),
+    start: recordText(record, 'start_time'),
+    end: recordText(record, 'end_time'),
+    endDate: recordText(details, 'end_date'),
+    tasks,
+    drinks: yesNo(details.drinks),
+    drinkType: drinkType === 'alcohol' || drinkType === 'both' ? drinkType : 'soft',
+    drinkQuantity: recordText(details, 'drink_quantity'),
+    halal: details.halal === 'yes' || dietary.includes('halal') ? 'yes' : 'no',
+    vegan: details.vegan === 'yes' || dietary.includes('vegan') ? 'yes' : 'no',
+    dietNotes: recordText(details, 'diet_notes'),
+    budget: Number.isFinite(cents) ? cents / 100 : 0,
+    providerId: recordText(record, 'provider_id') || undefined,
+    consent: false,
+  };
+}
+
 function PressableRow({ checked, onPress, label }: { checked: boolean; onPress: () => void; label: string }) {
   const type = useType();
   return (
-    <View style={styles.consentRow}>
+    <Pressable accessibilityRole="checkbox" accessibilityState={{ checked }} onPress={onPress} style={styles.consentRow}>
       <View style={[styles.checkbox, checked && styles.checkboxOn]}>{checked ? <Text style={[styles.checkmark, { fontSize: type.body, lineHeight: leading(type.body, 3) }]}>✓</Text> : null}</View>
       <Text style={[styles.consentText, { fontSize: type.secondary, lineHeight: leading(type.secondary, 6) }]}>{label}</Text>
-    </View>
+    </Pressable>
   );
 }
 

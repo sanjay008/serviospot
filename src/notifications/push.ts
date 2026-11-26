@@ -35,9 +35,21 @@ export function notificationOpenedApp() {
   return handledLaunch;
 }
 
-export function hrefFromNotification(notification: PushNote) {
-  const url = notification.request.content.data?.url;
-  return typeof url === 'string' && url.startsWith('/') ? url : null;
+export function hrefFromNotification(notification: PushNote, mode?: 'customer' | 'provider') {
+  const data = notification.request.content.data;
+  const record = data && typeof data === 'object' ? data as Record<string, unknown> : {};
+  const url = record.url;
+  if (typeof url === 'string' && url.startsWith('/')) return url;
+  const type = typeof record.type === 'string' ? record.type : '';
+  const screen = typeof record.screen === 'string' ? record.screen : '';
+  const refType = typeof record.ref_type === 'string' ? record.ref_type : '';
+  const refId = record.ref_id ?? record.conversation_id;
+  const id = typeof refId === 'string' || typeof refId === 'number' ? String(refId) : '';
+  if ((type === 'message' || screen === 'message' || refType === 'conversation') && id) {
+    const root = mode === 'provider' ? '/vendor/(tabs)/chat' : '/customer/(tabs)/chat';
+    return `${root}?conversation=${encodeURIComponent(id)}`;
+  }
+  return null;
 }
 
 export function markNotificationHandled() {

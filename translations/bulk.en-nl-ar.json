@@ -1,0 +1,3082 @@
+{
+  "1 proposal": {
+    "en": "1 proposal",
+    "nl": "1 voorstel",
+    "ar": "عرض واحد"
+  },
+  "1 proposal received.": {
+    "en": "1 proposal received.",
+    "nl": "1 voorstel ontvangen.",
+    "ar": "تم استلام عرض واحد."
+  },
+  "6 months of full access": {
+    "en": "6 months of full access",
+    "nl": "6 maanden volledige toegang",
+    "ar": "6 أشهر وصول كامل"
+  },
+  "8 steps · private and business": {
+    "en": "8 steps · private and business",
+    "nl": "8 stappen · particulier en bedrijf",
+    "ar": "8 خطوات · خاص وتجاري"
+  },
+  "A clear overview of requests and your packages": {
+    "en": "A clear overview of requests and your packages",
+    "nl": "Overview van aanvragen en je pakketten",
+    "ar": "نظرة واضحة على الطلبات وباقاتك"
+  },
+  "A paid Mollie payment adds an invoice here.": {
+    "en": "A paid Mollie payment adds an invoice here.",
+    "nl": "Een betaalde Mollie-betaling voegt hier een factuur toe.",
+    "ar": "الدفع المكتمل عبر Mollie يضيف فاتورة هنا."
+  },
+  "A review is waiting for your reply.": {
+    "en": "A review is waiting for your reply.",
+    "nl": "Er wacht een review op je reactie.",
+    "ar": "هناك تقييم بانتظار ردك."
+  },
+  "Access, kitchen facilities, power and water": {
+    "en": "Access, kitchen facilities, power and water",
+    "nl": "Toegang, keukenruimte, stroom en water",
+    "ar": "الدخول ومرافق المطبخ والكهرباء والماء"
+  },
+  "Account settings": {
+    "en": "Account settings",
+    "nl": "Accountinstellingen",
+    "ar": "إعدادات الحساب"
+  },
+  "Active": {
+    "en": "Active",
+    "nl": "Actief",
+    "ar": "نشط"
+  },
+  "Add package": {
+    "en": "Add package",
+    "nl": "Pakket toevoegen",
+    "ar": "إضافة باقة"
+  },
+  "Additional information": {
+    "en": "Additional information",
+    "nl": "Extra informatie",
+    "ar": "معلومات إضافية"
+  },
+  "Additional notes": {
+    "en": "Additional notes",
+    "nl": "Extra notities",
+    "ar": "ملاحظات إضافية"
+  },
+  "African": {
+    "en": "African",
+    "nl": "Afrikaans",
+    "ar": "أفريقي"
+  },
+  "Alcohol": {
+    "en": "Alcohol",
+    "nl": "Alcohol",
+    "ar": "كحول"
+  },
+  "All": {
+    "en": "All",
+    "nl": "Alles",
+    "ar": "الكل"
+  },
+  "All caterers": {
+    "en": "All caterers",
+    "nl": "Alle cateraars",
+    "ar": "كل متعهدي الطعام"
+  },
+  "All requested tasks included; personal details after contact.": {
+    "en": "All requested tasks included; personal details after contact.",
+    "nl": "Alle gevraagde werkzaamheden inbegrepen; persoonlijke details bespreken we na contact.",
+    "ar": "كل المهام المطلوبة مشمولة؛ التفاصيل الشخصية بعد التواصل."
+  },
+  "All-in price": {
+    "en": "All-in price",
+    "nl": "All-inprijs",
+    "ar": "سعر شامل"
+  },
+  "Allergies": {
+    "en": "Allergies",
+    "nl": "Allergieën",
+    "ar": "الحساسية"
+  },
+  "Allergies and cross-contact requirements": {
+    "en": "Allergies and cross-contact requirements",
+    "nl": "Allergieën en kruisbesmettingseisen",
+    "ar": "الحساسية ومتطلبات منع التلامس"
+  },
+  "Also possible with staff.": {
+    "en": "Also possible with staff.",
+    "nl": "Ook mogelijk met bediening.",
+    "ar": "ممكن أيضًا مع طاقم."
+  },
+  "Alternative with fewer extra vegetarian dishes and plastic tableware where shown.": {
+    "en": "Alternative with fewer extra vegetarian dishes and plastic tableware where shown.",
+    "nl": "Alternatief met minder extra vegetarische gerechten en plastic servies waar vermeld.",
+    "ar": "بديل بأطباق نباتية إضافية أقل وأدوات بلاستيكية حيث هو موضح."
+  },
+  "An unresolved allergy or safety requirement blocks continuing. Unknown is not a guarantee.": {
+    "en": "An unresolved allergy or safety requirement blocks continuing. Unknown is not a guarantee.",
+    "nl": "Onopgeloste allergie- of veiligheidseis blokkeert doorgaan. Onbekend is geen garantie.",
+    "ar": "حساسية أو متطلب سلامة غير محلول يمنع المتابعة. «غير معروف» ليس ضمانًا."
+  },
+  "API unavailable": {
+    "en": "API unavailable",
+    "nl": "API niet beschikbaar",
+    "ar": "واجهة البرمجة غير متاحة"
+  },
+  "Approved": {
+    "en": "Approved",
+    "nl": "Goedgekeurd",
+    "ar": "موافق عليه"
+  },
+  "Assumptions and conditions": {
+    "en": "Assumptions and conditions",
+    "nl": "Voorwaarden",
+    "ar": "الافتراضات والشروط"
+  },
+  "At home": {
+    "en": "At home",
+    "nl": "Thuis",
+    "ar": "المنزل"
+  },
+  "At least 20 characters.": {
+    "en": "At least 20 characters.",
+    "nl": "Minstens 20 tekens.",
+    "ar": "20 حرفًا على الأقل."
+  },
+  "At least 8 characters": {
+    "en": "At least 8 characters",
+    "nl": "Minstens 8 tekens",
+    "ar": "8 أحرف على الأقل"
+  },
+  "Availability": {
+    "en": "Availability",
+    "nl": "Beschikbaarheid",
+    "ar": "التوفر"
+  },
+  "Available": {
+    "en": "Available",
+    "nl": "Beschikbaar",
+    "ar": "متاح"
+  },
+  "Available caterers": {
+    "en": "Available caterers",
+    "nl": "Beschikbare cateraars",
+    "ar": "متعهدي الطعام المتاحون"
+  },
+  "Back": {
+    "en": "Back",
+    "nl": "Terug",
+    "ar": "رجوع"
+  },
+  "Back to caterer": {
+    "en": "Back to caterer",
+    "nl": "Terug naar cateraar",
+    "ar": "العودة إلى المتعهد"
+  },
+  "Back to proposals": {
+    "en": "Back to proposals",
+    "nl": "Terug naar voorstellen",
+    "ar": "العودة إلى العروض"
+  },
+  "Base dishes": {
+    "en": "Base dishes",
+    "nl": "Aantal basisgerechten",
+    "ar": "أطباق أساسية"
+  },
+  "Base postcode": {
+    "en": "Base postcode",
+    "nl": "Basispostcode",
+    "ar": "الرمز البريدي الأساسي"
+  },
+  "Beef dishes": {
+    "en": "Beef dishes",
+    "nl": "Aantal rundgerechten",
+    "ar": "أطباق لحم بقر"
+  },
+  "Birthday Party": {
+    "en": "Birthday Party",
+    "nl": "Verjaardagsfeest",
+    "ar": "حفلة عيد ميلاد"
+  },
+  "Bites": {
+    "en": "Bites",
+    "nl": "Hapjes",
+    "ar": "مقبلات صغيرة"
+  },
+  "Both": {
+    "en": "Both",
+    "nl": "Beide",
+    "ar": "كلاهما"
+  },
+  "Budget": {
+    "en": "Budget",
+    "nl": "Budget",
+    "ar": "الميزانية"
+  },
+  "Budget (incl. VAT)": {
+    "en": "Budget (incl. VAT)",
+    "nl": "Budget (incl. btw)",
+    "ar": "الميزانية (شاملة الضريبة)"
+  },
+  "Buffet": {
+    "en": "Buffet",
+    "nl": "Buffet",
+    "ar": "بوفيه"
+  },
+  "Buffet setup": {
+    "en": "Buffet setup",
+    "nl": "Buffet klaarzetten",
+    "ar": "تجهيز البوفيه"
+  },
+  "Business": {
+    "en": "Business",
+    "nl": "Bedrijf",
+    "ar": "نشاط تجاري"
+  },
+  "Business event": {
+    "en": "Business event",
+    "nl": "Zakelijk evenement",
+    "ar": "مناسبة عمل"
+  },
+  "Business name": {
+    "en": "Business name",
+    "nl": "Bedrijfsnaam",
+    "ar": "اسم النشاط"
+  },
+  "Business overview": {
+    "en": "Business overview",
+    "nl": "Bedrijfsoverzicht",
+    "ar": "نظرة على النشاط"
+  },
+  "Business Profile": {
+    "en": "Business Profile",
+    "nl": "Bedrijfsprofiel",
+    "ar": "ملف النشاط"
+  },
+  "Business setup": {
+    "en": "Business setup",
+    "nl": "Bedrijfsinstelling",
+    "ar": "إعداد النشاط"
+  },
+  "Business verification": {
+    "en": "Business verification",
+    "nl": "Bedrijfsverificatie",
+    "ar": "التحقق من النشاط"
+  },
+  "Cancel request": {
+    "en": "Cancel request",
+    "nl": "Aanvraag annuleren",
+    "ar": "إلغاء الطلب"
+  },
+  "Cancellation reason": {
+    "en": "Cancellation reason",
+    "nl": "Reden",
+    "ar": "سبب الإلغاء"
+  },
+  "Cancelled": {
+    "en": "Cancelled",
+    "nl": "Geannuleerd",
+    "ar": "ملغى"
+  },
+  "Cancelling stops new proposals. An agreement you already made directly with a provider is not cancelled here.": {
+    "en": "Cancelling stops new proposals. An agreement you already made directly with a provider is not cancelled here.",
+    "nl": "Annuleren stopt nieuwe voorstellen. Een afspraak die je al rechtstreeks met een aanbieder maakte, wordt hier niet geannuleerd.",
+    "ar": "الإلغاء يوقف العروض الجديدة. أي اتفاق أبرمته مباشرة مع متعهد لا يُلغى من هنا."
+  },
+  "Capabilities": {
+    "en": "Capabilities",
+    "nl": "Mogelijkheden",
+    "ar": "الإمكانات"
+  },
+  "Capacity per fulfilment type": {
+    "en": "Capacity per fulfilment type",
+    "nl": "Capaciteit per leveringsvorm",
+    "ar": "السعة حسب نوع التنفيذ"
+  },
+  "Category": {
+    "en": "Category",
+    "nl": "Categorie",
+    "ar": "الفئة"
+  },
+  "Caterer": {
+    "en": "Caterer",
+    "nl": "Cateraar",
+    "ar": "متعهد طعام"
+  },
+  "Catering capabilities": {
+    "en": "Catering capabilities",
+    "nl": "Cateringmogelijkheden",
+    "ar": "إمكانات التموين"
+  },
+  "Catering end date": {
+    "en": "Catering end date",
+    "nl": "Einddatum catering",
+    "ar": "تاريخ انتهاء التموين"
+  },
+  "Catering end time": {
+    "en": "Catering end time",
+    "nl": "Eindtijd catering",
+    "ar": "وقت انتهاء التموين"
+  },
+  "Catering hours": {
+    "en": "Catering hours",
+    "nl": "Cateringstijd",
+    "ar": "ساعات التموين"
+  },
+  "Catering period": {
+    "en": "Catering period",
+    "nl": "Cateringperiode",
+    "ar": "فترة التموين"
+  },
+  "Catering start / end": {
+    "en": "Catering start / end",
+    "nl": "Catering start / einde",
+    "ar": "بداية / نهاية التموين"
+  },
+  "Catering start time": {
+    "en": "Catering start time",
+    "nl": "Starttijd catering",
+    "ar": "وقت بدء التموين"
+  },
+  "Chamber of Commerce number (KVK)": {
+    "en": "Chamber of Commerce number (KVK)",
+    "nl": "KvK-nummer",
+    "ar": "رقم الغرفة التجارية (KVK)"
+  },
+  "Chat": {
+    "en": "Chat",
+    "nl": "Chat",
+    "ar": "الدردشة"
+  },
+  "Check each step, then save your changes.": {
+    "en": "Check each step, then save your changes.",
+    "nl": "Controleer elke stap en sla je wijzigingen op.",
+    "ar": "راجع كل خطوة ثم احفظ تغييراتك."
+  },
+  "Check everything before you send.": {
+    "en": "Check everything before you send.",
+    "nl": "Controleer alles voordat je verstuurt.",
+    "ar": "راجع كل شيء قبل الإرسال."
+  },
+  "Chicken": {
+    "en": "Chicken",
+    "nl": "Kip",
+    "ar": "دجاج"
+  },
+  "Chicken dishes": {
+    "en": "Chicken dishes",
+    "nl": "Aantal kipgerechten",
+    "ar": "أطباق دجاج"
+  },
+  "Choose a caterer": {
+    "en": "Choose a caterer",
+    "nl": "Kies een cateraar",
+    "ar": "اختر متعهد طعام"
+  },
+  "Choose a subscription plan.": {
+    "en": "Choose a subscription plan.",
+    "nl": "Kies een abonnement.",
+    "ar": "اختر خطة اشتراك."
+  },
+  "Choose an answer and save it to the server.": {
+    "en": "Choose an answer and save it to the server.",
+    "nl": "Kies een antwoord. Het wordt meteen opgeslagen.",
+    "ar": "اختر إجابة وسيتم حفظها على الخادم."
+  },
+  "Choose cuisine, diet and dishes.": {
+    "en": "Choose cuisine, diet and dishes.",
+    "nl": "Kies keuken, dieet en gerechten.",
+    "ar": "اختر المطبخ والنظام الغذائي والأطباق."
+  },
+  "Choose the next day for overnight events.": {
+    "en": "Choose the next day for overnight events.",
+    "nl": "Kies een volgende einddatum bij na middernacht.",
+    "ar": "اختر اليوم التالي للمناسبات التي تتجاوز منتصف الليل."
+  },
+  "City": {
+    "en": "City",
+    "nl": "Stad",
+    "ar": "المدينة"
+  },
+  "City and postcode": {
+    "en": "City and postcode",
+    "nl": "Plaats",
+    "ar": "المدينة والرمز البريدي"
+  },
+  "Cleanup / teardown": {
+    "en": "Cleanup / teardown",
+    "nl": "Opruimen / afbouwen",
+    "ar": "تنظيف / تفكيك"
+  },
+  "Clear": {
+    "en": "Clear",
+    "nl": "Wissen",
+    "ar": "مسح"
+  },
+  "Clear filters": {
+    "en": "Clear filters",
+    "nl": "Wis filters",
+    "ar": "مسح عوامل التصفية"
+  },
+  "Close": {
+    "en": "Close",
+    "nl": "Sluiten",
+    "ar": "إغلاق"
+  },
+  "Close request": {
+    "en": "Close request",
+    "nl": "Aanvraag sluiten",
+    "ar": "إغلاق الطلب"
+  },
+  "Closing marks this request as finished. This is different from cancelling it.": {
+    "en": "Closing marks this request as finished. This is different from cancelling it.",
+    "nl": "Sluiten markeert deze aanvraag als afgerond. Dit is iets anders dan annuleren.",
+    "ar": "الإغلاق يعلّم هذا الطلب كمكتمل. وهذا يختلف عن إلغائه."
+  },
+  "Comments": {
+    "en": "Comments",
+    "nl": "Opmerkingen",
+    "ar": "تعليقات"
+  },
+  "Comments / personal wishes": {
+    "en": "Comments / personal wishes",
+    "nl": "Opmerkingen / persoonlijke wensen",
+    "ar": "تعليقات / رغبات شخصية"
+  },
+  "Compare proposals": {
+    "en": "Compare proposals",
+    "nl": "Voorstellen vergelijken",
+    "ar": "مقارنة العروض"
+  },
+  "Complete profile": {
+    "en": "Complete profile",
+    "nl": "Profiel afronden",
+    "ar": "إكمال الملف"
+  },
+  "Complete the earlier steps first.": {
+    "en": "Complete the earlier steps first.",
+    "nl": "Rond eerst de vorige stappen af.",
+    "ar": "أكمل الخطوات السابقة أولًا."
+  },
+  "Compose proposal": {
+    "en": "Compose proposal",
+    "nl": "Voorstel maken",
+    "ar": "إنشاء عرض"
+  },
+  "Conditional": {
+    "en": "Conditional",
+    "nl": "Onder voorbehoud",
+    "ar": "مشروط"
+  },
+  "Configure the API to load requests.": {
+    "en": "Configure the API to load requests.",
+    "nl": "Configureer de API om aanvragen te laden.",
+    "ar": "اضبط واجهة البرمجة لتحميل الطلبات."
+  },
+  "Confirm & submit": {
+    "en": "Confirm & submit",
+    "nl": "Bevestigen en versturen",
+    "ar": "تأكيد وإرسال"
+  },
+  "Confirm cancellation": {
+    "en": "Confirm cancellation",
+    "nl": "Annuleren bevestigen",
+    "ar": "تأكيد الإلغاء"
+  },
+  "Confirm the details before you submit.": {
+    "en": "Confirm the details before you submit.",
+    "nl": "Bevestig de gegevens voordat je verstuurt.",
+    "ar": "أكد التفاصيل قبل الإرسال."
+  },
+  "Connect to the API to continue with a provider.": {
+    "en": "Connect to the API to continue with a provider.",
+    "nl": "Verbind met de API om met een aanbieder verder te gaan.",
+    "ar": "اتصل بواجهة البرمجة للمتابعة مع متعهد."
+  },
+  "Connect to the API to load proposal comparison.": {
+    "en": "Connect to the API to load proposal comparison.",
+    "nl": "Verbind met de API om de vergelijking te laden.",
+    "ar": "اتصل بواجهة البرمجة لتحميل المقارنة."
+  },
+  "Connect to the API to load provider details.": {
+    "en": "Connect to the API to load provider details.",
+    "nl": "Verbind met de API om aanbiederdetails te laden.",
+    "ar": "اتصل بواجهة البرمجة لتحميل تفاصيل المتعهد."
+  },
+  "Connect to the API to load request details.": {
+    "en": "Connect to the API to load request details.",
+    "nl": "Verbind met de API om de aanvraag te laden.",
+    "ar": "اتصل بواجهة البرمجة لتحميل تفاصيل الطلب."
+  },
+  "Connect to the API to load this proposal.": {
+    "en": "Connect to the API to load this proposal.",
+    "nl": "Verbind met de API om dit voorstel te laden.",
+    "ar": "اتصل بواجهة البرمجة لتحميل هذا العرض."
+  },
+  "Consent required": {
+    "en": "Consent required",
+    "nl": "Toestemming nodig",
+    "ar": "الموافقة مطلوبة"
+  },
+  "Contact details": {
+    "en": "Contact details",
+    "nl": "Contactgegevens",
+    "ar": "بيانات التواصل"
+  },
+  "Contact is available after customer consent.": {
+    "en": "Contact is available after customer consent.",
+    "nl": "Contact is available after customer consent.",
+    "ar": "تتاح بيانات التواصل بعد موافقة العميل."
+  },
+  "Contact requested": {
+    "en": "Contact requested",
+    "nl": "Contact aangevraagd",
+    "ar": "تم طلب التواصل"
+  },
+  "Contacts shared": {
+    "en": "Contacts shared",
+    "nl": "Contact gedeeld",
+    "ar": "تمت مشاركة التواصل"
+  },
+  "Continue": {
+    "en": "Continue",
+    "nl": "Doorgaan",
+    "ar": "متابعة"
+  },
+  "Continue to onboarding": {
+    "en": "Continue to onboarding",
+    "nl": "Ga verder met onboarding",
+    "ar": "المتابعة إلى التسجيل"
+  },
+  "Conversations": {
+    "en": "Conversations",
+    "nl": "Gesprekken",
+    "ar": "المحادثات"
+  },
+  "Could not cancel this request.": {
+    "en": "Could not cancel this request.",
+    "nl": "Deze aanvraag kon niet worden geannuleerd.",
+    "ar": "تعذر إلغاء هذا الطلب."
+  },
+  "Could not close this request.": {
+    "en": "Could not close this request.",
+    "nl": "Deze aanvraag kon niet worden gesloten.",
+    "ar": "تعذر إغلاق هذا الطلب."
+  },
+  "Could not duplicate this request.": {
+    "en": "Could not duplicate this request.",
+    "nl": "Deze aanvraag kon niet worden gedupliceerd.",
+    "ar": "تعذر نسخ هذا الطلب."
+  },
+  "Could not load caterers": {
+    "en": "Could not load caterers",
+    "nl": "Cateraars laden niet",
+    "ar": "تعذر تحميل متعهدي الطعام"
+  },
+  "Could not load conversations from the server.": {
+    "en": "Could not load conversations from the server.",
+    "nl": "Gesprekken konden niet van de server worden geladen.",
+    "ar": "تعذر تحميل المحادثات من الخادم."
+  },
+  "Could not load invoices": {
+    "en": "Could not load invoices",
+    "nl": "Facturen konden niet worden geladen",
+    "ar": "تعذر تحميل الفواتير"
+  },
+  "Could not load offerings": {
+    "en": "Could not load offerings",
+    "nl": "Aanbod kon niet worden geladen",
+    "ar": "تعذر تحميل العروض"
+  },
+  "Could not load reviews": {
+    "en": "Could not load reviews",
+    "nl": "Reviews konden niet worden geladen",
+    "ar": "تعذر تحميل التقييمات"
+  },
+  "Could not save your availability. Please try again.": {
+    "en": "Could not save your availability. Please try again.",
+    "nl": "Beschikbaarheid kon niet worden opgeslagen.",
+    "ar": "تعذر حفظ توفرك. حاول مرة أخرى."
+  },
+  "Could not save your response.": {
+    "en": "Could not save your response.",
+    "nl": "Het antwoord kon niet worden opgeslagen.",
+    "ar": "تعذر حفظ ردك."
+  },
+  "Could not update this favorite.": {
+    "en": "Could not update this favorite.",
+    "nl": "Favoriet kon niet worden opgeslagen.",
+    "ar": "تعذر تحديث هذا المفضل."
+  },
+  "Could not update this request.": {
+    "en": "Could not update this request.",
+    "nl": "De aanvraag kon niet worden bijgewerkt.",
+    "ar": "تعذر تحديث هذا الطلب."
+  },
+  "Could not withdraw this proposal.": {
+    "en": "Could not withdraw this proposal.",
+    "nl": "Voorstel kon niet worden ingetrokken.",
+    "ar": "تعذر سحب هذا العرض."
+  },
+  "Create account": {
+    "en": "Create account",
+    "nl": "Account aanmaken",
+    "ar": "إنشاء حساب"
+  },
+  "Creole": {
+    "en": "Creole",
+    "nl": "Creools",
+    "ar": "كريولي"
+  },
+  "Cuisine": {
+    "en": "Cuisine",
+    "nl": "Cuisine",
+    "ar": "المطبخ"
+  },
+  "Cuisine & dishes": {
+    "en": "Cuisine & dishes",
+    "nl": "Keuken & gerechten",
+    "ar": "المطبخ والأطباق"
+  },
+  "Cuisine and dishes": {
+    "en": "Cuisine and dishes",
+    "nl": "Keuken en gerechten",
+    "ar": "المطبخ والأطباق"
+  },
+  "Cuisines": {
+    "en": "Cuisines",
+    "nl": "Keukens",
+    "ar": "المطابخ"
+  },
+  "Current guest count": {
+    "en": "Current guest count",
+    "nl": "Huidig aantal gasten",
+    "ar": "عدد الضيوف الحالي"
+  },
+  "Customer": {
+    "en": "Customer",
+    "nl": "Klant",
+    "ar": "عميل"
+  },
+  "Customer contact details stay hidden until the customer consents to contact release.": {
+    "en": "Customer contact details stay hidden until the customer consents to contact release.",
+    "nl": "Contactgegevens blijven verborgen tot de klant contact deelt.",
+    "ar": "تبقى بيانات تواصل العميل مخفية حتى يوافق على مشاركتها."
+  },
+  "Customer responses": {
+    "en": "Customer responses",
+    "nl": "Klantreacties",
+    "ar": "ردود العملاء"
+  },
+  "Customer reviews": {
+    "en": "Customer reviews",
+    "nl": "Klantbeoordelingen",
+    "ar": "تقييمات العملاء"
+  },
+  "Cutlery": {
+    "en": "Cutlery",
+    "nl": "Bestek",
+    "ar": "أدوات الأكل"
+  },
+  "Cutlery requested": {
+    "en": "Cutlery requested",
+    "nl": "Bestek gewenst",
+    "ar": "أدوات أكل مطلوبة"
+  },
+  "Dashboard unavailable": {
+    "en": "Dashboard unavailable",
+    "nl": "Dashboard niet beschikbaar",
+    "ar": "لوحة التحكم غير متاحة"
+  },
+  "Date": {
+    "en": "Date",
+    "nl": "Datum",
+    "ar": "التاريخ"
+  },
+  "Date (year-month-day)": {
+    "en": "Date (year-month-day)",
+    "nl": "Datum (jaar-maand-dag)",
+    "ar": "التاريخ (سنة-شهر-يوم)"
+  },
+  "Date and time": {
+    "en": "Date and time",
+    "nl": "Datum en tijd",
+    "ar": "التاريخ والوقت"
+  },
+  "Date flexibility": {
+    "en": "Date flexibility",
+    "nl": "Flexibiliteit",
+    "ar": "مرونة التاريخ"
+  },
+  "Dates you can take bookings.": {
+    "en": "Dates you can take bookings.",
+    "nl": "Datums waarop je boekingen kunt aannemen.",
+    "ar": "التواريخ التي يمكنك قبول الحجوزات فيها."
+  },
+  "Decoration / setup": {
+    "en": "Decoration / setup",
+    "nl": "Aankleden / opbouwen",
+    "ar": "تزيين / تجهيز"
+  },
+  "Delivery": {
+    "en": "Delivery",
+    "nl": "Bezorgen",
+    "ar": "توصيل"
+  },
+  "Delivery / pickup": {
+    "en": "Delivery / pickup",
+    "nl": "Bezorgen / ophalen",
+    "ar": "توصيل / استلام"
+  },
+  "Delivery / pickup time": {
+    "en": "Delivery / pickup time",
+    "nl": "Bezorg- / ophaaltijd",
+    "ar": "وقت التوصيل / الاستلام"
+  },
+  "Delivery or service": {
+    "en": "Delivery or service",
+    "nl": "Levering",
+    "ar": "التوصيل أو الخدمة"
+  },
+  "deposit": {
+    "en": "deposit",
+    "nl": "borg",
+    "ar": "عربون"
+  },
+  "Deposit (separate)": {
+    "en": "Deposit (separate)",
+    "nl": "Borg (apart)",
+    "ar": "عربون (منفصل)"
+  },
+  "Describe the change": {
+    "en": "Describe the change",
+    "nl": "Beschrijf de wijziging",
+    "ar": "صف التغيير"
+  },
+  "Dessert": {
+    "en": "Dessert",
+    "nl": "Nagerecht",
+    "ar": "حلوى"
+  },
+  "Desserts": {
+    "en": "Desserts",
+    "nl": "Aantal nagerechten",
+    "ar": "حلويات"
+  },
+  "deviation(s)": {
+    "en": "deviation(s)",
+    "nl": "afwijking(en)",
+    "ar": "اختلاف(ات)"
+  },
+  "Dietary confirmation": {
+    "en": "Dietary confirmation",
+    "nl": "Dieetbevestiging",
+    "ar": "تأكيد النظام الغذائي"
+  },
+  "Dietary preference": {
+    "en": "Dietary preference",
+    "nl": "Dieetvoorkeur",
+    "ar": "التفضيل الغذائي"
+  },
+  "Dietary requirements": {
+    "en": "Dietary requirements",
+    "nl": "Dieet en allergieën",
+    "ar": "المتطلبات الغذائية"
+  },
+  "Dishes": {
+    "en": "Dishes",
+    "nl": "Gerechten",
+    "ar": "الأطباق"
+  },
+  "Dishes per category": {
+    "en": "Dishes per category",
+    "nl": "Gerechten per categorie",
+    "ar": "الأطباق حسب الفئة"
+  },
+  "Dishes you can offer, and for how many people.": {
+    "en": "Dishes you can offer, and for how many people.",
+    "nl": "Gerechten die je kunt aanbieden, en voor hoeveel mensen.",
+    "ar": "الأطباق التي يمكنك تقديمها، ولأي عدد من الأشخاص."
+  },
+  "Dishwashing": {
+    "en": "Dishwashing",
+    "nl": "Afwassen",
+    "ar": "غسل الصحون"
+  },
+  "distinct dishes": {
+    "en": "distinct dishes",
+    "nl": "verschillende gerechten",
+    "ar": "أطباق مختلفة"
+  },
+  "Drink quantity / package": {
+    "en": "Drink quantity / package",
+    "nl": "Drankhoeveelheid / pakketwens",
+    "ar": "كمية المشروب / الباقة"
+  },
+  "Drink type": {
+    "en": "Drink type",
+    "nl": "Soort drank",
+    "ar": "نوع المشروب"
+  },
+  "Drinks": {
+    "en": "Drinks",
+    "nl": "Drank",
+    "ar": "المشروبات"
+  },
+  "Drinks requested": {
+    "en": "Drinks requested",
+    "nl": "Drank gewenst",
+    "ar": "مشروبات مطلوبة"
+  },
+  "Drinks service": {
+    "en": "Drinks service",
+    "nl": "Drank bedienen",
+    "ar": "خدمة المشروبات"
+  },
+  "Drinks, dietary needs and budget.": {
+    "en": "Drinks, dietary needs and budget.",
+    "nl": "Drank, dieetwensen en budget.",
+    "ar": "المشروبات والاحتياجات الغذائية والميزانية."
+  },
+  "Duplicate request": {
+    "en": "Duplicate request",
+    "nl": "Aanvraag dupliceren",
+    "ar": "نسخ الطلب"
+  },
+  "Dutch": {
+    "en": "Dutch",
+    "nl": "Nederlands",
+    "ar": "هولندي"
+  },
+  "e.g. Asha’s birthday": {
+    "en": "e.g. Asha’s birthday",
+    "nl": "bijv. Verjaardag van Asha",
+    "ar": "مثال: عيد ميلاد عائشة"
+  },
+  "Each dish counts once in one category. Specific dish names are optional in comments.": {
+    "en": "Each dish counts once in one category. Specific dish names are optional in comments.",
+    "nl": "Elk gerecht telt één keer in één categorie. Specifieke gerechtnamen zijn optioneel in opmerkingen.",
+    "ar": "يُحسب كل طبق مرة واحدة في فئة واحدة. أسماء الأطباق المحددة اختيارية في التعليقات."
+  },
+  "Edit account": {
+    "en": "Edit account",
+    "nl": "Account bewerken",
+    "ar": "تعديل الحساب"
+  },
+  "Edit profile": {
+    "en": "Edit profile",
+    "nl": "Profiel bewerken",
+    "ar": "تعديل الملف"
+  },
+  "Email": {
+    "en": "Email",
+    "nl": "E-mail",
+    "ar": "البريد الإلكتروني"
+  },
+  "Email address": {
+    "en": "Email address",
+    "nl": "E-mailadres",
+    "ar": "البريد الإلكتروني"
+  },
+  "Email for important updates": {
+    "en": "Email for important updates",
+    "nl": "E-mail voor belangrijke updates",
+    "ar": "البريد للتحديثات المهمة"
+  },
+  "Enable the backend API to load caterers.": {
+    "en": "Enable the backend API to load caterers.",
+    "nl": "Schakel de API in om cateraars te laden.",
+    "ar": "فعّل واجهة البرمجة لتحميل متعهدي الطعام."
+  },
+  "End date (overnight)": {
+    "en": "End date (overnight)",
+    "nl": "Einddatum (na middernacht)",
+    "ar": "تاريخ الانتهاء (بعد منتصف الليل)"
+  },
+  "Enter a real email address.": {
+    "en": "Enter a real email address.",
+    "nl": "Vul een geldig e-mailadres in.",
+    "ar": "أدخل بريدًا إلكترونيًا صحيحًا."
+  },
+  "Enter a reason to cancel this request.": {
+    "en": "Enter a reason to cancel this request.",
+    "nl": "Vul een reden in om te annuleren.",
+    "ar": "أدخل سببًا لإلغاء هذا الطلب."
+  },
+  "Enter a valid guest count.": {
+    "en": "Enter a valid guest count.",
+    "nl": "Vul een geldig aantal gasten in.",
+    "ar": "أدخل عدد ضيوف صالحًا."
+  },
+  "Enter your full name.": {
+    "en": "Enter your full name.",
+    "nl": "Vul je volledige naam in.",
+    "ar": "أدخل اسمك الكامل."
+  },
+  "Equipment / rental": {
+    "en": "Equipment / rental",
+    "nl": "Materialen / verhuur",
+    "ar": "معدات / إيجار"
+  },
+  "Equipment incl. VAT (€)": {
+    "en": "Equipment incl. VAT (€)",
+    "nl": "Materialen incl. btw (€)",
+    "ar": "المعدات شاملة الضريبة (€)"
+  },
+  "Estimated total": {
+    "en": "Estimated total",
+    "nl": "Geschat totaal",
+    "ar": "الإجمالي التقديري"
+  },
+  "Estimated total price": {
+    "en": "Estimated total price",
+    "nl": "Geschatte totaalprijs",
+    "ar": "السعر الإجمالي التقديري"
+  },
+  "Event": {
+    "en": "Event",
+    "nl": "Event",
+    "ar": "المناسبة"
+  },
+  "Event and location": {
+    "en": "Event and location",
+    "nl": "Evenement en locatie",
+    "ar": "المناسبة والموقع"
+  },
+  "Event city": {
+    "en": "Event city",
+    "nl": "Evenementstad",
+    "ar": "مدينة المناسبة"
+  },
+  "Event date": {
+    "en": "Event date",
+    "nl": "Evenementdatum",
+    "ar": "تاريخ المناسبة"
+  },
+  "Event details": {
+    "en": "Event details",
+    "nl": "Evenement",
+    "ar": "تفاصيل المناسبة"
+  },
+  "Event location": {
+    "en": "Event location",
+    "nl": "Evenementlocatie",
+    "ar": "موقع المناسبة"
+  },
+  "Event name": {
+    "en": "Event name",
+    "nl": "Evenementnaam",
+    "ar": "اسم المناسبة"
+  },
+  "Event setup": {
+    "en": "Event setup",
+    "nl": "Opbouw",
+    "ar": "تجهيز المناسبة"
+  },
+  "Example: 2026-12-25": {
+    "en": "Example: 2026-12-25",
+    "nl": "Voorbeeld: 2026-12-25",
+    "ar": "مثال: 2026-12-25"
+  },
+  "Extra starter; warming trays not offered where indicated.": {
+    "en": "Extra starter; warming trays not offered where indicated.",
+    "nl": "Extra voorgerecht; warmhoudbakken waar aangegeven niet aangeboden.",
+    "ar": "مقبلات إضافية؛ صواني التسخين غير معروضة حيث هو موضح."
+  },
+  "Extra vegetarian": {
+    "en": "Extra vegetarian",
+    "nl": "Extra vegetarisch",
+    "ar": "نباتي إضافي"
+  },
+  "Extra vegetarian dishes": {
+    "en": "Extra vegetarian dishes",
+    "nl": "Aantal extra vegetarische gerechten",
+    "ar": "أطباق نباتية إضافية"
+  },
+  "Extra wishes": {
+    "en": "Extra wishes",
+    "nl": "Extra wensen",
+    "ar": "رغبات إضافية"
+  },
+  "Extra wishes and diet": {
+    "en": "Extra wishes and diet",
+    "nl": "Extra wensen en dieet",
+    "ar": "رغبات إضافية ونظام غذائي"
+  },
+  "Extras": {
+    "en": "Extras",
+    "nl": "Extras",
+    "ar": "إضافات"
+  },
+  "Favorites are still loading.": {
+    "en": "Favorites are still loading.",
+    "nl": "Favorieten zijn nog niet geladen.",
+    "ar": "المفضلة ما زالت تُحمَّل."
+  },
+  "Filter by cuisine": {
+    "en": "Filter by cuisine",
+    "nl": "Filter op keuken",
+    "ar": "تصفية حسب المطبخ"
+  },
+  "Finish each step once. Open a step to update it.": {
+    "en": "Finish each step once. Open a step to update it.",
+    "nl": "Rond elke stap één keer af. Open een stap om die te wijzigen.",
+    "ar": "أكمل كل خطوة مرة واحدة. افتح خطوة لتعديلها."
+  },
+  "Fish": {
+    "en": "Fish",
+    "nl": "Vis",
+    "ar": "سمك"
+  },
+  "Fish dishes": {
+    "en": "Fish dishes",
+    "nl": "Aantal visgerechten",
+    "ar": "أطباق سمك"
+  },
+  "Fixed date": {
+    "en": "Fixed date",
+    "nl": "Vaste datum",
+    "ar": "تاريخ ثابت"
+  },
+  "Flexible caterer with sharp all-in prices and fast delivery across the Randstad.": {
+    "en": "Flexible caterer with sharp all-in prices and fast delivery across the Randstad.",
+    "nl": "Flexibele cateraar met scherpe all-inprijzen en snelle levering in de Randstad.",
+    "ar": "متعهد مرن بأسعار شاملة تنافسية وتوصيل سريع في منطقة راندستاد."
+  },
+  "Flexible date": {
+    "en": "Flexible date",
+    "nl": "Flexibele datum",
+    "ar": "تاريخ مرن"
+  },
+  "Food / buffet": {
+    "en": "Food / buffet",
+    "nl": "Eten / buffet",
+    "ar": "طعام / بوفيه"
+  },
+  "Food incl. VAT (€)": {
+    "en": "Food incl. VAT (€)",
+    "nl": "Eten incl. btw (€)",
+    "ar": "الطعام شامل الضريبة (€)"
+  },
+  "Food, drinks, staff": {
+    "en": "Food, drinks, staff",
+    "nl": "Eten, drank, personeel",
+    "ar": "طعام، مشروبات، طاقم"
+  },
+  "Foods to avoid": {
+    "en": "Foods to avoid",
+    "nl": "Vermijden",
+    "ar": "أطعمة يجب تجنبها"
+  },
+  "For all new providers, private and business.": {
+    "en": "For all new providers, private and business.",
+    "nl": "Voor alle nieuwe aanbieders, particulier en bedrijf.",
+    "ar": "لكل المتعهدين الجدد، الخاص والتجاري."
+  },
+  "Forbidden ingredients": {
+    "en": "Forbidden ingredients",
+    "nl": "Verboden ingrediënten",
+    "ar": "مكونات ممنوعة"
+  },
+  "Forbidden ingredients / proteins": {
+    "en": "Forbidden ingredients / proteins",
+    "nl": "Verboden ingrediënten / eiwitten",
+    "ar": "مكونات / بروتينات ممنوعة"
+  },
+  "Format: YYYY-MM-DD": {
+    "en": "Format: YYYY-MM-DD",
+    "nl": "Formaat: JJJJ-MM-DD",
+    "ar": "الصيغة: YYYY-MM-DD"
+  },
+  "Free": {
+    "en": "Free",
+    "nl": "Gratis",
+    "ar": "مجاني"
+  },
+  "from": {
+    "en": "from",
+    "nl": "vanaf",
+    "ar": "من"
+  },
+  "Full": {
+    "en": "Full",
+    "nl": "Volledig",
+    "ar": "كامل"
+  },
+  "Full name": {
+    "en": "Full name",
+    "nl": "Volledige naam",
+    "ar": "الاسم الكامل"
+  },
+  "Full offer matching the request.": {
+    "en": "Full offer matching the request.",
+    "nl": "Volledig aanbod volgens de aanvraag.",
+    "ar": "عرض كامل مطابق للطلب."
+  },
+  "Full plan · 6 months free": {
+    "en": "Full plan · 6 months free",
+    "nl": "Volledig abonnement · 6 maanden gratis",
+    "ar": "الخطة الكاملة · 6 أشهر مجانًا"
+  },
+  "Full-service caterer with staff and tableware, specialised in Surinamese Hindustani buffets.": {
+    "en": "Full-service caterer with staff and tableware, specialised in Surinamese Hindustani buffets.",
+    "nl": "Volledige cateraar met eigen bediening en servies, gespecialiseerd in Surinaams Hindoestaanse buffetten.",
+    "ar": "متعهد طعام متكامل مع طاقم وأدوات مائدة، متخصص في بوفيهات السورينامي الهندوستاني."
+  },
+  "Fully vegetarian": {
+    "en": "Fully vegetarian",
+    "nl": "Volledig vegetarisch",
+    "ar": "نباتي بالكامل"
+  },
+  "Glasses": {
+    "en": "Glasses",
+    "nl": "Glazen",
+    "ar": "كؤوس"
+  },
+  "Glasses requested": {
+    "en": "Glasses requested",
+    "nl": "Glazen gewenst",
+    "ar": "كؤوس مطلوبة"
+  },
+  "Go to proposals": {
+    "en": "Go to proposals",
+    "nl": "Ga naar voorstellen",
+    "ar": "الانتقال إلى العروض"
+  },
+  "Gold": {
+    "en": "Gold",
+    "nl": "Gold",
+    "ar": "ذهبي"
+  },
+  "Gold and Platinum open Mollie checkout.": {
+    "en": "Gold and Platinum open Mollie checkout.",
+    "nl": "Gold en Platinum openen Mollie-betaling.",
+    "ar": "الذهبي والبلاتيني يفتحان دفع Mollie."
+  },
+  "Guest count": {
+    "en": "Guest count",
+    "nl": "Aantal gasten",
+    "ar": "عدد الضيوف"
+  },
+  "guests": {
+    "en": "guests",
+    "nl": "gasten",
+    "ar": "ضيوف"
+  },
+  "Guests": {
+    "en": "Guests",
+    "nl": "Aantal personen",
+    "ar": "الضيوف"
+  },
+  "Guests covered": {
+    "en": "Guests covered",
+    "nl": "Gasten in voorstel",
+    "ar": "الضيوف المشمولون"
+  },
+  "Halal": {
+    "en": "Halal",
+    "nl": "Halal",
+    "ar": "حلال"
+  },
+  "Halal required": {
+    "en": "Halal required",
+    "nl": "Halal vereist",
+    "ar": "حلال مطلوب"
+  },
+  "Hindustani": {
+    "en": "Hindustani",
+    "nl": "Hindoestaans",
+    "ar": "هندوستاني"
+  },
+  "Home": {
+    "en": "Home",
+    "nl": "Home",
+    "ar": "الرئيسية"
+  },
+  "House number — private": {
+    "en": "House number — private",
+    "nl": "Huisnummer — privé",
+    "ar": "رقم المنزل — خاص"
+  },
+  "How was your experience?": {
+    "en": "How was your experience?",
+    "nl": "Hoe was je ervaring?",
+    "ar": "كيف كانت تجربتك؟"
+  },
+  "I arrange my own tableware": {
+    "en": "I arrange my own tableware",
+    "nl": "Ik regel zelf servies",
+    "ar": "سأرتب أدوات المائدة بنفسي"
+  },
+  "I confirm my details are accurate and accept the terms.": {
+    "en": "I confirm my details are accurate and accept the terms.",
+    "nl": "Ik bevestig dat mijn gegevens kloppen en accepteer de voorwaarden.",
+    "ar": "أؤكد أن بياناتي صحيحة وأقبل الشروط."
+  },
+  "I confirm the details and understand this is an indication, not a booking.": {
+    "en": "I confirm the details and understand this is an indication, not a booking.",
+    "nl": "Ik bevestig de gegevens en begrijp dat dit een indicatie is, geen boeking.",
+    "ar": "أؤكد التفاصيل وأفهم أن هذا تقدير وليس حجزًا."
+  },
+  "I understand the free period and the plan choice after.": {
+    "en": "I understand the free period and the plan choice after.",
+    "nl": "Ik begrijp de gratis periode en de abonnementskeuze daarna.",
+    "ar": "أفهم الفترة المجانية واختيار الخطة بعدها."
+  },
+  "Incomplete": {
+    "en": "Incomplete",
+    "nl": "Onvolledig",
+    "ar": "غير مكتمل"
+  },
+  "Independent caterer": {
+    "en": "Independent caterer",
+    "nl": "Zelfstandige cateraar",
+    "ar": "متعهد مستقل"
+  },
+  "Indian": {
+    "en": "Indian",
+    "nl": "Indiaas",
+    "ar": "هندي"
+  },
+  "Indoor": {
+    "en": "Indoor",
+    "nl": "Binnen",
+    "ar": "داخلي"
+  },
+  "Indoor / outdoor": {
+    "en": "Indoor / outdoor",
+    "nl": "Binnen / buiten",
+    "ar": "داخلي / خارجي"
+  },
+  "Indoor or outdoor": {
+    "en": "Indoor or outdoor",
+    "nl": "Binnen of buiten",
+    "ar": "داخلي أو خارجي"
+  },
+  "Interested": {
+    "en": "Interested",
+    "nl": "Geïnteresseerd",
+    "ar": "مهتم"
+  },
+  "Invoices": {
+    "en": "Invoices",
+    "nl": "Facturen",
+    "ar": "الفواتير"
+  },
+  "Javanese": {
+    "en": "Javanese",
+    "nl": "Javaans",
+    "ar": "جاوي"
+  },
+  "Keep proposal": {
+    "en": "Keep proposal",
+    "nl": "Annuleren",
+    "ar": "الإبقاء على العرض"
+  },
+  "Keep request": {
+    "en": "Keep request",
+    "nl": "Aanvraag houden",
+    "ar": "الإبقاء على الطلب"
+  },
+  "KvK number — optional": {
+    "en": "KvK number — optional",
+    "nl": "KvK-nummer — optioneel",
+    "ar": "رقم KvK — اختياري"
+  },
+  "Language, notifications, and your login.": {
+    "en": "Language, notifications, and your login.",
+    "nl": "Taal, meldingen en je login.",
+    "ar": "اللغة والإشعارات وتسجيل الدخول."
+  },
+  "Legal name and registration.": {
+    "en": "Legal name and registration.",
+    "nl": "Wettelijke naam en registratie.",
+    "ar": "الاسم القانوني والتسجيل."
+  },
+  "Loading options…": {
+    "en": "Loading options…",
+    "nl": "Opties laden…",
+    "ar": "جارٍ تحميل الخيارات…"
+  },
+  "Loading proposals…": {
+    "en": "Loading proposals…",
+    "nl": "Voorstellen laden…",
+    "ar": "جارٍ تحميل العروض…"
+  },
+  "Loading released contacts…": {
+    "en": "Loading released contacts…",
+    "nl": "Vrijgegeven contacten laden…",
+    "ar": "جارٍ تحميل جهات الاتصال…"
+  },
+  "Location": {
+    "en": "Location",
+    "nl": "Locatie",
+    "ar": "الموقع"
+  },
+  "Log in": {
+    "en": "Log in",
+    "nl": "Inloggen",
+    "ar": "تسجيل الدخول"
+  },
+  "Log in as a customer and connect to the API before continuing.": {
+    "en": "Log in as a customer and connect to the API before continuing.",
+    "nl": "Log in as a customer and connect to the API before continuing.",
+    "ar": "سجّل الدخول كعميل واتصل بواجهة البرمجة قبل المتابعة."
+  },
+  "Log in as a customer and connect to the API before submitting.": {
+    "en": "Log in as a customer and connect to the API before submitting.",
+    "nl": "Log in as a customer and connect to the API before submitting.",
+    "ar": "سجّل الدخول كعميل واتصل بواجهة البرمجة قبل الإرسال."
+  },
+  "Log in to your account.": {
+    "en": "Log in to your account.",
+    "nl": "Log in op je account.",
+    "ar": "سجّل الدخول إلى حسابك."
+  },
+  "Log in to your vendor account.": {
+    "en": "Log in to your vendor account.",
+    "nl": "Log in op je aanbiedersaccount.",
+    "ar": "سجّل الدخول إلى حساب المتعهد."
+  },
+  "Manage request": {
+    "en": "Manage request",
+    "nl": "Aanvraag beheren",
+    "ar": "إدارة الطلب"
+  },
+  "Manage the packages customers can request": {
+    "en": "Manage the packages customers can request",
+    "nl": "Beheer de pakketten die klanten kunnen aanvragen",
+    "ar": "أدِر الباقات التي يمكن للعملاء طلبها"
+  },
+  "Mark all read": {
+    "en": "Mark all read",
+    "nl": "Alles als gelezen markeren",
+    "ar": "تعليم الكل كمقروء"
+  },
+  "Mark available": {
+    "en": "Mark available",
+    "nl": "Markeer beschikbaar",
+    "ar": "تعليم كمتاح"
+  },
+  "Mark unavailable": {
+    "en": "Mark unavailable",
+    "nl": "Markeer niet beschikbaar",
+    "ar": "تعليم كغير متاح"
+  },
+  "Match": {
+    "en": "Match",
+    "nl": "Match",
+    "ar": "مطابقة"
+  },
+  "Matching with suitable providers": {
+    "en": "Matching with suitable providers",
+    "nl": "Matching met passende aanbieders",
+    "ar": "المطابقة مع متعهدين مناسبين"
+  },
+  "Maximum": {
+    "en": "Maximum",
+    "nl": "Maximum",
+    "ar": "الحد الأقصى"
+  },
+  "Maximum travel distance (km)": {
+    "en": "Maximum travel distance (km)",
+    "nl": "Maximale reisafstand (km)",
+    "ar": "أقصى مسافة سفر (كم)"
+  },
+  "Me": {
+    "en": "Me",
+    "nl": "Ik",
+    "ar": "أنا"
+  },
+  "Meets the request": {
+    "en": "Meets the request",
+    "nl": "Voldoet aan aanvraag",
+    "ar": "يلبي الطلب"
+  },
+  "Menu details": {
+    "en": "Menu details",
+    "nl": "Menu",
+    "ar": "تفاصيل القائمة"
+  },
+  "Menu PDF and photos": {
+    "en": "Menu PDF and photos",
+    "nl": "Menukaart-PDF en foto’s",
+    "ar": "ملف القائمة والصور"
+  },
+  "Menu preferences": {
+    "en": "Menu preferences",
+    "nl": "Menukeuze",
+    "ar": "تفضيلات القائمة"
+  },
+  "Menu selection": {
+    "en": "Menu selection",
+    "nl": "Gerechten",
+    "ar": "اختيار القائمة"
+  },
+  "Message customers will receive": {
+    "en": "Message customers will receive",
+    "nl": "Bericht dat klanten ontvangen",
+    "ar": "الرسالة التي يستلمها العملاء"
+  },
+  "Message…": {
+    "en": "Message…",
+    "nl": "Bericht…",
+    "ar": "رسالة…"
+  },
+  "Messages": {
+    "en": "Messages",
+    "nl": "Berichten",
+    "ar": "الرسائل"
+  },
+  "Minimum": {
+    "en": "Minimum",
+    "nl": "Minimum",
+    "ar": "الحد الأدنى"
+  },
+  "Minimum preparation time (days)": {
+    "en": "Minimum preparation time (days)",
+    "nl": "Minimale voorbereidingstijd (dagen)",
+    "ar": "أقل وقت تحضير (أيام)"
+  },
+  "Mixed": {
+    "en": "Mixed",
+    "nl": "Gemixt",
+    "ar": "مختلط"
+  },
+  "Mixed cuisines": {
+    "en": "Mixed cuisines",
+    "nl": "Meerdere keukens",
+    "ar": "مطابخ مختلطة"
+  },
+  "Mixed vegetarian": {
+    "en": "Mixed vegetarian",
+    "nl": "Gemixt vegetarisch",
+    "ar": "نباتي مختلط"
+  },
+  "My requests": {
+    "en": "My requests",
+    "nl": "Mijn aanvragen",
+    "ar": "طلباتي"
+  },
+  "Name": {
+    "en": "Name",
+    "nl": "Naam",
+    "ar": "الاسم"
+  },
+  "Name customers will see": {
+    "en": "Name customers will see",
+    "nl": "Naam die klanten zien",
+    "ar": "الاسم الذي يراه العملاء"
+  },
+  "Name, people, category and dishes": {
+    "en": "Name, people, category and dishes",
+    "nl": "Naam, personen, categorie en gerechten",
+    "ar": "الاسم والأشخاص والفئة والأطباق"
+  },
+  "Need to check": {
+    "en": "Need to check",
+    "nl": "Nog nakijken",
+    "ar": "يلزم التحقق"
+  },
+  "Needed before a request is sent": {
+    "en": "Needed before a request is sent",
+    "nl": "Nodig voordat een aanvraag wordt verstuurd",
+    "ar": "مطلوب قبل إرسال الطلب"
+  },
+  "Never silently edit a sent proposal. A material change creates a new version.": {
+    "en": "Never silently edit a sent proposal. A material change creates a new version.",
+    "nl": "Nooit een verstuurd voorstel stilzwijgend wijzigen. Een inhoudelijke wijziging maakt een nieuwe versie.",
+    "ar": "لا تعدّل عرضًا مُرسَلًا بصمت. أي تغيير جوهري ينشئ نسخة جديدة."
+  },
+  "New": {
+    "en": "New",
+    "nl": "Nieuw",
+    "ar": "جديد"
+  },
+  "New request": {
+    "en": "New request",
+    "nl": "Nieuwe aanvraag",
+    "ar": "طلب جديد"
+  },
+  "New requests": {
+    "en": "New requests",
+    "nl": "Nieuwe aanvragen",
+    "ar": "طلبات جديدة"
+  },
+  "Next": {
+    "en": "Next",
+    "nl": "Volgende",
+    "ar": "التالي"
+  },
+  "No": {
+    "en": "No",
+    "nl": "Nee",
+    "ar": "لا"
+  },
+  "No caterers found": {
+    "en": "No caterers found",
+    "nl": "Geen cateraars gevonden",
+    "ar": "لم يُعثر على متعهدي طعام"
+  },
+  "No contact details returned by the server.": {
+    "en": "No contact details returned by the server.",
+    "nl": "De server gaf geen contactgegevens terug.",
+    "ar": "لم يُرجع الخادم بيانات تواصل."
+  },
+  "No date selected": {
+    "en": "No date selected",
+    "nl": "Nog geen datum",
+    "ar": "لم يُختر تاريخ"
+  },
+  "No eligible event yet": {
+    "en": "No eligible event yet",
+    "nl": "Nog geen geschikt evenement",
+    "ar": "لا توجد مناسبة مؤهلة بعد"
+  },
+  "No invoices yet": {
+    "en": "No invoices yet",
+    "nl": "Nog geen facturen",
+    "ar": "لا توجد فواتير بعد"
+  },
+  "No notifications": {
+    "en": "No notifications",
+    "nl": "Geen meldingen",
+    "ar": "لا توجد إشعارات"
+  },
+  "No preference": {
+    "en": "No preference",
+    "nl": "Geen voorkeur",
+    "ar": "بدون تفضيل"
+  },
+  "No proposals": {
+    "en": "No proposals",
+    "nl": "Geen voorstellen",
+    "ar": "لا توجد عروض"
+  },
+  "No proposals received yet.": {
+    "en": "No proposals received yet.",
+    "nl": "Nog geen voorstellen ontvangen.",
+    "ar": "لم يُستلم أي عرض بعد."
+  },
+  "No proposals were received for this request.": {
+    "en": "No proposals were received for this request.",
+    "nl": "Voor deze aanvraag zijn geen voorstellen ontvangen.",
+    "ar": "لم يُستلم أي عرض لهذا الطلب."
+  },
+  "No proposals yet": {
+    "en": "No proposals yet",
+    "nl": "Nog geen voorstellen",
+    "ar": "لا توجد عروض بعد"
+  },
+  "No rating yet": {
+    "en": "No rating yet",
+    "nl": "Nog geen beoordeling",
+    "ar": "لا يوجد تقييم بعد"
+  },
+  "No released contacts": {
+    "en": "No released contacts",
+    "nl": "Geen vrijgegeven contacten",
+    "ar": "لا توجد جهات اتصال متاحة"
+  },
+  "No requests": {
+    "en": "No requests",
+    "nl": "Geen aanvragen",
+    "ar": "لا توجد طلبات"
+  },
+  "No requests yet": {
+    "en": "No requests yet",
+    "nl": "Nog geen aanvragen",
+    "ar": "لا توجد طلبات بعد"
+  },
+  "No reviews yet": {
+    "en": "No reviews yet",
+    "nl": "Nog geen reviews",
+    "ar": "لا توجد تقييمات بعد"
+  },
+  "Non-alcoholic": {
+    "en": "Non-alcoholic",
+    "nl": "Alcoholvrij",
+    "ar": "بدون كحول"
+  },
+  "None": {
+    "en": "None",
+    "nl": "Geen",
+    "ar": "لا شيء"
+  },
+  "None given": {
+    "en": "None given",
+    "nl": "Geen opgegeven",
+    "ar": "لم يُذكر شيء"
+  },
+  "Not found": {
+    "en": "Not found",
+    "nl": "Niet gevonden",
+    "ar": "غير موجود"
+  },
+  "Not set": {
+    "en": "Not set",
+    "nl": "Niet ingesteld",
+    "ar": "غير محدد"
+  },
+  "Not vegetarian": {
+    "en": "Not vegetarian",
+    "nl": "Niet vegetarisch",
+    "ar": "غير نباتي"
+  },
+  "Not verified": {
+    "en": "Not verified",
+    "nl": "Niet geverifieerd",
+    "ar": "غير موثّق"
+  },
+  "Notes": {
+    "en": "Notes",
+    "nl": "Notities",
+    "ar": "ملاحظات"
+  },
+  "Nothing in this list": {
+    "en": "Nothing in this list",
+    "nl": "Niets in deze lijst",
+    "ar": "لا شيء في هذه القائمة"
+  },
+  "Nothing to compare": {
+    "en": "Nothing to compare",
+    "nl": "Niets om te vergelijken",
+    "ar": "لا يوجد ما يُقارن"
+  },
+  "Notifications": {
+    "en": "Notifications",
+    "nl": "Meldingen",
+    "ar": "الإشعارات"
+  },
+  "Number of guests": {
+    "en": "Number of guests",
+    "nl": "Aantal personen",
+    "ar": "عدد الضيوف"
+  },
+  "Number of people": {
+    "en": "Number of people",
+    "nl": "Aantal personen",
+    "ar": "عدد الأشخاص"
+  },
+  "Occasion": {
+    "en": "Occasion",
+    "nl": "Gelegenheid",
+    "ar": "المناسبة"
+  },
+  "Offerings unavailable": {
+    "en": "Offerings unavailable",
+    "nl": "Aanbod niet beschikbaar",
+    "ar": "العروض غير متاحة"
+  },
+  "On-site": {
+    "en": "On-site",
+    "nl": "Op locatie",
+    "ar": "في الموقع"
+  },
+  "One all-in price (incl. VAT)": {
+    "en": "One all-in price (incl. VAT)",
+    "nl": "Eén all-inprijs (incl. btw)",
+    "ar": "سعر شامل واحد (شامل الضريبة)"
+  },
+  "Optional. In production files are stored securely and moderated. This demo does not upload.": {
+    "en": "Optional. In production files are stored securely and moderated. This demo does not upload.",
+    "nl": "Optioneel. In productie worden bestanden veilig opgeslagen en gemodereerd. Deze demo uploadt niet.",
+    "ar": "اختياري. في النسخة الفعلية تُحفظ الملفات بأمان وتُراجع. هذا العرض التجريبي لا يرفع ملفات."
+  },
+  "Other": {
+    "en": "Other",
+    "nl": "Anders",
+    "ar": "أخرى"
+  },
+  "Other dietary needs": {
+    "en": "Other dietary needs",
+    "nl": "Overige dieetwensen",
+    "ar": "احتياجات غذائية أخرى"
+  },
+  "Outdoor": {
+    "en": "Outdoor",
+    "nl": "Buiten",
+    "ar": "خارجي"
+  },
+  "p.p.": {
+    "en": "p.p.",
+    "nl": "p.p.",
+    "ar": "للشخص"
+  },
+  "Package name": {
+    "en": "Package name",
+    "nl": "Pakketnaam",
+    "ar": "اسم الباقة"
+  },
+  "Packages": {
+    "en": "Packages",
+    "nl": "Pakketten",
+    "ar": "الباقات"
+  },
+  "Partial": {
+    "en": "Partial",
+    "nl": "Gedeeltelijk",
+    "ar": "جزئي"
+  },
+  "Partly available": {
+    "en": "Partly available",
+    "nl": "Deels beschikbaar",
+    "ar": "متاح جزئيًا"
+  },
+  "Password": {
+    "en": "Password",
+    "nl": "Wachtwoord",
+    "ar": "كلمة المرور"
+  },
+  "Per guest": {
+    "en": "Per guest",
+    "nl": "Per gast",
+    "ar": "لكل ضيف"
+  },
+  "Performance": {
+    "en": "Performance",
+    "nl": "Prestaties",
+    "ar": "الأداء"
+  },
+  "Phone": {
+    "en": "Phone",
+    "nl": "Telefoon",
+    "ar": "الهاتف"
+  },
+  "Pickup": {
+    "en": "Pickup",
+    "nl": "Ophalen",
+    "ar": "استلام"
+  },
+  "Plan": {
+    "en": "Plan",
+    "nl": "Abonnement",
+    "ar": "الخطة"
+  },
+  "Plastic / disposable": {
+    "en": "Plastic / disposable",
+    "nl": "Plastic / wegwerp",
+    "ar": "بلاستيك / للاستخدام مرة واحدة"
+  },
+  "Plated": {
+    "en": "Plated",
+    "nl": "Uitgeserveerd",
+    "ar": "تقديم في الأطباق"
+  },
+  "Plates": {
+    "en": "Plates",
+    "nl": "Borden",
+    "ar": "أطباق"
+  },
+  "Plates / cutlery / glasses": {
+    "en": "Plates / cutlery / glasses",
+    "nl": "Borden / bestek / glazen",
+    "ar": "أطباق / أدوات أكل / كؤوس"
+  },
+  "Plates requested": {
+    "en": "Plates requested",
+    "nl": "Borden gewenst",
+    "ar": "أطباق مطلوبة"
+  },
+  "Platinum": {
+    "en": "Platinum",
+    "nl": "Platinum",
+    "ar": "بلاتيني"
+  },
+  "Please try again.": {
+    "en": "Please try again.",
+    "nl": "Probeer opnieuw.",
+    "ar": "حاول مرة أخرى."
+  },
+  "Pork dishes": {
+    "en": "Pork dishes",
+    "nl": "Aantal varkensgerechten",
+    "ar": "أطباق لحم خنزير"
+  },
+  "Portion basis per guest": {
+    "en": "Portion basis per guest",
+    "nl": "Positiebasering per gast",
+    "ar": "أساس الحصة لكل ضيف"
+  },
+  "Postcode — private": {
+    "en": "Postcode — private",
+    "nl": "Postcode — privé",
+    "ar": "الرمز البريدي — خاص"
+  },
+  "Premium catering for corporate and festive events with extensive equipment.": {
+    "en": "Premium catering for corporate and festive events with extensive equipment.",
+    "nl": "Premium catering voor zakelijke en feestelijke evenementen met uitgebreide materialen.",
+    "ar": "تموين مميز للمناسبات المهنية والاحتفالية مع معدات واسعة."
+  },
+  "Price breakdown": {
+    "en": "Price breakdown",
+    "nl": "Prijsopbouw",
+    "ar": "تفصيل السعر"
+  },
+  "Price not listed": {
+    "en": "Price not listed",
+    "nl": "Prijs niet vermeld",
+    "ar": "السعر غير مذكور"
+  },
+  "Price per guest": {
+    "en": "Price per guest",
+    "nl": "Prijs per gast",
+    "ar": "السعر لكل ضيف"
+  },
+  "Privacy Policy": {
+    "en": "Privacy Policy",
+    "nl": "Privacybeleid",
+    "ar": "سياسة الخصوصية"
+  },
+  "Private home cook with homemade Javanese dishes, pickup or delivery.": {
+    "en": "Private home cook with homemade Javanese dishes, pickup or delivery.",
+    "nl": "Particuliere thuiskok met huisgemaakte Javaanse gerechten, ophalen of bezorgen.",
+    "ar": "طباخ منزلي خاص بأطباق جاوية منزلية، للاستلام أو التوصيل."
+  },
+  "Profile": {
+    "en": "Profile",
+    "nl": "Profiel",
+    "ar": "الملف الشخصي"
+  },
+  "Profile description": {
+    "en": "Profile description",
+    "nl": "Profielbeschrijving",
+    "ar": "وصف الملف"
+  },
+  "Profile name": {
+    "en": "Profile name",
+    "nl": "Profielnaam",
+    "ar": "اسم الملف"
+  },
+  "Profile photo": {
+    "en": "Profile photo",
+    "nl": "Profielfoto",
+    "ar": "صورة الملف"
+  },
+  "Profile, PDF & photos": {
+    "en": "Profile, PDF & photos",
+    "nl": "Profiel, PDF en foto’s",
+    "ar": "الملف وPDF والصور"
+  },
+  "Proposal": {
+    "en": "Proposal",
+    "nl": "Voorstel",
+    "ar": "عرض"
+  },
+  "Proposal sent": {
+    "en": "Proposal sent",
+    "nl": "Voorstel verzonden",
+    "ar": "تم إرسال العرض"
+  },
+  "Proposal withdrawn.": {
+    "en": "Proposal withdrawn.",
+    "nl": "Voorstel ingetrokken.",
+    "ar": "تم سحب العرض."
+  },
+  "Proposals": {
+    "en": "Proposals",
+    "nl": "Voorstellen",
+    "ar": "العروض"
+  },
+  "Proposals sent": {
+    "en": "Proposals sent",
+    "nl": "Verstuurde voorstellen",
+    "ar": "العروض المرسلة"
+  },
+  "Proposals, messages and outcome reminders will land here.": {
+    "en": "Proposals, messages and outcome reminders will land here.",
+    "nl": "Voorstellen, berichten en herinneringen verschijnen hier.",
+    "ar": "العروض والرسائل وتذكيرات النتيجة تظهر هنا."
+  },
+  "Provider & private address": {
+    "en": "Provider & private address",
+    "nl": "Aanbieder en privéadres",
+    "ar": "المتعهد والعنوان الخاص"
+  },
+  "Provider message": {
+    "en": "Provider message",
+    "nl": "Bericht van de cateraar",
+    "ar": "رسالة المتعهد"
+  },
+  "Provider onboarding": {
+    "en": "Provider onboarding",
+    "nl": "Aanbieder onboarding",
+    "ar": "تسجيل المتعهد"
+  },
+  "Public profile name": {
+    "en": "Public profile name",
+    "nl": "Openbare profielnaam",
+    "ar": "اسم الملف العام"
+  },
+  "Pull down to try again.": {
+    "en": "Pull down to try again.",
+    "nl": "Trek omlaag om opnieuw te proberen.",
+    "ar": "اسحب للأسفل للمحاولة مرة أخرى."
+  },
+  "Push notifications": {
+    "en": "Push notifications",
+    "nl": "Pushmeldingen",
+    "ar": "إشعارات الدفع"
+  },
+  "Quotation": {
+    "en": "Quotation",
+    "nl": "Offerte",
+    "ar": "عرض سعر"
+  },
+  "Quote reply templates": {
+    "en": "Quote reply templates",
+    "nl": "Antwoordsjablonen",
+    "ar": "قوالب الرد على العروض"
+  },
+  "Real tableware": {
+    "en": "Real tableware",
+    "nl": "Echt servies",
+    "ar": "أدوات مائدة حقيقية"
+  },
+  "Reason": {
+    "en": "Reason",
+    "nl": "Reden",
+    "ar": "السبب"
+  },
+  "Receipts from paid plans": {
+    "en": "Receipts from paid plans",
+    "nl": "Bonnen van betaalde abonnementen",
+    "ar": "إيصالات الخطط المدفوعة"
+  },
+  "Received proposals": {
+    "en": "Received proposals",
+    "nl": "Ontvangen voorstellen",
+    "ar": "العروض المستلمة"
+  },
+  "Refresh to try loading reviews again.": {
+    "en": "Refresh to try loading reviews again.",
+    "nl": "Ververs om reviews opnieuw te laden.",
+    "ar": "حدّث الصفحة لمحاولة تحميل التقييمات مرة أخرى."
+  },
+  "Refresh to try loading the provider’s packages again.": {
+    "en": "Refresh to try loading the provider’s packages again.",
+    "nl": "Ververs om de pakketten opnieuw te laden.",
+    "ar": "حدّث الصفحة لمحاولة تحميل الباقات مرة أخرى."
+  },
+  "Refundable deposit (€), separate": {
+    "en": "Refundable deposit (€), separate",
+    "nl": "Terugbetaalbare borg (€), apart",
+    "ar": "عربون قابل للاسترداد (€)، منفصل"
+  },
+  "Registered business name": {
+    "en": "Registered business name",
+    "nl": "Geregistreerde bedrijfsnaam",
+    "ar": "الاسم التجاري المسجل"
+  },
+  "Reject proposal": {
+    "en": "Reject proposal",
+    "nl": "Voorstel afwijzen",
+    "ar": "رفض العرض"
+  },
+  "Reject this proposal?": {
+    "en": "Reject this proposal?",
+    "nl": "Voorstel afwijzen?",
+    "ar": "رفض هذا العرض؟"
+  },
+  "Rejected": {
+    "en": "Rejected",
+    "nl": "Afgewezen",
+    "ar": "مرفوض"
+  },
+  "Released contacts": {
+    "en": "Released contacts",
+    "nl": "Vrijgegeven contacten",
+    "ar": "جهات الاتصال المُتاحة"
+  },
+  "Remove favorite": {
+    "en": "Remove favorite",
+    "nl": "Favoriet verwijderen",
+    "ar": "إزالة من المفضلة"
+  },
+  "Reply when a customer leaves a review.": {
+    "en": "Reply when a customer leaves a review.",
+    "nl": "Reageer wanneer een klant een review achterlaat.",
+    "ar": "رد عندما يترك العميل تقييمًا."
+  },
+  "Report": {
+    "en": "Report",
+    "nl": "Melden",
+    "ar": "إبلاغ"
+  },
+  "Report received": {
+    "en": "Report received",
+    "nl": "Melding ontvangen",
+    "ar": "تم استلام البلاغ"
+  },
+  "Request": {
+    "en": "Request",
+    "nl": "Aanvraag",
+    "ar": "طلب"
+  },
+  "Request a proposal": {
+    "en": "Request a proposal",
+    "nl": "Vraag een voorstel aan",
+    "ar": "اطلب عرضًا"
+  },
+  "Request cancelled.": {
+    "en": "Request cancelled.",
+    "nl": "Aanvraag geannuleerd.",
+    "ar": "تم إلغاء الطلب."
+  },
+  "Request closed.": {
+    "en": "Request closed.",
+    "nl": "Aanvraag gesloten.",
+    "ar": "تم إغلاق الطلب."
+  },
+  "Request contact": {
+    "en": "Request contact",
+    "nl": "Contact vragen",
+    "ar": "طلب التواصل"
+  },
+  "Request Details": {
+    "en": "Request Details",
+    "nl": "Aanvraagdetails",
+    "ar": "تفاصيل الطلب"
+  },
+  "Request duplicated.": {
+    "en": "Request duplicated.",
+    "nl": "Aanvraag gedupliceerd.",
+    "ar": "تم نسخ الطلب."
+  },
+  "Request not found": {
+    "en": "Request not found",
+    "nl": "Aanvraag niet gevonden",
+    "ar": "الطلب غير موجود"
+  },
+  "Request unavailable": {
+    "en": "Request unavailable",
+    "nl": "Aanvraag niet beschikbaar",
+    "ar": "الطلب غير متاح"
+  },
+  "Request updated.": {
+    "en": "Request updated.",
+    "nl": "Aanvraag bijgewerkt.",
+    "ar": "تم تحديث الطلب."
+  },
+  "Requests": {
+    "en": "Requests",
+    "nl": "Aanvragen",
+    "ar": "الطلبات"
+  },
+  "Requests and leads": {
+    "en": "Requests and leads",
+    "nl": "Aanvragen en leads",
+    "ar": "الطلبات والفرص"
+  },
+  "Requests and your sent proposals": {
+    "en": "Requests and your sent proposals",
+    "nl": "Requests and your sent proposals",
+    "ar": "الطلبات وعروضك المرسلة"
+  },
+  "Reusable replies for requests.": {
+    "en": "Reusable replies for requests.",
+    "nl": "Herbruikbare antwoorden voor aanvragen.",
+    "ar": "ردود جاهزة للطلبات."
+  },
+  "Review": {
+    "en": "Review",
+    "nl": "Review",
+    "ar": "مراجعة"
+  },
+  "Review & submit": {
+    "en": "Review & submit",
+    "nl": "Controleren",
+    "ar": "المراجعة والإرسال"
+  },
+  "Review request": {
+    "en": "Review request",
+    "nl": "Aanvraag bekijken",
+    "ar": "مراجعة الطلب"
+  },
+  "Review submitted": {
+    "en": "Review submitted",
+    "nl": "Review verstuurd",
+    "ar": "تم إرسال التقييم"
+  },
+  "Reviews": {
+    "en": "Reviews",
+    "nl": "Reviews",
+    "ar": "التقييمات"
+  },
+  "Save changes": {
+    "en": "Save changes",
+    "nl": "Wijzigingen opslaan",
+    "ar": "حفظ التغييرات"
+  },
+  "Save favorite": {
+    "en": "Save favorite",
+    "nl": "Favoriet opslaan",
+    "ar": "حفظ في المفضلة"
+  },
+  "Save offering": {
+    "en": "Save offering",
+    "nl": "Aanbod opslaan",
+    "ar": "حفظ العرض"
+  },
+  "Save preferences": {
+    "en": "Save preferences",
+    "nl": "Voorkeuren opslaan",
+    "ar": "حفظ التفضيلات"
+  },
+  "Save services": {
+    "en": "Save services",
+    "nl": "Diensten opslaan",
+    "ar": "حفظ الخدمات"
+  },
+  "Save template": {
+    "en": "Save template",
+    "nl": "Sjabloon opslaan",
+    "ar": "حفظ القالب"
+  },
+  "Save verification": {
+    "en": "Save verification",
+    "nl": "Verificatie opslaan",
+    "ar": "حفظ التحقق"
+  },
+  "Saving…": {
+    "en": "Saving…",
+    "nl": "Opslaan…",
+    "ar": "جارٍ الحفظ…"
+  },
+  "Search caterer or city": {
+    "en": "Search caterer or city",
+    "nl": "Zoek cateraar of stad",
+    "ar": "ابحث عن متعهد أو مدينة"
+  },
+  "Search caterer, cuisine or city": {
+    "en": "Search caterer, cuisine or city",
+    "nl": "Zoek cateraar, keuken of stad",
+    "ar": "ابحث عن متعهد أو مطبخ أو مدينة"
+  },
+  "Search country or code": {
+    "en": "Search country or code",
+    "nl": "Zoek land of code",
+    "ar": "ابحث عن دولة أو رمز"
+  },
+  "Search...": {
+    "en": "Search...",
+    "nl": "Zoeken...",
+    "ar": "بحث..."
+  },
+  "Select…": {
+    "en": "Select…",
+    "nl": "Selecteer…",
+    "ar": "اختر…"
+  },
+  "Send code": {
+    "en": "Send code",
+    "nl": "Code versturen",
+    "ar": "إرسال الرمز"
+  },
+  "Send proposal": {
+    "en": "Send proposal",
+    "nl": "Voorstel versturen",
+    "ar": "إرسال العرض"
+  },
+  "Send review response": {
+    "en": "Send review response",
+    "nl": "Reviewreactie versturen",
+    "ar": "إرسال الرد على التقييم"
+  },
+  "Sent": {
+    "en": "Sent",
+    "nl": "Verzonden",
+    "ar": "مُرسَل"
+  },
+  "Sent proposals": {
+    "en": "Sent proposals",
+    "nl": "Verzonden voorstellen",
+    "ar": "العروض المرسلة"
+  },
+  "Separate each service with a comma.": {
+    "en": "Separate each service with a comma.",
+    "nl": "Scheid elke dienst met een komma.",
+    "ar": "افصل كل خدمة بفاصلة."
+  },
+  "Service area": {
+    "en": "Service area",
+    "nl": "Werkgebied",
+    "ar": "منطقة الخدمة"
+  },
+  "Service area & fulfilment": {
+    "en": "Service area & fulfilment",
+    "nl": "Werkgebied en levering",
+    "ar": "منطقة الخدمة والتنفيذ"
+  },
+  "Service area: radius in km": {
+    "en": "Service area: radius in km",
+    "nl": "Werkgebied: straal in km",
+    "ar": "منطقة الخدمة: النطاق بالكيلومتر"
+  },
+  "Service type": {
+    "en": "Service type",
+    "nl": "Service",
+    "ar": "نوع الخدمة"
+  },
+  "Services & coverage": {
+    "en": "Services & coverage",
+    "nl": "Diensten en bereik",
+    "ar": "الخدمات والتغطية"
+  },
+  "Services offered": {
+    "en": "Services offered",
+    "nl": "Aangeboden diensten",
+    "ar": "الخدمات المعروضة"
+  },
+  "Serving": {
+    "en": "Serving",
+    "nl": "Serveren",
+    "ar": "التقديم"
+  },
+  "Serving format": {
+    "en": "Serving format",
+    "nl": "Serveervorm",
+    "ar": "طريقة التقديم"
+  },
+  "Serving style": {
+    "en": "Serving style",
+    "nl": "Serveren",
+    "ar": "أسلوب التقديم"
+  },
+  "Share contact": {
+    "en": "Share contact",
+    "nl": "Contact delen",
+    "ar": "مشاركة التواصل"
+  },
+  "Share staffing, timing and tableware.": {
+    "en": "Share staffing, timing and tableware.",
+    "nl": "Geef bediening, tijden en servies door.",
+    "ar": "حدد الطاقم والتوقيت وأدوات المائدة."
+  },
+  "Show less": {
+    "en": "Show less",
+    "nl": "Minder tonen",
+    "ar": "عرض أقل"
+  },
+  "Shrimp dishes": {
+    "en": "Shrimp dishes",
+    "nl": "Aantal garnalengerechten",
+    "ar": "أطباق روبيان"
+  },
+  "Sign in as a vendor and enable the API to compose a server proposal.": {
+    "en": "Sign in as a vendor and enable the API to compose a server proposal.",
+    "nl": "Log in als aanbieder en schakel de API in om een voorstel te maken.",
+    "ar": "سجّل الدخول كمتعهد وفعّل واجهة البرمجة لإنشاء عرض."
+  },
+  "Sign in as a vendor and enable the API to load conversations.": {
+    "en": "Sign in as a vendor and enable the API to load conversations.",
+    "nl": "Log in als aanbieder en schakel de API in om gesprekken te laden.",
+    "ar": "سجّل الدخول كمتعهد وفعّل واجهة البرمجة لتحميل المحادثات."
+  },
+  "Sign in as a vendor and enable the API to load proposals.": {
+    "en": "Sign in as a vendor and enable the API to load proposals.",
+    "nl": "Log in als aanbieder en schakel de API in om voorstellen te laden.",
+    "ar": "سجّل الدخول كمتعهد وفعّل واجهة البرمجة لتحميل العروض."
+  },
+  "Sign in as a vendor and enable the API to load server requests.": {
+    "en": "Sign in as a vendor and enable the API to load server requests.",
+    "nl": "Log in als aanbieder en schakel de API in om aanvragen te laden.",
+    "ar": "سجّل الدخول كمتعهد وفعّل واجهة البرمجة لتحميل الطلبات."
+  },
+  "Sign in as a vendor and enable the API to load this request.": {
+    "en": "Sign in as a vendor and enable the API to load this request.",
+    "nl": "Log in als aanbieder om deze aanvraag te laden.",
+    "ar": "سجّل الدخول كمتعهد وفعّل واجهة البرمجة لتحميل هذا الطلب."
+  },
+  "Staff": {
+    "en": "Staff",
+    "nl": "Staff",
+    "ar": "الطاقم"
+  },
+  "Staff & logistics": {
+    "en": "Staff & logistics",
+    "nl": "Bediening & logistiek",
+    "ar": "الطاقم والتنظيم"
+  },
+  "Staff count": {
+    "en": "Staff count",
+    "nl": "Medewerkers",
+    "ar": "عدد أفراد الطاقم"
+  },
+  "Staff incl. VAT (€)": {
+    "en": "Staff incl. VAT (€)",
+    "nl": "Personeel incl. btw (€)",
+    "ar": "الطاقم شامل الضريبة (€)"
+  },
+  "Staff, tasks and equipment": {
+    "en": "Staff, tasks and equipment",
+    "nl": "Bediening, taken en materialen",
+    "ar": "الطاقم والمهام والمعدات"
+  },
+  "Staffed on-site": {
+    "en": "Staffed on-site",
+    "nl": "Bediening op locatie",
+    "ar": "طاقم في الموقع"
+  },
+  "Staffed service": {
+    "en": "Staffed service",
+    "nl": "Bediening",
+    "ar": "خدمة بطاقم"
+  },
+  "Start a new request": {
+    "en": "Start a new request",
+    "nl": "Start een nieuwe aanvraag",
+    "ar": "ابدأ طلبًا جديدًا"
+  },
+  "Start a request and receive proposals.": {
+    "en": "Start a request and receive proposals.",
+    "nl": "Start een aanvraag en ontvang voorstellen.",
+    "ar": "ابدأ طلبًا واستلم العروض."
+  },
+  "Starters": {
+    "en": "Starters",
+    "nl": "Aantal voorgerechten",
+    "ar": "مقبلات"
+  },
+  "Starting from": {
+    "en": "Starting from",
+    "nl": "Vanaf",
+    "ar": "ابتداءً من"
+  },
+  "Starting price": {
+    "en": "Starting price",
+    "nl": "Startprijs",
+    "ar": "السعر الابتدائي"
+  },
+  "Starting price (€)": {
+    "en": "Starting price (€)",
+    "nl": "Startprijs (€)",
+    "ar": "السعر الابتدائي (€)"
+  },
+  "Starting price per guest (€ incl. VAT) — optional": {
+    "en": "Starting price per guest (€ incl. VAT) — optional",
+    "nl": "Startprijs per gast (€ incl. btw) — optioneel",
+    "ar": "السعر الابتدائي لكل ضيف (€ شامل الضريبة) — اختياري"
+  },
+  "Starting price per guest (€)": {
+    "en": "Starting price per guest (€)",
+    "nl": "Startprijs per gast (€)",
+    "ar": "السعر الابتدائي لكل ضيف (€)"
+  },
+  "State whether the offer is enough for all guests or a selection per guest.": {
+    "en": "State whether the offer is enough for all guests or a selection per guest.",
+    "nl": "Vermeld of het aanbod voldoende is voor alle gasten of een selectie per gast.",
+    "ar": "وضّح هل العرض يكفي كل الضيوف أم اختيارًا لكل ضيف."
+  },
+  "Street — private": {
+    "en": "Street — private",
+    "nl": "Straat — privé",
+    "ar": "الشارع — خاص"
+  },
+  "Style": {
+    "en": "Style",
+    "nl": "Stijl",
+    "ar": "الأسلوب"
+  },
+  "Submit report": {
+    "en": "Submit report",
+    "nl": "Melding versturen",
+    "ar": "إرسال البلاغ"
+  },
+  "Submit request": {
+    "en": "Submit request",
+    "nl": "Aanvraag versturen",
+    "ar": "إرسال الطلب"
+  },
+  "Submit review": {
+    "en": "Submit review",
+    "nl": "Review versturen",
+    "ar": "إرسال التقييم"
+  },
+  "Subscription plan": {
+    "en": "Subscription plan",
+    "nl": "Abonnement",
+    "ar": "خطة الاشتراك"
+  },
+  "Summary": {
+    "en": "Summary",
+    "nl": "Samenvatting",
+    "ar": "الملخص"
+  },
+  "Surinamese": {
+    "en": "Surinamese",
+    "nl": "Surinaams",
+    "ar": "سورينامي"
+  },
+  "Surinamese · Creole": {
+    "en": "Surinamese · Creole",
+    "nl": "Surinaams · Creools",
+    "ar": "سورينامي · كريولي"
+  },
+  "Surinamese · Hindustani": {
+    "en": "Surinamese · Hindustani",
+    "nl": "Surinaams · Hindoestaans",
+    "ar": "سورينامي · هندوستاني"
+  },
+  "Surinamese · Javanese": {
+    "en": "Surinamese · Javanese",
+    "nl": "Surinaams · Javaans",
+    "ar": "سورينامي · جاوي"
+  },
+  "Surinamese cuisine style": {
+    "en": "Surinamese cuisine style",
+    "nl": "Surinaamse keukenstijl",
+    "ar": "أسلوب المطبخ السورينامي"
+  },
+  "Surinamese styles": {
+    "en": "Surinamese styles",
+    "nl": "Surinaamse stijlen",
+    "ar": "الأنماط السورينامية"
+  },
+  "Tableware": {
+    "en": "Tableware",
+    "nl": "Servies",
+    "ar": "أدوات المائدة"
+  },
+  "Tasks": {
+    "en": "Tasks",
+    "nl": "Werkzaamheden",
+    "ar": "المهام"
+  },
+  "Tell customers about your catering": {
+    "en": "Tell customers about your catering",
+    "nl": "Vertel klanten over je catering",
+    "ar": "أخبر العملاء عن تموينك"
+  },
+  "Tell us where and when the event takes place.": {
+    "en": "Tell us where and when the event takes place.",
+    "nl": "Vertel waar en wanneer het evenement plaatsvindt.",
+    "ar": "أخبرنا أين ومتى تقام المناسبة."
+  },
+  "Template name (only you can see this)": {
+    "en": "Template name (only you can see this)",
+    "nl": "Sjabloonnaam (alleen voor jou zichtbaar)",
+    "ar": "اسم القالب (يظهر لك فقط)"
+  },
+  "Thank you for your review": {
+    "en": "Thank you for your review",
+    "nl": "Bedankt voor je review",
+    "ar": "شكرًا لتقييمك"
+  },
+  "The breakdown adds up exactly to the total.": {
+    "en": "The breakdown adds up exactly to the total.",
+    "nl": "Uitsplitsing telt exact op tot het totaal.",
+    "ar": "يجب أن يساوي التفصيل الإجمالي تمامًا."
+  },
+  "The caterer will see that you rejected this proposal.": {
+    "en": "The caterer will see that you rejected this proposal.",
+    "nl": "De cateraar ziet dat je dit voorstel afwijst.",
+    "ar": "سيرى متعهد الطعام أنك رفضت هذا العرض."
+  },
+  "The extra starter is included in the all-in price. Equipment and missing components are listed below.": {
+    "en": "The extra starter is included in the all-in price. Equipment and missing components are listed below.",
+    "nl": "Het extra voorgerecht is opgenomen in de all-inprijs. Materialen en ontbrekende onderdelen staan hieronder.",
+    "ar": "المقبلات الإضافية مشمولة في السعر الشامل. المعدات والعناصر الناقصة مذكورة أدناه."
+  },
+  "The facts customers and you rely on.": {
+    "en": "The facts customers and you rely on.",
+    "nl": "De feiten waar jij en klanten op vertrouwen.",
+    "ar": "المعلومات التي يعتمد عليها العملاء وأنت."
+  },
+  "The legal name shown on your registration.": {
+    "en": "The legal name shown on your registration.",
+    "nl": "De wettelijke naam op je registratie.",
+    "ar": "الاسم القانوني الظاهر في تسجيلك."
+  },
+  "The report was sent. A moderator can review it.": {
+    "en": "The report was sent. A moderator can review it.",
+    "nl": "De melding is verstuurd. Een moderator kan deze bekijken.",
+    "ar": "تم إرسال البلاغ. يمكن للمشرف مراجعته."
+  },
+  "The request could not be submitted. Please try again.": {
+    "en": "The request could not be submitted. Please try again.",
+    "nl": "De aanvraag kon niet worden verstuurd. Probeer het opnieuw.",
+    "ar": "تعذر إرسال الطلب. حاول مرة أخرى."
+  },
+  "The request could not be updated.": {
+    "en": "The request could not be updated.",
+    "nl": "De aanvraag kon niet worden bijgewerkt.",
+    "ar": "تعذر تحديث الطلب."
+  },
+  "The server could not load caterers. Please try again.": {
+    "en": "The server could not load caterers. Please try again.",
+    "nl": "De server kon de cateraars niet laden. Probeer opnieuw.",
+    "ar": "تعذر على الخادم تحميل متعهدي الطعام. حاول مرة أخرى."
+  },
+  "The server did not return this request.": {
+    "en": "The server did not return this request.",
+    "nl": "De server gaf deze aanvraag niet terug.",
+    "ar": "لم يُرجع الخادم هذا الطلب."
+  },
+  "The server did not return your offerings.": {
+    "en": "The server did not return your offerings.",
+    "nl": "De server gaf je aanbod niet terug.",
+    "ar": "لم يُرجع الخادم عروضك."
+  },
+  "The server returned no comparison.": {
+    "en": "The server returned no comparison.",
+    "nl": "De server gaf geen vergelijking terug.",
+    "ar": "لم يُرجع الخادم أي مقارنة."
+  },
+  "The server returned no customer contact releases.": {
+    "en": "The server returned no customer contact releases.",
+    "nl": "De server gaf geen vrijgegeven klantcontacten terug.",
+    "ar": "لم يُرجع الخادم أي جهات اتصال للعملاء."
+  },
+  "The server returned no proposal.": {
+    "en": "The server returned no proposal.",
+    "nl": "De server gaf geen voorstel terug.",
+    "ar": "لم يُرجع الخادم أي عرض."
+  },
+  "The server returned no proposals.": {
+    "en": "The server returned no proposals.",
+    "nl": "De server heeft geen voorstellen teruggegeven.",
+    "ar": "لم يُرجع الخادم أي عروض."
+  },
+  "The server returned no request details.": {
+    "en": "The server returned no request details.",
+    "nl": "De server gaf geen aanvraagdetails terug.",
+    "ar": "لم يُرجع الخادم تفاصيل الطلب."
+  },
+  "The server returned no requests.": {
+    "en": "The server returned no requests.",
+    "nl": "De server heeft geen aanvragen teruggegeven.",
+    "ar": "لم يُرجع الخادم أي طلبات."
+  },
+  "There are no requests with this status.": {
+    "en": "There are no requests with this status.",
+    "nl": "Er zijn geen aanvragen met deze status.",
+    "ar": "لا توجد طلبات بهذه الحالة."
+  },
+  "This is how customers see your business.": {
+    "en": "This is how customers see your business.",
+    "nl": "Zo zien klanten je bedrijf.",
+    "ar": "هكذا يرى العملاء نشاطك."
+  },
+  "This proposal needs reconfirmation. The current price is not a final price.": {
+    "en": "This proposal needs reconfirmation. The current price is not a final price.",
+    "nl": "Dit voorstel moet opnieuw worden bevestigd. De huidige prijs is nog geen definitieve prijs.",
+    "ar": "يحتاج هذا العرض إلى تأكيد مجدد. السعر الحالي ليس سعرًا نهائيًا."
+  },
+  "This request does not exist.": {
+    "en": "This request does not exist.",
+    "nl": "Deze aanvraag bestaat niet.",
+    "ar": "هذا الطلب غير موجود."
+  },
+  "This request is for the caterer you select.": {
+    "en": "This request is for the caterer you select.",
+    "nl": "De aanvraag gaat naar deze cateraar.",
+    "ar": "هذا الطلب موجه إلى متعهد الطعام الذي تختاره."
+  },
+  "This step could not be saved. Please try again.": {
+    "en": "This step could not be saved. Please try again.",
+    "nl": "Deze stap kon niet worden opgeslagen. Probeer het opnieuw.",
+    "ar": "تعذر حفظ هذه الخطوة. حاول مرة أخرى."
+  },
+  "This step is not complete yet.": {
+    "en": "This step is not complete yet.",
+    "nl": "Deze stap is nog niet afgerond.",
+    "ar": "هذه الخطوة لم تكتمل بعد."
+  },
+  "Total": {
+    "en": "Total",
+    "nl": "Totaal",
+    "ar": "الإجمالي"
+  },
+  "Total budget (€ incl. VAT), 0 = unknown": {
+    "en": "Total budget (€ incl. VAT), 0 = unknown",
+    "nl": "Budget totaal (€ incl. btw), 0 = onbekend",
+    "ar": "الميزانية الإجمالية (€ شاملة الضريبة)، 0 = غير معروف"
+  },
+  "Total dishes": {
+    "en": "Total dishes",
+    "nl": "Totaal gerechten",
+    "ar": "إجمالي الأطباق"
+  },
+  "Track invitations, proposals and deadlines.": {
+    "en": "Track invitations, proposals and deadlines.",
+    "nl": "Volg uitnodigingen, voorstellen en deadlines.",
+    "ar": "تابع الدعوات والعروض والمواعيد النهائية."
+  },
+  "Transport": {
+    "en": "Transport",
+    "nl": "Vervoer",
+    "ar": "النقل"
+  },
+  "Transport incl. VAT (€)": {
+    "en": "Transport incl. VAT (€)",
+    "nl": "Vervoer incl. btw (€)",
+    "ar": "النقل شامل الضريبة (€)"
+  },
+  "Try a different search.": {
+    "en": "Try a different search.",
+    "nl": "Pas je zoekopdracht aan.",
+    "ar": "جرّب بحثًا مختلفًا."
+  },
+  "Try again": {
+    "en": "Try again",
+    "nl": "Opnieuw proberen",
+    "ar": "حاول مرة أخرى"
+  },
+  "Try changing your search or filters.": {
+    "en": "Try changing your search or filters.",
+    "nl": "Pas je zoekopdracht of filters aan.",
+    "ar": "جرّب تغيير البحث أو عوامل التصفية."
+  },
+  "Turkish": {
+    "en": "Turkish",
+    "nl": "Turks",
+    "ar": "تركي"
+  },
+  "Type one dish and tap the check button to add it.": {
+    "en": "Type one dish and tap the check button to add it.",
+    "nl": "Typ één gerecht en tik op het vinkje om het toe te voegen.",
+    "ar": "اكتب طبقًا واحدًا واضغط علامة الصح لإضافته."
+  },
+  "Unavailable": {
+    "en": "Unavailable",
+    "nl": "Niet beschikbaar",
+    "ar": "غير متاح"
+  },
+  "Unknown": {
+    "en": "Unknown",
+    "nl": "Onbekend",
+    "ar": "غير معروف"
+  },
+  "Update note": {
+    "en": "Update note",
+    "nl": "Notitie",
+    "ar": "ملاحظة التحديث"
+  },
+  "Update request": {
+    "en": "Update request",
+    "nl": "Aanvraag bijwerken",
+    "ar": "تحديث الطلب"
+  },
+  "Update your public vendor details": {
+    "en": "Update your public vendor details",
+    "nl": "Werk je openbare aanbiedergegevens bij",
+    "ar": "حدّث بيانات المتعهد العامة"
+  },
+  "Valid until": {
+    "en": "Valid until",
+    "nl": "Geldig tot",
+    "ar": "صالح حتى"
+  },
+  "VAT / tax number (optional)": {
+    "en": "VAT / tax number (optional)",
+    "nl": "Btw-nummer (optioneel)",
+    "ar": "الرقم الضريبي (اختياري)"
+  },
+  "Vegan": {
+    "en": "Vegan",
+    "nl": "Vegan",
+    "ar": "نباتي صرف"
+  },
+  "Vegan options": {
+    "en": "Vegan options",
+    "nl": "Veganistische opties",
+    "ar": "خيارات نباتية صرف"
+  },
+  "Vegan options required": {
+    "en": "Vegan options required",
+    "nl": "Veganistische opties vereist",
+    "ar": "خيارات نباتية صرف مطلوبة"
+  },
+  "Vegetable dishes": {
+    "en": "Vegetable dishes",
+    "nl": "Aantal groentegerechten",
+    "ar": "أطباق خضار"
+  },
+  "Vegetables": {
+    "en": "Vegetables",
+    "nl": "Groente",
+    "ar": "خضار"
+  },
+  "Vegetarian": {
+    "en": "Vegetarian",
+    "nl": "Vegetarisch",
+    "ar": "نباتي"
+  },
+  "Vendor": {
+    "en": "Vendor",
+    "nl": "Aanbieder",
+    "ar": "متعهد"
+  },
+  "Vendor API unavailable": {
+    "en": "Vendor API unavailable",
+    "nl": "API niet beschikbaar",
+    "ar": "واجهة برمجة المتعهد غير متاحة"
+  },
+  "Vendor dashboard": {
+    "en": "Vendor dashboard",
+    "nl": "Vendor dashboard",
+    "ar": "لوحة المتعهد"
+  },
+  "Venue": {
+    "en": "Venue",
+    "nl": "Venue",
+    "ar": "المكان"
+  },
+  "Venue / hall": {
+    "en": "Venue / hall",
+    "nl": "Venue / zaal",
+    "ar": "قاعة / صالة"
+  },
+  "Venue facilities": {
+    "en": "Venue facilities",
+    "nl": "Locatievoorzieningen",
+    "ar": "مرافق المكان"
+  },
+  "Venue name": {
+    "en": "Venue name",
+    "nl": "Naam venue",
+    "ar": "اسم المكان"
+  },
+  "Venue type": {
+    "en": "Venue type",
+    "nl": "Locatie",
+    "ar": "نوع المكان"
+  },
+  "Verification": {
+    "en": "Verification",
+    "nl": "Verificatie",
+    "ar": "التحقق"
+  },
+  "Verified": {
+    "en": "Verified",
+    "nl": "Geverifieerd",
+    "ar": "موثّق"
+  },
+  "Verify code": {
+    "en": "Verify code",
+    "nl": "Code controleren",
+    "ar": "التحقق من الرمز"
+  },
+  "View": {
+    "en": "View",
+    "nl": "Bekijk",
+    "ar": "عرض"
+  },
+  "View caterer": {
+    "en": "View caterer",
+    "nl": "Bekijk cateraar",
+    "ar": "عرض المتعهد"
+  },
+  "View details": {
+    "en": "View details",
+    "nl": "Details bekijken",
+    "ar": "عرض التفاصيل"
+  },
+  "View released contact": {
+    "en": "View released contact",
+    "nl": "Bekijk vrijgegeven contact",
+    "ar": "عرض جهة الاتصال المتاحة"
+  },
+  "View request": {
+    "en": "View request",
+    "nl": "Aanvraag bekijken",
+    "ar": "عرض الطلب"
+  },
+  "Waiting for proposals from caterers.": {
+    "en": "Waiting for proposals from caterers.",
+    "nl": "Wachten op voorstellen van cateraars.",
+    "ar": "بانتظار عروض متعهدي الطعام."
+  },
+  "Warming": {
+    "en": "Warming",
+    "nl": "Warmhouden",
+    "ar": "التسخين"
+  },
+  "Warming trays": {
+    "en": "Warming trays",
+    "nl": "Warmhoudbakken",
+    "ar": "صوانٍ للتسخين"
+  },
+  "Warming trays requested": {
+    "en": "Warming trays requested",
+    "nl": "Warmhoudbakken gewenst",
+    "ar": "مطلوب صوانٍ للتسخين"
+  },
+  "Wedding": {
+    "en": "Wedding",
+    "nl": "Bruiloft",
+    "ar": "زفاف"
+  },
+  "Welcome back": {
+    "en": "Welcome back",
+    "nl": "Welkom terug",
+    "ar": "مرحبًا بعودتك"
+  },
+  "What can you offer?": {
+    "en": "What can you offer?",
+    "nl": "Wat kun je aanbieden?",
+    "ar": "ماذا يمكنك تقديمه؟"
+  },
+  "What do you provide?": {
+    "en": "What do you provide?",
+    "nl": "Wat bied je aan?",
+    "ar": "ماذا تقدم؟"
+  },
+  "What happened": {
+    "en": "What happened",
+    "nl": "Wat er gebeurde",
+    "ar": "ماذا حدث"
+  },
+  "What you offer and how far you travel.": {
+    "en": "What you offer and how far you travel.",
+    "nl": "Wat je aanbiedt en hoe ver je reist.",
+    "ar": "ما تقدمه والمسافة التي تقطعها."
+  },
+  "Where cleanup is not offered, the customer handles it. Deviations appear beside the request.": {
+    "en": "Where cleanup is not offered, the customer handles it. Deviations appear beside the request.",
+    "nl": "Waar opruimen niet wordt aangeboden, regelt de klant dit zelf. Afwijkingen staan naast de klantwens.",
+    "ar": "حيث لا يُعرض التنظيف، يتولاه العميل. تظهر الاختلافات بجانب الطلب."
+  },
+  "Which fulfilment types do you offer?": {
+    "en": "Which fulfilment types do you offer?",
+    "nl": "Welke leveringsvormen bied je aan?",
+    "ar": "ما أنواع التنفيذ التي تقدمها؟"
+  },
+  "Why are you cancelling?": {
+    "en": "Why are you cancelling?",
+    "nl": "Waarom annuleer je?",
+    "ar": "لماذا تلغي؟"
+  },
+  "Withdraw proposal": {
+    "en": "Withdraw proposal",
+    "nl": "Voorstel intrekken",
+    "ar": "سحب العرض"
+  },
+  "Write a review": {
+    "en": "Write a review",
+    "nl": "Schrijf een review",
+    "ar": "اكتب تقييمًا"
+  },
+  "Yes": {
+    "en": "Yes",
+    "nl": "Ja",
+    "ar": "نعم"
+  },
+  "Yes, fully vegetarian": {
+    "en": "Yes, fully vegetarian",
+    "nl": "Ja, volledig vegetarisch",
+    "ar": "نعم، نباتي بالكامل"
+  },
+  "You may name specific dishes here.": {
+    "en": "You may name specific dishes here.",
+    "nl": "Hier mag je specifieke gerechten noemen.",
+    "ar": "يمكنك ذكر أطباق محددة هنا."
+  },
+  "You share your verified contact details with this provider. This is not a booking.": {
+    "en": "You share your verified contact details with this provider. This is not a booking.",
+    "nl": "Je deelt je geverifieerde contactgegevens met deze aanbieder. Dit is geen boeking.",
+    "ar": "تشارك بيانات تواصلك الموثقة مع هذا المتعهد. هذا ليس حجزًا."
+  },
+  "Your account": {
+    "en": "Your account",
+    "nl": "Je account",
+    "ar": "حسابك"
+  },
+  "Your availability": {
+    "en": "Your availability",
+    "nl": "Jouw beschikbaarheid",
+    "ar": "توفرك"
+  },
+  "Your business name": {
+    "en": "Your business name",
+    "nl": "Je bedrijfsnaam",
+    "ar": "اسم نشاطك"
+  },
+  "Your city": {
+    "en": "Your city",
+    "nl": "Je stad",
+    "ar": "مدينتك"
+  },
+  "Your name": {
+    "en": "Your name",
+    "nl": "Je naam",
+    "ar": "اسمك"
+  },
+  "Your packages": {
+    "en": "Your packages",
+    "nl": "Jouw pakketten",
+    "ar": "باقاتك"
+  },
+  "Your photo, name, email and phone": {
+    "en": "Your photo, name, email and phone",
+    "nl": "Je foto, naam, e-mail en telefoon",
+    "ar": "صورتك واسمك وبريدك وهاتفك"
+  },
+  "Your response": {
+    "en": "Your response",
+    "nl": "Jouw reactie",
+    "ar": "ردك"
+  },
+  "Your review": {
+    "en": "Your review",
+    "nl": "Jouw review",
+    "ar": "تقييمك"
+  },
+  "Your verified review has been submitted.": {
+    "en": "Your verified review has been submitted.",
+    "nl": "Je geverifieerde review is verstuurd.",
+    "ar": "تم إرسال تقييمك الموثق."
+  },
+  "Edit": {
+    "en": "Edit",
+    "nl": "Bewerken",
+    "ar": "تعديل"
+  },
+  "Location not set": {
+    "en": "Location not set",
+    "nl": "Locatie niet ingesteld",
+    "ar": "الموقع غير محدد"
+  },
+  "Profile completion": {
+    "en": "Profile completion",
+    "nl": "Profielvoltooiing",
+    "ar": "اكتمال الملف"
+  },
+  "Your profile is ready for customers.": {
+    "en": "Your profile is ready for customers.",
+    "nl": "Je profiel is klaar voor klanten.",
+    "ar": "ملفك جاهز للعملاء."
+  },
+  "Complete your profile to build customer trust.": {
+    "en": "Complete your profile to build customer trust.",
+    "nl": "Maak je profiel af om vertrouwen te wekken.",
+    "ar": "أكمل ملفك لبناء ثقة العملاء."
+  },
+  "These details help us verify your business. Your registered name should match your official documents.": {
+    "en": "These details help us verify your business. Your registered name should match your official documents.",
+    "nl": "Deze gegevens helpen je bedrijf te verifiëren. Je geregistreerde naam moet overeenkomen met je officiële documenten.",
+    "ar": "تساعدنا هذه البيانات في التحقق من نشاطك. يجب أن يطابق الاسم المسجل مستنداتك الرسمية."
+  },
+  "Verification details submitted.": {
+    "en": "Verification details submitted.",
+    "nl": "Verificatiegegevens verstuurd.",
+    "ar": "تم إرسال بيانات التحقق."
+  },
+  "Customers use this information to find vendors who can serve their event.": {
+    "en": "Customers use this information to find vendors who can serve their event.",
+    "nl": "Klanten gebruiken dit om aanbieders te vinden die hun evenement kunnen bedienen.",
+    "ar": "يستخدم العملاء هذه المعلومات للعثور على متعهدين يمكنهم خدمة مناسبتهم."
+  },
+  "Services saved.": {
+    "en": "Services saved.",
+    "nl": "Diensten opgeslagen.",
+    "ar": "تم حفظ الخدمات."
+  },
+  "Preferences saved.": {
+    "en": "Preferences saved.",
+    "nl": "Voorkeuren opgeslagen.",
+    "ar": "تم حفظ التفضيلات."
+  },
+  "Calendar day saved.": {
+    "en": "Calendar day saved.",
+    "nl": "Kalenderdag opgeslagen.",
+    "ar": "تم حفظ يوم التقويم."
+  },
+  "Template saved.": {
+    "en": "Template saved.",
+    "nl": "Sjabloon opgeslagen.",
+    "ar": "تم حفظ القالب."
+  },
+  "Template deleted.": {
+    "en": "Template deleted.",
+    "nl": "Sjabloon verwijderd.",
+    "ar": "تم حذف القالب."
+  },
+  "Customer review": {
+    "en": "Customer review",
+    "nl": "Klantreview",
+    "ar": "تقييم العميل"
+  },
+  "Review response saved.": {
+    "en": "Review response saved.",
+    "nl": "Reviewreactie opgeslagen.",
+    "ar": "تم حفظ الرد على التقييم."
+  },
+  "All loaded reviews already have a response.": {
+    "en": "All loaded reviews already have a response.",
+    "nl": "Alle geladen reviews hebben al een reactie.",
+    "ar": "كل التقييمات المحملة لديها رد بالفعل."
+  },
+  "No vendor reviews returned yet.": {
+    "en": "No vendor reviews returned yet.",
+    "nl": "Nog geen aanbiederreviews ontvangen.",
+    "ar": "لم تُرجع تقييمات للمتعهّد بعد."
+  },
+  "Switch to free": {
+    "en": "Switch to free",
+    "nl": "Wissel naar gratis",
+    "ar": "التحويل إلى المجاني"
+  },
+  "Payment successful": {
+    "en": "Payment successful",
+    "nl": "Betaling gelukt",
+    "ar": "تم الدفع بنجاح"
+  },
+  "Your plan is now active.": {
+    "en": "Your plan is now active.",
+    "nl": "Je abonnement is nu actief.",
+    "ar": "خطتك نشطة الآن."
+  },
+  "dates": {
+    "en": "dates",
+    "nl": "datums",
+    "ar": "تواريخ"
+  },
+  "invoices": {
+    "en": "invoices",
+    "nl": "facturen",
+    "ar": "فواتير"
+  },
+  "views": {
+    "en": "views",
+    "nl": "weergaven",
+    "ar": "مشاهدات"
+  },
+  "requests": {
+    "en": "requests",
+    "nl": "aanvragen",
+    "ar": "طلبات"
+  },
+  "proposals": {
+    "en": "proposals",
+    "nl": "voorstellen",
+    "ar": "عروض"
+  },
+  "steps complete": {
+    "en": "steps complete",
+    "nl": "stappen afgerond",
+    "ar": "خطوات مكتملة"
+  },
+  "of": {
+    "en": "of",
+    "nl": "van",
+    "ar": "من"
+  },
+  "Delete": {
+    "en": "Delete",
+    "nl": "Verwijderen",
+    "ar": "حذف"
+  },
+  "Each enabled fulfilment type has its own minimum and maximum guest count.": {
+    "en": "Each enabled fulfilment type has its own minimum and maximum guest count.",
+    "nl": "Elke ingeschakelde leveringsvorm heeft een eigen minimum en maximum aantal gasten.",
+    "ar": "لكل نوع تنفيذ مفعّل حد أدنى وحد أقصى لعدد الضيوف."
+  },
+  "Starts on admin approval. No billing details needed. After expiry you explicitly choose paid or Free. Without an active plan new leads stop.": {
+    "en": "Starts on admin approval. No billing details needed. After expiry you explicitly choose paid or Free. Without an active plan new leads stop.",
+    "nl": "Start na goedkeuring door de beheerder. Geen betaalgegevens nodig. Na afloop kies je expliciet betaald of Gratis. Zonder actief abonnement stoppen nieuwe leads.",
+    "ar": "يبدأ بعد موافقة الإدارة. لا حاجة لبيانات دفع. بعد الانتهاء تختار صراحة المدفوع أو المجاني. بدون خطة نشطة تتوقف الطلبات الجديدة."
+  }
+}

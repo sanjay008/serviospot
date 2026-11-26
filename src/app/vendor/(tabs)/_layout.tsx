@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon, type IconName } from '@/flow2/components/Icon';
 import { palette } from '@/flow2/constants/theme';
+import { useApp } from '@/flow2/state/app';
 import { useType } from '@/hooks/use-type';
 
 function TabIcon({ name, color, size }: { name: IconName; color: string; size: number }) {
@@ -11,6 +12,8 @@ function TabIcon({ name, color, size }: { name: IconName; color: string; size: n
 }
 
 export default function VendorTabsLayout() {
+  const { t } = useApp();
+  const tx = (en: string) => t({ en, nl: en });
   const insets = useSafeAreaInsets();
   const type = useType();
   const bottom = Math.max(insets.bottom, Platform.OS === 'ios' ? 4 : 8);
@@ -49,24 +52,24 @@ export default function VendorTabsLayout() {
     >
       <Tabs.Screen
         name="index"
-        options={{ title: 'Home', tabBarIcon: ({ color, size }) => <TabIcon name="home" color={String(color)} size={size} /> }}
+        options={{ title: tx('Home'), tabBarIcon: ({ color, size }) => <TabIcon name="home" color={String(color)} size={size} /> }}
       />
       <Tabs.Screen
         name="leads"
-        options={{ title: 'Requests', tabBarIcon: ({ color, size }) => <TabIcon name="inbox" color={String(color)} size={size} /> }}
+        options={{ title: tx('Requests'), tabBarIcon: ({ color, size }) => <TabIcon name="inbox" color={String(color)} size={size} /> }}
       />
       <Tabs.Screen
         name="packages"
-        options={{ title: 'Packages', tabBarIcon: ({ color, size }) => <TabIcon name="box" color={String(color)} size={size} /> }}
+        options={{ title: tx('Packages'), tabBarIcon: ({ color, size }) => <TabIcon name="box" color={String(color)} size={size} /> }}
       />
       <Tabs.Screen name="menu" options={{ href: null }} />
       <Tabs.Screen
         name="chat"
-        options={{ title: 'Chat', tabBarIcon: ({ color, size }) => <TabIcon name="chat" color={String(color)} size={size} /> }}
+        options={{ title: tx('Chat'), tabBarIcon: ({ color, size }) => <TabIcon name="chat" color={String(color)} size={size} /> }}
       />
       <Tabs.Screen
         name="more"
-        options={{ title: 'Profile', tabBarIcon: ({ color, size }) => <TabIcon name="person" color={String(color)} size={size} /> }}
+        options={{ title: tx('Profile'), tabBarIcon: ({ color, size }) => <TabIcon name="person" color={String(color)} size={size} /> }}
       />
       <Tabs.Screen name="proposals" options={{ href: null }} />
     </Tabs>

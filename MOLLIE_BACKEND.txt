@@ -1,141 +1,115 @@
-ServioSpot — Mollie payment backend
-=================================
+ServioSpot Mollie — completed backend contract
+=============================================
 
-The mobile app never stores a Mollie API key and never sends a price.
-The server looks up the plan price, creates the Mollie payment, and
-activates the plan only after Mollie confirms it.
+The backend below is what the app calls. The app reads only "data".
+It never stores a Mollie key and never sends a price.
 
-App flow
---------
-1. Vendor taps "Pay for gold/platinum with Mollie".
-2. App calls createMolliePayment with the plan code and a return deep link.
-3. Server returns payment_id + checkout_url.
-4. App opens the Mollie checkout page.
-5. After payment, Mollie sends the vendor back to:
-   serviospot://payment/mollie
-6. App calls getMolliePayment. The plan changes only when status is
-   paid or authorized.
-7. Mollie also calls mollieWebhook. That webhook is the source of truth.
-   Do not trust the app return alone.
+Base URL: POST https://app.erpportaal.nl/api/serviospot/{endpoint}
+Auth: vendor token in the JSON body, same as the other ServioSpot calls.
 
-Free plan
----------
-Free does not use Mollie. The app still calls the existing endpoint:
-  POST /api/serviospot/saveSubscription
-  { "token": "...", "plan": "free" }
-
-Server setup
-------------
-1. Create a Mollie account: https://www.mollie.com
-2. Use the test API key while building (starts with test_).
-3. Put the key only in the server environment:
-     MOLLIE_API_KEY=test_xxxxxxxx
-4. Switch to the live key (live_...) only in production.
-5. Prices stay in the plans table (integer euro cents). Example:
-     gold     1995   -> Mollie value "19.95"
-     platinum from getPlans price_cents
-   Mollie amount.value must be a string with 2 decimals, currency EUR.
-
-Endpoint 1 — create payment
----------------------------
-POST /api/serviospot/createMolliePayment
-Auth: vendor token in the JSON body (same as the other ServioSpot calls).
-
-Request:
 {
-  "token": "<vendor token>",
+  "status_code": 200,
+  "status": true,
+  "message": "...",
+  "data": { }
+}
+
+1. Decide if Mollie checkout should open
+-----------------------------------------
+POST /api/serviospot/getPlans
+Body: { "company_login": "catering" } or the vendor token.
+
+data.payment
+  "mollie" or "live"  -> open Mollie checkout
+  missing, "preview", or anything else -> do not open Mollie
+
+data.plans[]
+  code, name, price_cents as a number (1995 means €19.95)
+
+getSubscription may also return data.payment. The app checks getPlans first.
+
+2. Free plan
+------------
+POST /api/serviospot/saveSubscription
+{ "token": "<vendor_token>", "plan": "free" }
+
+Free does not open Mollie.
+
+3. Gold / Platinum
+------------------
+POST /api/serviospot/createMolliePayment
+{
+  "token": "<vendor_token>",
   "plan": "gold",
   "redirect_url": "serviospot://payment/mollie"
 }
 
-Rules:
-- plan must be "gold" or "platinum". Reject "free" and unknown codes.
-- Ignore any amount sent by the app. Read price_cents for that plan.
-- Save a payment row before calling Mollie:
-    id, user_id, plan, amount_cents, currency, status=open,
-    mollie_payment_id (filled after Mollie replies)
-- Call Mollie:
+plan is only "gold" or "platinum". The app does not send an amount.
 
-  POST https://api.mollie.com/v2/payments
-  Authorization: Bearer {MOLLIE_API_KEY}
-  Content-Type: application/json
-
-  {
-    "amount": { "currency": "EUR", "value": "19.95" },
-    "description": "ServioSpot Gold",
-    "redirectUrl": "<redirect_url from the app>",
-    "webhookUrl": "https://app.erpportaal.nl/api/serviospot/mollieWebhook",
-    "metadata": { "user_id": 200, "plan": "gold", "local_payment_id": 15 }
-  }
-
-Reply to the app (inside the normal data envelope):
+data:
 {
   "payment_id": "tr_xxx",
-  "checkout_url": "https://www.mollie.com/checkout/select-method/xxx"
+  "checkout_url": "https://www.mollie.com/checkout/..."
 }
 
-checkout_url is Mollie's _links.checkout.href.
-payment_id is Mollie's payment id (tr_...).
+Both must be non-empty strings. If either is missing, the app shows:
+The server did not return a Mollie checkout link.
 
-Endpoint 2 — webhook (source of truth)
---------------------------------------
-POST /api/serviospot/mollieWebhook
-Auth: none. This is called by Mollie, not by the app.
-Body from Mollie: { "id": "tr_xxx" }
+The app opens checkout_url. Mollie returns to serviospot://payment/mollie.
+The app then calls:
 
-Steps:
-1. GET https://api.mollie.com/v2/payments/{id}
-   Authorization: Bearer {MOLLIE_API_KEY}
-2. Match id to the saved payment row.
-3. Save the Mollie status (open, pending, paid, authorized, canceled,
-   expired, failed).
-4. Only when status is paid (or authorized):
-   - set the vendor plan
-   - mark the payment paid
-   - create an invoice row for getInvoices
-5. If the same webhook arrives again, do nothing (idempotent).
-6. Respond HTTP 200 quickly. Mollie retries on non-2xx.
-
-Endpoint 3 — status for the app
--------------------------------
 POST /api/serviospot/getMolliePayment
-Auth: vendor token. The vendor may only read their own payment.
+{ "token": "<vendor_token>", "payment_id": "tr_xxx" }
 
-Request:
-{
-  "token": "<vendor token>",
-  "payment_id": "tr_xxx"
-}
-
-Steps:
-1. Load the payment row for this user + payment_id.
-2. Refresh it with GET https://api.mollie.com/v2/payments/{id}.
-3. If Mollie says paid, activate the plan the same way as the webhook.
-
-Reply:
+data:
 {
   "payment_id": "tr_xxx",
   "status": "paid",
   "plan": "gold"
 }
 
-The app treats only "paid" and "authorized" as success.
-"open" and "pending" stay pending.
-"canceled", "expired", and "failed" are errors. The plan must not change.
+data.status:
+  paid / authorized                         success, plan is active
+  open / pending                            still waiting
+  canceled / cancelled / expired / failed   error, plan must not change
 
-Existing reads the app already uses
-------------------------------------
-POST /api/serviospot/getPlans         public plan list with price_cents
-POST /api/serviospot/getSubscription  current vendor plan
-POST /api/serviospot/getInvoices      invoices created after a paid webhook
+The app does not activate a plan from the deep link alone.
 
-Test card (Mollie test mode)
-----------------------------
-Card number: 4545 4545 4545 4545
+4. Invoices
+-----------
+POST /api/serviospot/getInvoices
+{ "token": "<vendor_token>" }
+
+data.invoices[]:
+  id, number, plan, amount_cents, status, date
+
+Rows appear after a successful Mollie payment.
+
+5. Current subscription
+-----------------------
+POST /api/serviospot/getSubscription
+{ "token": "<vendor_token>" }
+
+Current plan is data.plan or data.code: free, gold, or platinum.
+data.payment may be "mollie", "live", or "preview".
+
+6. App sequence
+---------------
+Vendor token is already saved.
+getPlans: Mollie UI only when data.payment is mollie or live.
+Free: saveSubscription with "free".
+Gold/Platinum while Mollie is on: createMolliePayment, open checkout_url,
+then getMolliePayment. Success only for paid or authorized.
+Then refresh getSubscription and getInvoices.
+
+7. Test card
+------------
+4545 4545 4545 4545
 Any future expiry, any CVV.
 
-Do not
-------
-- Do not put MOLLIE_API_KEY in the Expo app or in EXPO_PUBLIC_ vars.
-- Do not activate a plan from redirect_url alone.
-- Do not trust an amount sent by the phone.
+8. Do not
+---------
+Do not put the Mollie API key in the app.
+Do not send a price from the phone.
+Do not mark a plan paid from the redirect alone.
+Do not call saveSubscription for gold or platinum while Mollie is on.
